@@ -99,9 +99,9 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
    // Ogni gioco serve solo la sua pagina: il server del 2D non apre il 3D e il server del 3D non apre il 2D (EXPERIMENTAL=1 nel .env toglie il blocco per le prove).
    // "real" resta spento per chi non è sul PC.
    if(process.env.EXPERIMENTAL!=='1'){const p=url.pathname,onPc=['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
-    if((edition==='3d'?['/index.html','/3d','/3d.html','/scarica']:['/3d','/3d.html']).includes(p)||!onPc&&['/real','/real.html'].includes(p)){res.writeHead(302,{Location:'/'});res.end();return;}}
+    if((edition==='3d'?['/index.html','/3d','/3d.html']:['/3d','/3d.html']).includes(p)||!onPc&&['/real','/real.html'].includes(p)){res.writeHead(302,{Location:'/'});res.end();return;}}
    const prefix=url.pathname.startsWith('/shared/')?'shared':'client';
-   const rel=decodeURIComponent(url.pathname==='/'?(edition==='3d'?'3d.html':'index.html'):url.pathname==='/admin'?'admin.html':url.pathname==='/3d'?'3d.html':url.pathname==='/real'?'real.html':url.pathname==='/scarica'?'scarica.html':url.pathname.replace(/^\/(?:shared\/)?/,''));
+   const rel=decodeURIComponent(url.pathname==='/'?(edition==='3d'?'3d.html':'index.html'):url.pathname==='/admin'?'admin.html':url.pathname==='/3d'?'3d.html':url.pathname==='/real'?'real.html':url.pathname==='/scarica'?(edition==='3d'?'scarica-3d.html':'scarica.html'):url.pathname.replace(/^\/(?:shared\/)?/,''));
    const base=pathResolve(root,prefix),path=pathResolve(base,rel);if(!path.startsWith(base+sep)||rel.split('/').some(p=>p.startsWith('.')))return json(403,{error:'Accesso negato'});
    const file=await readFile(path);res.writeHead(200,{'Content-Type':({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.json':'application/json'})[extname(path)]||'application/octet-stream','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Permissions-Policy':'camera=(), microphone=(self)','Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:file);
   }catch(e){if(!res.headersSent)json(e.status||(e.code==='ENOENT'?404:500),{error:e.status?e.message:e.code==='ENOENT'?'Risorsa non trovata':'Errore del server'});else res.end();}

@@ -3,7 +3,7 @@ data/
 .env
 test-results/
 mobile/www/
-dist/
+dist/*
 # non servono al server online e sono pesanti o privati
 tools/modelli/sorgenti/
 tools/modelli/prove/
@@ -13,6 +13,6 @@ android/app/build/
 android/local.properties
 android-3d/
 *.zip
-*.apk
 *.sqlite
 *.sqlite-*
+!dist/HUMANA-3D.apk
