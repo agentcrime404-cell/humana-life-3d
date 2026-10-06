@@ -1,4 +1,4 @@
-import {cleanAvatar} from '../shared/avatar.js';
+import {cleanAvatar,cleanPhoto} from '../shared/avatar.js';
 import {LOOKS} from '../shared/looks.js';import {setNapoli} from '../shared/napoli.js';import {registerMergellina,registerMallFloor,EXTRA_BLOCKS} from '../shared/world.js';import {arenaBlocks} from '../shared/catalog.js';import {Arena} from './arena.js';
 // Zona Mergellina di HUMANA life 3D (mappa vera OpenStreetMap), se il file della mappa esiste.
 let napoliLoaded=false;function loadMergellina(){if(napoliLoaded)return;napoliLoaded=true;try{setNapoli(JSON.parse(readFileSync(new URL('../client/assets/world/napoli/map/mergellina.json',import.meta.url),'utf8')));registerMergellina();}catch(e){console.warn('Mergellina non caricata:',e.message);}}
@@ -48,12 +48,12 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
      {const old=req.headers.authorization?.replace(/^Bearer /,''),prev=resolve(db,old);if(prev){let a={};try{a=JSON.parse(prev.avatar);}catch{}if(a.guest)return json(200,{token:old,user:publicUser(prev),created:false});}}
      if(!rate(req.socket.remoteAddress+'guest',8))return json(429,{error:'Troppi ingressi da ospite. Riprova fra un minuto.'});
      const look=Number.isInteger(body.look)&&body.look>=0&&body.look<LOOKS.length?body.look:0,hashed=await hashPassword(randomSecret());let guest=null;
-     for(let i=0;i<20&&!guest;i++){const name=LOOKS[look].name+'_'+(1000+Math.floor(Math.random()*9000));try{db.prepare('INSERT INTO users(id,username,password,avatar) VALUES(?,?,?,?)').run(randomUUID(),name,hashed,JSON.stringify({color:'#41d9cf',accessory:'none',body:'regular',glasses:false,look,guest:true}));guest=db.prepare('SELECT * FROM users WHERE username=?').get(name);}catch{}}
+     for(let i=0;i<20&&!guest;i++){const name=LOOKS[look].name+'_'+(1000+Math.floor(Math.random()*9000));try{db.prepare('INSERT INTO users(id,username,password,avatar) VALUES(?,?,?,?)').run(randomUUID(),name,hashed,JSON.stringify({color:'#41d9cf',accessory:'none',body:'regular',glasses:false,look,guest:true,...(edition==='3d'&&cleanPhoto(body.photo)?{photo:cleanPhoto(body.photo)}:{})}));guest=db.prepare('SELECT * FROM users WHERE username=?').get(name);}catch{}}
      if(!guest)return json(503,{error:'Non riesco a creare il profilo ospite. Riprova.'});return json(200,{token:token(db,guest.id),user:publicUser(guest),created:true});
     }
     const raw=req.headers.authorization?.replace(/^Bearer /,'');const user=resolve(db,raw);if(!user)return json(401,{error:'Accedi per continuare'});
     // Cambio del personaggio pronto (vale per il 3D; il 2D non cambia).
-    if(url.pathname==='/api/look'&&req.method==='POST'){if(!Number.isInteger(body.look)||body.look<0||body.look>=LOOKS.length)return json(400,{error:'Personaggio non valido'});const avatar={...JSON.parse(user.avatar),look:body.look};db.prepare('UPDATE users SET avatar=? WHERE id=?').run(JSON.stringify(avatar),user.id);const active=game.players.get(user.id);if(active)active.avatar=avatar;return json(200,{...publicUser(user),avatar});}
+    if(url.pathname==='/api/look'&&req.method==='POST'){if(!Number.isInteger(body.look)||body.look<0||body.look>=LOOKS.length)return json(400,{error:'Personaggio non valido'});const avatar={...JSON.parse(user.avatar),look:body.look},ph=edition==='3d'?cleanPhoto(body.photo):null;if(ph)avatar.photo=ph;else delete avatar.photo;db.prepare('UPDATE users SET avatar=? WHERE id=?').run(JSON.stringify(avatar),user.id);const active=game.players.get(user.id);if(active)active.avatar=avatar;return json(200,{...publicUser(user),avatar});}
     if(url.pathname==='/api/map/edits'&&req.method==='GET')return json(200,{doc:editor.doc,admin:editor.isAdmin(user)});
     if(url.pathname==='/api/admin/reload'&&req.method==='POST'){if(!editor.isAdmin(user))return json(403,{error:'Solo gli admin'});let n=0;for(const p of game.players.values()){game.send(p.ws,{type:'appUpdate'});n++;}return json(200,{ok:true,players:n});}
     if(url.pathname==='/api/admin/map'&&req.method==='POST'){try{return json(200,editor.apply(user,body));}catch(e){return json(e.status||500,{error:e.message});}}
