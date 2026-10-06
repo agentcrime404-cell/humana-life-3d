@@ -1,4 +1,4 @@
-import {CATALOG as BASE_CATALOG,WEAR_ITEMS,WEAR,HAIR_STYLES,BEARD_STYLES,HAIR_COLORS,BARBER_PRICE,cleanSettings,SHOP_ROOMS,ATM_RATE,VILLA_PRICE,VILLA_RENT,VILLA_RENT_DAYS,DAILY_FICHES,SLOT_BETS,SLOT_SYMBOLS,VEHICLES,VEHICLE,DRINKS,JUKEBOX,JUKEBOX_PRICE,JUKEBOX_MINUTES,DEALERS,VEHICLES_3D,BOATS,FUNFAIR,ridePlan,BOAT_PRICE,BOAT_SPEED} from '../shared/catalog.js';
+import {CATALOG as BASE_CATALOG,WEAR_ITEMS,WEAR,HAIR_STYLES,BEARD_STYLES,HAIR_COLORS,BARBER_PRICE,cleanSettings,SHOP_ROOMS,ATM_RATE,VILLA_PRICE,VILLA_RENT,VILLA_RENT_DAYS,DAILY_FICHES,SLOT_BETS,SLOT_SYMBOLS,VEHICLES,VEHICLE,DRINKS,JUKEBOX,JUKEBOX_PRICE,JUKEBOX_MINUTES,DEALERS,VEHICLES_3D,BOATS,FUNFAIR,ARENA,ridePlan,BOAT_PRICE,BOAT_SPEED} from '../shared/catalog.js';
 import {randomInt} from 'node:crypto';
 import {MAPS,canStand,distance} from '../shared/world.js';
 import {state,ensureState,savePlayer} from './storage.js';
@@ -33,7 +33,7 @@ export class Living{
  lastVehicle(id){const v=state(this.db,id).progress.activeVehicle;return v&&this.canUse(id,v)?v:null;}
  garage(id){const g=state(this.db,id).progress,p=this.game.players.get(id);return {balance:this.db.prepare('SELECT balance FROM player_state WHERE user_id=?').get(id).balance,active:p?.vehicle||null,vehicles:[...VEHICLES,...VEHICLES_3D.filter(v=>(g.vehicles||[]).includes(v.id))].map(v=>({...v,owned:(g.vehicles||[]).includes(v.id),until:(g.rentals?.[v.id]||0)>Date.now()?g.rentals[v.id]:0}))};}
  route(path,method,user,b){
-  const id=user.id,db=this.db,p=this.game.players.get(id);ensureState(db,id);
+  const id=user.id,db=this.db,p=this.game.players.get(id);ensureState(db,id);if(p?.arena&&method==='POST'&&['/api/vehicle/','/api/boat','/api/giostra'].some(q=>path.startsWith(q)))fail('Esci prima dall’arena');
   if(path==='/api/state'&&method==='GET')return this.snapshot(id);
   if(path==='/api/vehicles'&&method==='GET')return this.garage(id);
   if(path==='/api/dealer'&&method==='POST'){const d=DEALERS.find(q=>q.id===b.shop);if(!d)fail('Negozio sconosciuto');const g=state(db,id).progress;return {shop:d.id,balance:db.prepare('SELECT balance FROM player_state WHERE user_id=?').get(id).balance,active:p?.vehicle||null,vehicles:VEHICLES_3D.filter(v=>v.shop===d.id).map(v=>({...v,owned:(g.vehicles||[]).includes(v.id),until:0}))};}
@@ -52,6 +52,9 @@ export class Living{
   // Bancomat: cambia gemme in monete solo vicino a uno sportello (strada o interno della banca).
   if(path==='/api/atm/exchange'&&method==='POST'){const gems=Number(b.gems);if(!Number.isInteger(gems)||gems<1||gems>20)fail('Scegli da 1 a 20 gemme');if(!p||!MAPS[p.room]?.props.some(q=>q.kind==='atm'&&distance(q,p)<2))fail('Avvicinati a un bancomat',403);
    const changed=db.prepare("UPDATE player_state SET progress=json_set(progress,'$.gems',coalesce(json_extract(progress,'$.gems'),0)-?),balance=balance+? WHERE user_id=? AND coalesce(json_extract(progress,'$.gems'),0)>=?").run(gems,gems*ATM_RATE,id,gems).changes;if(!changed)fail('Gemme insufficienti');return this.snapshot(id);}
+  // Arena paintball (solo 3D): si noleggia l'arma al chiosco-armeria e il server ti porta dentro; `/api/arena/leave` ti riporta fuori.
+  if(path==='/api/arena/join'&&method==='POST'){const ar=this.game.arena;if(!ar)fail('Arena non disponibile');const W=ARENA.weapons[b.weapon];if(!W)fail('Arma non valida');ar.checkJoin(p);this.pay(id,W.rent);ar.join(p,b.weapon);return {...this.snapshot(id),arena:ar.info()};}
+  if(path==='/api/arena/leave'&&method==='POST'){this.game.arena?.leave(p,'Sei uscito dall’arena');return {...this.snapshot(id)};}
   // Luna park (solo 3D): si paga alla biglietteria e si viene seduti sulla giostra scelta; il giro dura qualche decina di secondi per tutti gli altri giocatori che guardano.
   if(path==='/api/giostra'&&method==='POST'){const R=FUNFAIR.rides[b.art];if(!R||!p||p.room!=='lungomare'||distance(FUNFAIR.booth,p)>6)fail('Vai alla biglietteria del luna park',403);if(p.seat||p.vehicle||p.ride)fail('Scendi prima dal mezzo');this.pay(id,R.price);const plan=ridePlan(b.art);p.input={x:0,y:0};p.seat='giostra';p.rideArt=b.art;p.rideA=plan.a0;p.ride={pts:plan.pts,uniform:true,a0:plan.a0,da:plan.da,t0:Date.now(),duration:R.seconds*1000,to:plan.to,msg:'🎡 Giro finito: sei sceso dalla giostra'};Object.assign(p,plan.pts[0]);return {...this.snapshot(id),seconds:R.seconds};}
   if(path==='/api/boat'&&method==='POST'){const B=p&&BOATS[p.room];if(!B||distance(B.dock,p)>4)fail('Vai al noleggio barche sul molo',403);if(p.seat||p.vehicle||p.ride)fail('Scendi prima dal mezzo');this.pay(id,BOAT_PRICE);const pts=[...B.route,...[...B.route].reverse().slice(1)].map(q=>({x:q[0],y:q[1]}));let len=0;for(let i=1;i<pts.length;i++)len+=distance(pts[i-1],pts[i]);p.input={x:0,y:0};p.seat='boat';const sp=B.speed||BOAT_SPEED;p.ride={pts,t0:Date.now(),duration:len/sp*1000,to:{x:B.dock.x,y:B.dock.y,name:'il molo'},boat:true};Object.assign(p,pts[0]);return {...this.snapshot(id),seconds:Math.round(len/sp)};}

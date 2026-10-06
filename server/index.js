@@ -1,5 +1,5 @@
 import {cleanAvatar} from '../shared/avatar.js';
-import {LOOKS} from '../shared/looks.js';import {setNapoli} from '../shared/napoli.js';import {registerMergellina,registerMallFloor} from '../shared/world.js';
+import {LOOKS} from '../shared/looks.js';import {setNapoli} from '../shared/napoli.js';import {registerMergellina,registerMallFloor,EXTRA_BLOCKS} from '../shared/world.js';import {arenaBlocks} from '../shared/catalog.js';import {Arena} from './arena.js';
 // Zona Mergellina di HUMANA life 3D (mappa vera OpenStreetMap), se il file della mappa esiste.
 let napoliLoaded=false;function loadMergellina(){if(napoliLoaded)return;napoliLoaded=true;try{setNapoli(JSON.parse(readFileSync(new URL('../client/assets/world/napoli/map/mergellina.json',import.meta.url),'utf8')));registerMergellina();}catch(e){console.warn('Mergellina non caricata:',e.message);}}
 import http from 'node:http';import https from 'node:https';import {readFileSync,createReadStream} from 'node:fs';import {readFile,stat} from 'node:fs/promises';import {gzipSync} from 'node:zlib';import {fileURLToPath} from 'node:url';import {resolve as pathResolve,extname,sep,dirname as pathDirname,join as pathJoin} from 'node:path';import {randomUUID} from 'node:crypto';import {WebSocketServer} from 'ws';
@@ -13,7 +13,7 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
  if(edition==='3d'){loadMergellina();registerMallFloor();} // la zona Mergellina esiste solo in HUMANA life 3D
  const db=database(dbPath),game=new Game(db),limits=new Map();
  const zipped=new Map();function rate(key,max){const now=Date.now();let r=limits.get(key);if(!r||now-r.time>60000)limits.set(key,r={time:now,n:0});if(limits.size>10000)limits.delete(limits.keys().next().value);return ++r.n<=max;}
- const living=new Living(db,game);living.edition=edition;const editor=new MapEditor(db,game);const jobs=new Jobs(db,game);game.jobs=jobs;const phone=new Phone(db,game);game.phone=phone;game.living=living;const pay=payments(db);
+ const living=new Living(db,game);living.edition=edition;const editor=new MapEditor(db,game);const jobs=new Jobs(db,game);game.jobs=jobs;const phone=new Phone(db,game);game.phone=phone;game.living=living;if(edition==='3d'){if(!EXTRA_BLOCKS.length)EXTRA_BLOCKS.push(...arenaBlocks());game.arena=new Arena(game);}const pay=payments(db);
  const handler=async(req,res)=>{
   const json=(code,data)=>{res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
   try{

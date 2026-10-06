@@ -129,3 +129,18 @@ export const rideGeom=art=>{const R=FUNFAIR.rides[art];if(!R)return null;const S
 export function ridePlan(art){const R=FUNFAIR.rides[art],G=rideGeom(art);if(!R)return null;const N=40,pts=[],wheel=art==='ruota-panoramica',a0=wheel?Math.PI:0,da=Math.PI*2*R.laps;
  for(let k=0;k<=N*R.laps;k++){const a=a0+Math.PI*2*k/N;pts.push(wheel?{x:R.x+G.rho*Math.sin(a),y:R.y}:{x:R.x+G.rho*Math.cos(a),y:R.y+G.rho*Math.sin(a)});}
  return {pts,a0,da,to:{x:R.x-G.S/2-1.8,y:R.y+(wheel?3.5:0),name:R.name}};}
+
+// Arena paintball (solo HUMANA life 3D): campo recintato nello spiazzo a est del Lungomare, con squadre rossa e blu, armi a vernice (nessun sangue)
+// e chiosco-armeria all'ingresso. Si entra solo dal chiosco (il server ti sposta dentro); fuori dal campo nessuno può essere colpito.
+// Ostacoli = [x,y,larghezza,altezza,colore]: fermano i passi e i colpi.
+export const ARENA={x0:150,y0:80,x1:182,y1:118,kiosk:{x:147.2,y:110.5},exit:{x:148.2,y:114},target:15,hp:100,downSec:4,reward:10,
+ weapons:{
+  pistola:{name:'Pistola a vernice',emoji:'🔫',rent:0,dmg:34,cd:.33,mag:12,reload:1.6,range:22,spread:2,assist:6,note:'Leggera e precisa, 3 colpi per eliminare'},
+  fucile:{name:'Fucile a vernice',emoji:'🎯',rent:5,dmg:70,cd:1.1,mag:5,reload:2.4,range:38,spread:.4,assist:4,note:'Lento ma a lunga distanza, 2 colpi'},
+  mitraglietta:{name:'Mitraglietta a vernice',emoji:'💥',rent:8,dmg:14,cd:.11,mag:40,reload:2.2,range:18,spread:6,assist:5,note:'Raffica veloce, poco precisa'}},
+ spawns:{red:[[152.6,88],[152.6,92],[152.6,96],[152.6,102],[152.6,106],[152.6,110]],blue:[[179.4,88],[179.4,92],[179.4,96],[179.4,102],[179.4,106],[179.4,110]]},
+ obstacles:[[163,95.5,6,7,'#2ec4b6'],[155,88,4,2.2,'#ffb703'],[173,88,4,2.2,'#ffb703'],[155,108.8,4,2.2,'#ffb703'],[173,108.8,4,2.2,'#ffb703'],
+  [158,97,2.2,5,'#3a86ff'],[171.8,97,2.2,5,'#e63946'],[154.4,92,1.6,5,'#e63946'],[154.4,101,1.6,5,'#e63946'],[176,92,1.6,5,'#3a86ff'],[176,101,1.6,5,'#3a86ff'],
+  [160,84,2,2,'#8338ec'],[170,84,2,2,'#8338ec'],[160,113,2,2,'#8338ec'],[170,113,2,2,'#8338ec'],[165,87.5,2,2,'#ff8a3d'],[165,109.5,2,2,'#ff8a3d']]};
+// Rettangoli [x0,y0,x1,y1] che bloccano chi cammina: recinto (spesso mezzo metro) e ostacoli. Registrati in EXTRA_BLOCKS di shared/world.js (solo 3D).
+export const arenaBlocks=()=>{const A=ARENA,t=.5;return [[A.x0-t,A.y0-t,A.x1+t,A.y0],[A.x0-t,A.y1,A.x1+t,A.y1+t],[A.x0-t,A.y0,A.x0,A.y1],[A.x1,A.y0,A.x1+t,A.y1],...A.obstacles.map(([x,y,w,h])=>[x,y,x+w,y+h])];};

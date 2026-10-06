@@ -20,14 +20,15 @@ export class Game{
     if(this.players.size>=32)return ws.close(4010,'Server pieno');
     player={...publicUser(user),...restore(this.db,user.id),ws,input:{x:0,y:0},lastInput:Date.now(),lastChat:0,voice:false,seat:null,moving:false};if(this.living&&player.room==='lungomare')player.vehicle=this.living.lastVehicle(user.id);
     if(player.room.startsWith('home:')&&!this.living?.homeAllowed(player.room.slice(5),player.id))Object.assign(player,{room:'lungomare',...MAPS.lungomare.spawn});
-    this.auth.set(player,{token:m.token,checked:Date.now()});this.players.set(user.id,player);clearTimeout(timer);this.send(ws,{type:'welcome',id:user.id});if(this.mapDoc)this.send(ws,{type:'mapEdits',doc:this.mapDoc});return;
+    this.arena?.sanitize(player);this.auth.set(player,{token:m.token,checked:Date.now()});this.players.set(user.id,player);clearTimeout(timer);this.send(ws,{type:'welcome',id:user.id});if(this.mapDoc)this.send(ws,{type:'mapEdits',doc:this.mapDoc});return;
    }
    if(m.type==='ping')this.send(ws,{type:'pong',time:m.time});
    if(m.type==='input'){player.input={x:Math.max(-1,Math.min(1,Number(m.x)||0)),y:Math.max(-1,Math.min(1,Number(m.y)||0)),run:m.run===true,rev:m.rev===true};player.lastInput=Date.now();
     // Posizione prevista dal client accettata solo se vicina a quella del server e libera: elimina il rimbalzo senza permettere teletrasporti.
     const q=m.position;if(q&&!player.seat&&Number.isFinite(q.x)&&Number.isFinite(q.y)&&Math.hypot(q.x-player.x,q.y-player.y)<=.75&&canStand(player.room,q.x,q.y)){player.x=q.x;player.y=q.y;}}
+   if(m.type==='shoot'||m.type==='reload')this.arena?.message(player,m);
    if(m.type==='interact')this.interact(player);
-   if(m.type==='travel'&&MAPS.mergellina&&['lungomare','mergellina'].includes(m.to)&&(player.room==='lungomare'||player.room==='mergellina')&&!player.seat){const v=player.vehicle;this.living?.move(player,m.to);player.vehicle=v;}
+   if(m.type==='travel'&&!player.arena&&MAPS.mergellina&&['lungomare','mergellina'].includes(m.to)&&(player.room==='lungomare'||player.room==='mergellina')&&!player.seat){const v=player.vehicle;this.living?.move(player,m.to);player.vehicle=v;}
    // Autoradio: chi guida sceglie un video YouTube, lo sentono anche i passeggeri.
    if(m.type==='carMusic'&&player.vehicle){const id=typeof m.id==='string'&&/^[A-Za-z0-9_-]{11}$/.test(m.id)?m.id:null;player.music=id;player.musicAt=Date.now();player.musicTitle=id?String(m.title||'').slice(0,80):'';}
    if(m.type==='call')this.call(player,m);
@@ -87,7 +88,7 @@ export class Game{
   if(seat){if([...this.players.values()].some(q=>q.room===p.room&&q.seat===seat.id)){this.send(p.ws,{type:'error',message:'Posto occupato'});return;}p.seat=seat.id;p.x=seat.x;p.y=seat.y;p.moving=false;return;}
   this.send(p.ws,{type:'error',message:'Avvicinati a una porta o a una sedia'});
  }
- tick(){
+ tick(){this.arena?.tick();
   // Su Windows setInterval(50) scatta ogni ~62 ms: il passo usa il tempo reale, non quello nominale.
   const now=performance.now(),dt=Math.min(.1,Math.max(.01,(now-(this.lastTick??now-50))/1000));this.lastTick=now;
   for(const p of this.players.values()){

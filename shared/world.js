@@ -135,12 +135,14 @@ for(const b of BUILDINGS.filter(b=>b.enterable!==false)){
 let mallUp=false;export function registerMallFloor(){if(mallUp)return;mallUp=true;MAPS.mall2={id:'mall2',name:'Centro Commerciale Golfo · primo piano',bounds:{x:0,y:0,w:16,h:14},spawn:{x:13,y:10},buildings:[],props:[{id:'c1',kind:'counter',x:8,y:3,r:1.4},{id:'c2',kind:'counter',x:3,y:7,r:1.4},{id:'c3',kind:'counter',x:13,y:6,r:1.4},{id:'p1',kind:'plant',x:2,y:11,r:.35},{id:'b1',kind:'bench',x:7,y:10,r:.65}]};}
 const STAIR={x:14,y:11.2};
 export function doors(room){if(room==='mergellina')return napoliPlaces().doors;if(room==='mall2')return [{id:'down',name:'Scendi al piano terra',x:STAIR.x,y:STAIR.y,to:'mall',spawn:{x:12.6,y:10.4}}];if(room==='mall'&&mallUp)return [{id:'exit',name:'Esci sul Lungomare',x:8,y:13,to:'lungomare'},{id:'up',name:'Sali al primo piano',x:STAIR.x,y:STAIR.y,to:'mall2',spawn:{x:12.6,y:10.4}}];return room==='lungomare'?BUILDINGS.filter(b=>b.enterable!==false).map(b=>({id:b.id,name:b.name,x:b.door.x,y:b.door.y,exitX:b.door.exitX,exitY:b.door.exitY,to:b.id})):[{id:'exit',name:'Esci sul Lungomare',x:8,y:13,to:'lungomare'}];}
+// Rettangoli [x0,y0,x1,y1] in più che bloccano il passo sul Lungomare: li riempie solo HUMANA life 3D (arena paintball). Nel 2D resta vuoto.
+export const EXTRA_BLOCKS=[];
 export function canStand(room,x,y,r=.25){if(room==='mergellina')return napoliStand(x,y,r);
  const m=MAPS[room];if(!m||!Number.isFinite(x)||!Number.isFinite(y))return false;
  if(room==='lungomare'&&MODE.front){if(y<F.SEA+r||isRail(x,y))return false;}
  else if(room==='lungomare'){const s=x+y;if(s<SHORE-BEACH+r*1.42)return false;if(Math.abs(s-SHORE)<.35+r*1.42&&!nearStairs(x,y,1.25-r))return false;}
  if(room==='lungomare'){const E=cityEdge();if(x<E.x0+r||y<E.y0+r||x>E.x1-r||y>E.y1-r)return false;}
- const b=m.bounds;if(x<b.x+r||y<b.y+r||x>b.x+b.w-r||y>b.y+b.h-r)return false;
+ const b=m.bounds;if(x<b.x+r||y<b.y+r||x>b.x+b.w-r||y>b.y+b.h-r)return false;if(room==='lungomare'&&EXTRA_BLOCKS.length)for(const q of EXTRA_BLOCKS)if(x>q[0]-r&&x<q[2]+r&&y>q[1]-r&&y<q[3]+r)return false;
  if(room==='lungomare'&&!MODE.front&&(inPool(x,y,r)||fenceBlocked(x,y,r)))return false;
  if(room==='lungomare'&&PAINT.get(Math.floor(x)+','+Math.floor(y))==='water'&&!m.props.some(p=>p.art==='ponte'&&Math.abs(x-p.x)<3.2&&Math.abs(y-p.y)<1.2))return false;
  if(m.buildings.some(b=>b.base?blockedByBuilding(b,x,y,r):x>b.x-r&&x<b.x+b.w+r&&y>b.y-r&&y<b.y+b.h+r))return false;
