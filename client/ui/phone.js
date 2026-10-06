@@ -19,7 +19,7 @@ const ICONS={
 function svg(name,fill=false){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');const p=document.createElementNS(s.namespaceURI,'path');p.setAttribute('d',ICONS[name]);s.append(p);if(fill)s.classList.add('fill');return s;}
 export function installPhone(ctx){
  const {calls,api,notify,setControls,apps}=ctx;
- const root=document.createElement('div');root.id='iphone';root.hidden=true;root.innerHTML='<div class="device"><div class="island"></div><div class="status"><b class="clock"></b><span class="bars"><i></i><i></i><i></i><i></i></span><span class="battery"><i></i></span></div><div class="screen"></div><button class="home-bar" aria-label="Chiudi telefono"></button></div>';
+ const root=document.createElement('div');root.id='iphone';root.hidden=true;root.innerHTML='<div class="device"><div class="island"></div><div class="status"><b class="clock"></b><span class="bars"><i></i><i></i><i></i><i></i></span><span class="battery"><i></i></span><button class="ph-x" aria-label="Chiudi telefono">✕</button></div><div class="screen"></div><button class="home-bar" aria-label="Chiudi telefono"></button></div>';
  document.body.append(root);const screen=root.querySelector('.screen');
  const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
  const tick=()=>{root.querySelector('.clock').textContent=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});const t=root.querySelector('.call-time');if(t&&calls.startedAt){const s=Math.floor((Date.now()-calls.startedAt)/1000);t.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}};
@@ -119,7 +119,7 @@ export function installPhone(ctx){
   else row.append(round('mute'+(calls.muted?' on':''),'mic',calls.muted?'Riattiva':'Muto',()=>calls.toggleMute()),round('decline','hang','Chiudi',()=>calls.end()));
   c.append(row);screen.append(c);}
  calls.addEventListener('change',()=>{if(calls.state==='ringing'&&root.hidden){root.hidden=false;setControls(false);}render();tick();});
- root.querySelector('.home-bar').onclick=close;root.addEventListener('click',e=>{if(e.target===root)close();});
+ root.querySelector('.home-bar').onclick=close;root.querySelector('.ph-x').onclick=e=>{e.stopPropagation();close();};root.addEventListener('click',e=>{if(e.target===root)close();});
  addEventListener('keydown',e=>{if(e.key==='Escape'&&!root.hidden)close();});
  // Indietro di Android (tasto o gesto): nel telefono torna alla schermata precedente, poi chiude; altrimenti chiude la finestra aperta in cima.
  const back=()=>{if(!root.hidden){if(view!=='home'&&calls.state==='idle'){home();}else close();return true;}

@@ -322,3 +322,8 @@ body.in-arena .actions #interact{opacity:.35}body.in-arena #cam3d{display:none}
  #arena-hud #ar-fire{width:76px;height:76px;right:calc(160px + var(--safe-right));bottom:calc(120px + var(--safe-bottom))}
  #arena-hud #ar-reload{right:calc(176px + var(--safe-right));bottom:calc(206px + var(--safe-bottom))}
 }
+
+/* Telefono dentro il gioco: tasto ✕ sempre visibile per tornare al gioco (2026-10-07) */
+#iphone .status{position:relative}#iphone .ph-x{position:absolute;right:14px;top:50%;transform:translateY(-35%);width:34px;height:34px;min-height:0;padding:0;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;font-size:17px;line-height:1;display:grid;place-items:center;z-index:4}
+body:not(.is3d) #iphone .ph-x{display:none}
+#iphone .status .battery{margin-right:44px}

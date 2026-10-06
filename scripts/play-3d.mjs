@@ -5,6 +5,8 @@ import {networkInterfaces} from 'node:os';
 import {createApp} from '../server/index.js';
 // Su Render (server in affitto) la porta la decide Render (PORT) e l'indirizzo pubblico è RENDER_EXTERNAL_URL: serve per accettare il collegamento del gioco via HTTPS.
 const onRender=!!process.env.RENDER;if(onRender&&!process.env.PUBLIC_ORIGIN&&process.env.RENDER_EXTERNAL_URL)process.env.PUBLIC_ORIGIN=process.env.RENDER_EXTERNAL_URL.replace(/\/+$/,'');
+// Demo su Render (nessuna chiave Stripe): le ricariche della banca sono di prova, accreditate subito e senza addebiti veri.
+if(onRender&&process.env.TEST_PAYMENTS===undefined&&!process.env.STRIPE_SECRET_KEY)process.env.TEST_PAYMENTS='1';
 const port=Number(process.env.PORT_3D)||(onRender&&Number(process.env.PORT))||3079,host=process.env.HOST||'0.0.0.0';
 const secure=!!(process.env.TLS_CERT&&process.env.TLS_KEY),protocol=secure?'https':'http';
 const app=createApp({dbPath:process.env.DATABASE_PATH_3D||'./data/humana-3d.sqlite',edition:'3d'});
