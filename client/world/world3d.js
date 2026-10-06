@@ -6,7 +6,7 @@ import {GLTFLoader} from '../vendor/three/GLTFLoader.js';
 import {clone as cloneSkinned} from '../vendor/three/SkeletonUtils.js';
 import {RGBELoader} from '../vendor/three/RGBELoader.js';import {mergeGeometries} from '../vendor/three/BufferGeometryUtils.js';import {OutlineEffect} from '../vendor/three/OutlineEffect.js';
 import {MAPS,MODE,F,doors,cityEdge,SHORE,BEACH,EXTRA_BLOCKS} from '/shared/world.js';
-import {JUKEBOX,DEALERS,VEHICLES_3D,MALL_SHOPS,BOATS,FUNFAIR,rideGeom,ARENA,arenaBlocks} from '/shared/catalog.js';import {LOOKS} from '/shared/looks.js';import {avatarSpec,buildAvatar,poseAvatar} from './avatar3d.js';import {surface,STREETS,busPosition,VILLA_LOTS,FENCE_GATES,LANDMARKS} from '/shared/district.js';import {Traffic} from '/shared/traffic.js';import {VEHICLE} from '/shared/catalog.js';import {NAPOLI,napoliStand,napoliCell,napoliPlaces} from '/shared/napoli.js';
+import {JUKEBOX,DEALERS,VEHICLES_3D,MALL_SHOPS,BOATS,FUNFAIR,rideGeom,ARENA,arenaBlocks} from '/shared/catalog.js';import {LOOKS} from '/shared/looks.js';import {avatarSpec,buildAvatar,poseAvatar} from './avatar3d.js';import {surface,STREETS,busPosition,VILLA_LOTS,FENCE_GATES,LANDMARKS} from '/shared/district.js';import {Traffic,INTERSECTIONS,lightState} from '/shared/traffic.js';import {VEHICLE} from '/shared/catalog.js';import {NAPOLI,napoliStand,napoliCell,napoliPlaces} from '/shared/napoli.js';
 
 const GROUND={grass:'#7fae5a',garden:'#7c9959',track:'#c0573f',playground:'#e58a4e',parking:'#5f5e68',pool:'#4fc3e0',road:'#55545d',roadline:'#5d5c66',crosswalk:'#e9e9e9',curb:'#bfb7aa',cobble:'#77716a',dirt:'#a7845c',rock:'#8b8a86',snow:'#f4f7fa',water:'#3d9bd0',tiles:'#ddd6ca',marble:'#ece8e1',sand:'#ead39f',wood:'#a8774f',stone:'#c9c2b6',sidewalk:'#c4bdb1'};
 const CHARS=['male-a','male-b','male-c','male-d','male-e','male-f','female-a','female-b','female-c','female-d','female-e','female-f'];
@@ -122,7 +122,7 @@ export class World3D{
   const m=MAPS.lungomare;this.ground();this.landmarks();
   for(const b of m.buildings)this.building(b,z);
   for(const p of m.props)this.prop(p,z);
-  this.fence();this.villaFences();this.roadSigns();this.lightPools(m.props.filter(p=>p.kind==='lamp').map(p=>[p.x,p.y,this.lev(p.x,p.y)]));this.bake(z.g);this.toonify(z.g);}
+  this.fence();this.villaFences();this.roadSigns();try{this.trafficLights();}catch(e){console.warn('semafori',e);}this.lightPools(m.props.filter(p=>p.kind==='lamp').map(p=>[p.x,p.y,this.lev(p.x,p.y)]));this.bake(z.g);this.toonify(z.g);}
  // ---- Cielo: cupola dipinta (sfumatura e nuvole) che segue la telecamera, con sole, luna e stelle; cambia con l'ora del gioco ----
  skyInit(){const g=this.skyG=new THREE.Group();this.scene.add(g);const cv=this.skyCv=document.createElement('canvas');cv.width=1024;cv.height=512;const t=this.skyTex=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=THREE.RepeatWrapping;
   const dm=new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide,fog:false,depthTest:false,depthWrite:false});dm.userData.outlineParameters={visible:false};
@@ -392,6 +392,35 @@ export class World3D{
  arenaFx(ar){const g=new THREE.Group(),col=ar.team==='red'?'#ff3b3b':'#3b82ff',ring=new THREE.Mesh(new THREE.RingGeometry(.5,.68,28).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:col,side:THREE.DoubleSide,transparent:true,opacity:.9,depthWrite:false}));ring.position.y=.06;g.add(ring);
   const gun=new THREE.Group(),len={pistola:.34,fucile:.9,mitraglietta:.55}[ar.weapon]||.4,body=new THREE.Mesh(new THREE.BoxGeometry(.09,.11,len),this.sm(col)),grip=new THREE.Mesh(new THREE.BoxGeometry(.07,.2,.09),this.sm('#111827')),hop=new THREE.Mesh(new THREE.BoxGeometry(.14,.12,.14),this.sm('#e5e7eb'));
   body.position.set(0,0,len/2);grip.position.set(0,-.12,.12);hop.position.set(0,.12,len*.35);gun.add(body,grip,hop);gun.position.set(.27,1.12,.22);g.add(gun);g.userData.team=ar.team;g.userData.weapon=ar.weapon;return g;}
+ // ---- Semafori: uno a ogni incrocio delle strade grandi, agli angoli prima di entrare (i tempi sono in shared/traffic.js, le auto li rispettano) ----
+ trafficLights(){if(MODE.front)return;const tr=this.r2d.traffic??=new Traffic();tr.lights=true;const H=[];
+  for(const I of INTERSECTIONS)for(const [hx,hy] of [[1,0],[-1,0],[0,1],[0,-1]])H.push({I,hx,hy,px:I.x-hx*4.8-hy*4.3,pz:I.y-hy*4.8+hx*4.3,ax:hx?'ew':'ns',st:''});
+  const n=H.length,poles=new THREE.InstancedMesh(new THREE.CylinderGeometry(.06,.08,3.7,6).translate(0,1.85,0),new THREE.MeshLambertMaterial({color:'#2b2f36'}),n),heads=new THREE.InstancedMesh(new THREE.BoxGeometry(.42,1.2,.34),new THREE.MeshLambertMaterial({color:'#15171b'}),n),lamps=new THREE.InstancedMesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshBasicMaterial({color:'#ffffff'}),n*3),o=new THREE.Object3D(),off=new THREE.Color('#1d1f24');
+  H.forEach((h,i)=>{const y0=this.lev(h.px,h.pz);o.position.set(h.px,y0,h.pz);o.rotation.set(0,0,0);o.updateMatrix();poles.setMatrixAt(i,o.matrix);
+   const th=Math.atan2(-h.hx,-h.hy),cx=Math.sin(th),cz=Math.cos(th);o.rotation.set(0,th,0);o.position.set(h.px+cx*.05,y0+3.55,h.pz+cz*.05);o.updateMatrix();heads.setMatrixAt(i,o.matrix);
+   for(let k=0;k<3;k++){o.position.set(h.px+cx*.2,y0+3.55+(1-k)*.37,h.pz+cz*.2);o.updateMatrix();lamps.setMatrixAt(i*3+k,o.matrix);lamps.setColorAt(i*3+k,off);}});
+  for(const im of [poles,heads,lamps]){im.frustumCulled=false;im.castShadow=false;im.userData.outlineParameters={visible:false};this.static.add(im);}poles.castShadow=!this.mobile;
+  this.tl={H,lamps,tr};}
+ updateLights(){const T=this.tl;if(!T)return;const R=this.lR??=new THREE.Color('#ff2a2a'),Y=this.lY??=new THREE.Color('#ffc21a'),G=this.lG??=new THREE.Color('#2bff7a'),O=this.lO??=new THREE.Color('#1d1f24');let ch=false;
+  T.H.forEach((h,i)=>{const st=lightState(h.I,h.ax,T.tr.time||0);if(st===h.st)return;h.st=st;ch=true;T.lamps.setColorAt(i*3,st==='red'?R:O);T.lamps.setColorAt(i*3+1,st==='yellow'?Y:O);T.lamps.setColorAt(i*3+2,st==='green'?G:O);});if(ch)T.lamps.instanceColor.needsUpdate=true;}
+ // ---- Atmosfera magica: lucciole dorate, lanterne di carta che salgono, stelle cadenti. Visibili da sera in poi (this.night), solo all'aperto. ----
+ magic(dt){if(!this.scene||!this.target)return;const out=this.indoor(this.room)||this.room==='mall'||this.room==='mall2';let M=this.mg;
+  if(!M){const c=document.createElement('canvas');c.width=c.height=64;const q=c.getContext('2d'),gr=q.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,255,.5)');gr.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=gr;q.fillRect(0,0,64,64);const tex=new THREE.CanvasTexture(c);
+   const mk=(n,size,col)=>{const g=new THREE.BufferGeometry(),pos=new Float32Array(n*3);g.setAttribute('position',new THREE.BufferAttribute(pos,3));const m=new THREE.PointsMaterial({map:tex,size,color:col,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true,fog:false}),p=new THREE.Points(g,m);p.frustumCulled=false;p.renderOrder=20;this.scene.add(p);return {p,pos,n,m,s:Array.from({length:n},(_,i)=>({a:Math.random()*6.28,b:Math.random()*6.28,x:0,y:-99,z:0,v:.4+Math.random()*.5,i}))};};
+   M=this.mg={fire:mk(this.mobile?60:140,1.25,'#ffe08a'),lan:mk(this.mobile?10:24,6,'#ff9d4a'),t:0,star:null,next:9};
+   const sc=document.createElement('canvas');sc.width=128;sc.height=8;const sq=sc.getContext('2d'),sg=sq.createLinearGradient(0,0,128,0);sg.addColorStop(0,'rgba(255,255,255,0)');sg.addColorStop(1,'rgba(255,255,255,1)');sq.fillStyle=sg;sq.fillRect(0,0,128,8);
+   const st=new THREE.Mesh(new THREE.PlaneGeometry(90,1.6),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sc),transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));st.visible=false;st.renderOrder=21;this.scene.add(st);M.star={mesh:st,t:-1};}
+  M.t+=dt;const k=out?0:Math.max(0,Math.min(1,((this.night||0)-.08)/.5)),T=this.target;
+  for(const L of [M.fire,M.lan]){L.p.visible=k>.02;L.m.opacity=k*(L===M.fire?.95:.8);}
+  if(k>.02){const F=M.fire,time=M.t;F.m.opacity=k*(.8+.15*Math.sin(time*2.1));
+   F.s.forEach((s,i)=>{if(Math.hypot(s.x-T.x,s.z-T.z)>28||s.y<-50){const a=Math.random()*6.28,r=3+Math.random()*24;s.x=T.x+Math.cos(a)*r;s.z=T.z+Math.sin(a)*r;s.y=this.lev(s.x,s.z)+.5+Math.random()*2.6;}
+    s.a+=dt*(.6+s.v);s.b+=dt*.5;s.x+=Math.cos(s.a)*s.v*dt*.8;s.z+=Math.sin(s.b)*s.v*dt*.8;s.y+=Math.sin(time*s.v+i)*dt*.25;F.pos[i*3]=s.x;F.pos[i*3+1]=s.y;F.pos[i*3+2]=s.z;});F.p.geometry.attributes.position.needsUpdate=true;
+   const Lt=M.lan;Lt.s.forEach((s,i)=>{if(s.y<-50||s.y>46||Math.hypot(s.x-T.x,s.z-T.z)>60){const a=Math.random()*6.28,r=6+Math.random()*48;s.x=T.x+Math.cos(a)*r;s.z=T.z+Math.sin(a)*r;s.y=this.lev(s.x,s.z)+1+Math.random()*4;}
+    s.y+=dt*(.7+s.v*.5);s.x+=Math.sin(time*.4+i)*dt*.35;s.z+=Math.cos(time*.33+i*1.7)*dt*.3;Lt.pos[i*3]=s.x;Lt.pos[i*3+1]=s.y;Lt.pos[i*3+2]=s.z;});Lt.p.geometry.attributes.position.needsUpdate=true;}
+  // stella cadente ogni tanto, solo con cielo scuro
+  const S=M.star;if(S.t>=0){S.t+=dt;const p=S.t/1.1;if(p>=1){S.t=-1;S.mesh.visible=false;M.next=M.t+9+Math.random()*14;}else{const q=S.a.clone().lerp(S.b,p);S.mesh.position.copy(q);S.mesh.material.opacity=Math.sin(Math.PI*p)*.9;S.mesh.lookAt(this.camera.position);S.mesh.rotateZ(S.ang);}}
+  else if(k>.6&&M.t>M.next&&!out){const cam=this.camera.position,f=new THREE.Vector3();this.camera.getWorldDirection(f);f.y=0;f.normalize();const side=new THREE.Vector3(-f.z,0,f.x),ang=Math.random()*6.28;S.a=cam.clone().addScaledVector(f,700).addScaledVector(side,(Math.random()-.5)*500);S.a.y=cam.y+260+Math.random()*160;S.b=S.a.clone().addScaledVector(side,(Math.random()<.5?-1:1)*320).add(new THREE.Vector3(0,-90,0));S.ang=Math.atan2(S.b.y-S.a.y,Math.hypot(S.b.x-S.a.x,S.b.z-S.a.z))*.6;S.t=0;S.mesh.visible=true;}
+ }
  bx(g,w,h,d,x,y,z,c){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),this.sm(c));o.position.set(x,y,z);g.add(o);return o;}
  // Scooter (stile Vespa), bici e monopattino: pochi pezzi, uniti per colore.
  // Moto: due ruote, telaio, serbatoio, sella, manubrio e scarico; la forma cambia col tipo (naked, enduro, custom, sportiva carenata).
@@ -1416,7 +1445,7 @@ export class World3D{
   if(this.seaT)this.seaT.offset.set(this.clock*.012,this.clock*.007);if(this.seaN)this.seaN.offset.set(this.clock*.011,this.clock*.006);if(this.foam){const o=Math.sin(this.clock*.9)*.45/Math.SQRT2;this.foam.position.set(o,0,o);this.foamT.offset.x=this.clock*.02;}
   // Destinazione della mappa: colonna di luce sul punto scelto; sparisce quando ci arrivi.
   {const wp=this.waypoint;if(wp&&wp.room===me.room&&me.id){if(!this.beam){this.beam=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,60,16,1,true),new THREE.MeshBasicMaterial({color:'#ffd23f',transparent:true,opacity:.35,depthWrite:false,side:THREE.DoubleSide}));this.scene.add(this.beam);}this.beam.visible=true;this.beam.position.set(wp.x,30,wp.y);this.beam.material.opacity=.25+.12*Math.sin(this.clock*4);if(Math.hypot(me.x-wp.x,me.y-wp.y)<2.5){this.waypoint=null;dispatchEvent(new CustomEvent('humana-arrived',{detail:wp}));}}else if(this.beam)this.beam.visible=false;}
-  this.animRides(list,dt);this.animFx(dt);for(const m of this.extraMix||[])m.update(dt);
+  this.animRides(list,dt);this.animFx(dt);if(this.room==='lungomare')this.updateLights();try{this.magic(dt);}catch(e){if(!this.magicErr){this.magicErr=1;console.warn('magia',e);}}for(const m of this.extraMix||[])m.update(dt);
   for(const b of this.boats||[]){if(Math.abs(b.position.x-this.target.x)+Math.abs(b.position.z-this.target.z)>120)continue;const t=this.clock+b.userData.phase;b.position.y=Math.sin(t*1.3)*.08;b.rotation.z=Math.sin(t*.9)*.04;}
   if(this.lod&&this.room==='mergellina')this.lod(this.target.x,this.target.z);
   const seen=new Set();this.hit=[];
