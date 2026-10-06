@@ -3,7 +3,9 @@ export function setToken(t){token=t;try{localStorage.setItem('humana-token',t);s
 // Nel browser il server è la pagina stessa; nell'app Android è l'indirizzo scelto al login.
 export let server=(globalThis.localStorage?.getItem('humana-server')||'').replace(/\/+$/,'');
 export function setServer(url){server=url.trim().replace(/\/+$/,'');globalThis.localStorage?.setItem('humana-server',server);}
-export const nativeApp=!!globalThis.Capacitor?.isNativePlatform?.();
+// La pagina dell'app 2D è una copia dentro l'APK (indirizzo https://localhost) e deve cercare il server: lì nativeApp è vero.
+// L'app 3D invece è solo un guscio che apre il gioco da internet: la pagina arriva già dal server giusto, quindi si comporta come un normale browser.
+export const nativeApp=!!globalThis.Capacitor?.isNativePlatform?.()&&/^(localhost|127.0.0.1)$/.test(globalThis.location?.hostname||'');
 const base=()=>nativeApp?server:'';
 export async function api(path,method='GET',body){if(nativeApp&&!server)throw new Error('Inserisci l’indirizzo del server HUMANA');const response=await fetch(base()+'/api'+path,{method,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:body===undefined?undefined:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw new Error(data.error||'Errore di rete');return data;}
 export class Connection extends EventTarget{
