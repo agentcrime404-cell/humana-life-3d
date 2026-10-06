@@ -189,3 +189,12 @@ Cartelle sul Desktop: `HUMANA life`, `HUMANA life 3D`, `HUMANA life real` (avvii
 ## HUMANA life 2D — da fare
 - Facciate degli edifici rigenerate con la stessa prospettiva (immagini via ChatGPT, come le altre): proposto, non ancora approvato.
 - Vista frontale (`?anteprima=front` in /admin) ancora prototipo; facciate `f-*` mai importate.
+
+## HUMANA life 3D online — demo su Render (2026-10-06)
+- Indirizzo: **https://humana-life-3d.onrender.com/** (pagina di download con il QR: `/scarica`; app Android: `/scarica/HUMANA-life-3D.apk`). Servizio `humana-life-3d` nel workspace Render dell'utente (bob2015.gc@gmail.com), SEPARATO da kouverte-* e da lumix.best (non toccati).
+- Codice: archivio GitHub **agentcrime404-cell/humana-life-3d** (ORA PUBBLICO: Render senza il collegamento GitHub dell'account `Jokernpl` legge solo archivi pubblici; dentro nessuna chiave o dato giocatori; `.gitignore` esclude data/, .env, sorgenti pesanti). Render ha `render.yaml` (piano **free**, `autoDeploy:false`): per aggiornare, `git push` e poi su Render «Manual Deploy → Deploy latest commit».
+- **Limiti del piano gratuito**: si spegne dopo ~15 min senza visite (riaccensione 50 s o più); NESSUN disco: account, monete e progressi si cancellano a ogni riavvio. Per uso vero: piano Starter + blocco `disk` nel render.yaml (già scritto, commentato) + `DATABASE_PATH_3D=/var/data/humana-3d.sqlite`; serve una carta di pagamento nell'account Render (non c'è: l'utente la deve inserire lui).
+- Pagamenti: nessuna chiave Stripe e niente TEST_PAYMENTS online = ricariche spente.
+- Su Render il server 3D usa `RENDER`/`PORT`/`RENDER_EXTERNAL_URL` (`scripts/play-3d.mjs`) e accetta il WebSocket solo da quell'indirizzo; la pagina `/scarica` del 3D è `client/scarica-3d.html`.
+- APK: `npm run apk3d -- https://humana-life-3d.onrender.com/` → `dist/HUMANA-3D.apk` (4 MB, guscio che apre l'indirizzo); il file va anche nell'archivio (eccezione in .gitignore) perché il server lo serve. QR della pagina di download: `dist/qr-scarica-3d.png` (copia in `qr-HUMANA-3D-scarica.png`).
+- Regole di sicurezza incontrate: non si inseriscono password/carte né si autorizzano app in nome dell'utente; le finestre popup (GitHub) le tocca solo l'utente. Il tunnel ssh dal PC resta bloccato.
