@@ -1,22 +1,22 @@
-# HUMANA life 3D su Render (render.com). Solo il gioco 3D: il 2D di casa non c'entra.
-# Uso: su Render  New + -> Blueprint -> scegli il repository -> Apply.
+# HUMANA life 3D su Render (render.com) — versione DEMO gratuita.
+# Piano free: si spegne dopo circa 15 minuti senza visite (al primo accesso ci mette circa un minuto a riaccendersi)
+# e NON ha disco: account, monete e progressi si cancellano a ogni riavvio. Per tenerlo davvero online:
+# plan: starter + il blocco "disk" sotto + DATABASE_PATH_3D=/var/data/humana-3d.sqlite
 services:
   - type: web
     name: humana-life-3d
     runtime: node
-    plan: starter            # piano a pagamento più piccolo: resta sempre acceso e ha il disco per i salvataggi
+    plan: free
     region: frankfurt
     buildCommand: npm ci --omit=dev
     startCommand: node scripts/play-3d.mjs
     healthCheckPath: /
-    autoDeploy: true
+    autoDeploy: false
     envVars:
       - key: NODE_VERSION
         value: "24"
-      - key: DATABASE_PATH_3D
-        value: /var/data/humana-3d.sqlite
-      # Pagamenti: nessuna chiave Stripe e nessun TEST_PAYMENTS = le ricariche restano spente (nessun soldo vero, nessuna moneta regalata).
-    disk:
-      name: humana-dati
-      mountPath: /var/data
-      sizeGB: 1
+      # Pagamenti: nessuna chiave Stripe e nessun TEST_PAYMENTS = ricariche spente (nessun soldo vero).
+    # disk:
+    #   name: humana-dati
+    #   mountPath: /var/data
+    #   sizeGB: 1
