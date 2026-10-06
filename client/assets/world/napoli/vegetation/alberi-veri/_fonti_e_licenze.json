@@ -1,0 +1,604 @@
+{
+ "generated": "2026-10-06",
+ "note": "Provenance/licence manifest for the files in this folder. Assets are NOT integrated in the game. Poly Haven glTF: the leaf alpha/opacity PNG in textures/ is NOT referenced by the .gltf (base colour JPG has no alpha channel) and must be wired as alphaMap + alphaTest at integration time.",
+ "assets": [
+  {
+   "id": "didelta_spinosa",
+   "name": "Didelta Spinosa",
+   "author": "Jenelle van Heerden",
+   "source_url": "https://polyhaven.com/a/didelta_spinosa",
+   "api_files_url": "https://api.polyhaven.com/files/didelta_spinosa",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "didelta_spinosa_1k.gltf",
+   "bytes": 14897752,
+   "triangles": 417187,
+   "variants": [
+    {
+     "node": "didelta_spinosa_large_LOD0",
+     "triangles": 234552
+    },
+    {
+     "node": "didelta_spinosa_medium_LOD0",
+     "triangles": 143747
+    },
+    {
+     "node": "didelta_spinosa_small_LOD0",
+     "triangles": 38888
+    }
+   ],
+   "materials": [
+    {
+     "name": "didelta_spinosa",
+     "alphaMode": "OPAQUE"
+    }
+   ],
+   "files": [
+    "didelta_spinosa.bin",
+    "didelta_spinosa_1k.gltf",
+    "textures/didelta_spinosa_alpha_1k.png",
+    "textures/didelta_spinosa_arm_1k.jpg",
+    "textures/didelta_spinosa_diff_1k.jpg",
+    "textures/didelta_spinosa_nor_gl_1k.jpg"
+   ]
+  },
+  {
+   "id": "flower_gazania",
+   "name": "Flower Gazania",
+   "author": "James Ray Cock, Jenelle van Heerden",
+   "source_url": "https://polyhaven.com/a/flower_gazania",
+   "api_files_url": "https://api.polyhaven.com/files/flower_gazania",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "flower_gazania_1k.gltf",
+   "bytes": 2959066,
+   "triangles": 14340,
+   "variants": [
+    {
+     "node": "flower_gazania_a_LOD0",
+     "triangles": 416
+    },
+    {
+     "node": "flower_gazania_b_LOD0",
+     "triangles": 448
+    },
+    {
+     "node": "flower_gazania_c_LOD0",
+     "triangles": 752
+    },
+    {
+     "node": "flower_gazania_d_LOD0",
+     "triangles": 1348
+    },
+    {
+     "node": "flower_gazania_h_LOD0",
+     "triangles": 3540
+    },
+    {
+     "node": "flower_gazania_g_LOD0",
+     "triangles": 3004
+    },
+    {
+     "node": "flower_gazania_f_LOD0",
+     "triangles": 2728
+    },
+    {
+     "node": "flower_gazania_e_LOD0",
+     "triangles": 2104
+    }
+   ],
+   "materials": [
+    {
+     "name": "flower_gazania",
+     "alphaMode": "OPAQUE"
+    }
+   ],
+   "files": [
+    "flower_gazania.bin",
+    "flower_gazania_1k.gltf",
+    "textures/flower_gazania_alpha_1k.png",
+    "textures/flower_gazania_arm_1k.jpg",
+    "textures/flower_gazania_diff_1k.jpg",
+    "textures/flower_gazania_nor_gl_1k.jpg"
+   ]
+  },
+  {
+   "id": "island_tree_02",
+   "name": "Island Tree 02",
+   "author": "Rob Tuytel, Rico Cilliers",
+   "source_url": "https://polyhaven.com/a/island_tree_02",
+   "api_files_url": "https://api.polyhaven.com/files/island_tree_02",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "island_tree_02_1k.gltf",
+   "bytes": 46229844,
+   "triangles": 1072213,
+   "variants": [
+    {
+     "node": "island_tree_02_LOD0",
+     "triangles": 1072213
+    }
+   ],
+   "materials": [
+    {
+     "name": "island_tree_02",
+     "alphaMode": "OPAQUE"
+    },
+    {
+     "name": "island_tree_02_leaves",
+     "alphaMode": "BLEND"
+    },
+    {
+     "name": "island_tree_02_branches",
+     "alphaMode": "OPAQUE"
+    }
+   ],
+   "files": [
+    "island_tree_02.bin",
+    "island_tree_02_1k.gltf",
+    "textures/island_tree_02_arm_1k.jpg",
+    "textures/island_tree_02_branches_arm_1k.jpg",
+    "textures/island_tree_02_branches_diff_1k.jpg",
+    "textures/island_tree_02_branches_nor_gl_1k.jpg",
+    "textures/island_tree_02_diff_1k.jpg",
+    "textures/island_tree_02_leaves_alpha_1k.png",
+    "textures/island_tree_02_leaves_arm_1k.jpg",
+    "textures/island_tree_02_leaves_diff_1k.jpg",
+    "textures/island_tree_02_leaves_nor_gl_1k.jpg",
+    "textures/island_tree_02_nor_gl_1k.jpg"
+   ]
+  },
+  {
+   "id": "othonna_cerarioides",
+   "name": "Othonna Cerarioides",
+   "author": "James Ray Cock, Jenelle van Heerden",
+   "source_url": "https://polyhaven.com/a/othonna_cerarioides",
+   "api_files_url": "https://api.polyhaven.com/files/othonna_cerarioides",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "othonna_cerarioides_1k.gltf",
+   "bytes": 7922589,
+   "triangles": 118149,
+   "variants": [
+    {
+     "node": "othonna_cerarioides_a",
+     "triangles": 57067
+    },
+    {
+     "node": "othonna_cerarioides_b",
+     "triangles": 29175
+    },
+    {
+     "node": "othonna_cerarioides_c",
+     "triangles": 12491
+    },
+    {
+     "node": "othonna_cerarioides_d",
+     "triangles": 9320
+    },
+    {
+     "node": "othonna_cerarioides_e",
+     "triangles": 3834
+    },
+    {
+     "node": "othonna_cerarioides_f",
+     "triangles": 3138
+    },
+    {
+     "node": "othonna_cerarioides_g",
+     "triangles": 3124
+    }
+   ],
+   "materials": [
+    {
+     "name": "othonna_cerarioides",
+     "alphaMode": "OPAQUE"
+    },
+    {
+     "name": "othonna_cerarioides_leaves",
+     "alphaMode": "MASK"
+    }
+   ],
+   "files": [
+    "othonna_cerarioides.bin",
+    "othonna_cerarioides_1k.gltf",
+    "textures/othonna_cerarioides_alpha_1k.png",
+    "textures/othonna_cerarioides_arm_1k.jpg",
+    "textures/othonna_cerarioides_diff_1k.jpg",
+    "textures/othonna_cerarioides_nor_gl_1k.jpg"
+   ]
+  },
+  {
+   "id": "pachira_aquatica_01",
+   "name": "Pachira Aquatica 01",
+   "author": "Rob Tuytel, Rico Cilliers",
+   "source_url": "https://polyhaven.com/a/pachira_aquatica_01",
+   "api_files_url": "https://api.polyhaven.com/files/pachira_aquatica_01",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "pachira_aquatica_01_1k.gltf",
+   "bytes": 5207212,
+   "triangles": 76914,
+   "variants": [
+    {
+     "node": "pachira_aquatica_01_bark_a",
+     "triangles": 13453
+    },
+    {
+     "node": "pachira_aquatica_01_bark_b",
+     "triangles": 584
+    },
+    {
+     "node": "pachira_aquatica_01_bark_c",
+     "triangles": 3496
+    },
+    {
+     "node": "pachira_aquatica_01_bark_d",
+     "triangles": 3764
+    },
+    {
+     "node": "pachira_aquatica_01_leaves_a",
+     "triangles": 9714
+    },
+    {
+     "node": "pachira_aquatica_01_leaves_b",
+     "triangles": 4507
+    },
+    {
+     "node": "pachira_aquatica_01_leaves_c",
+     "triangles": 17055
+    },
+    {
+     "node": "pachira_aquatica_01_leaves_d",
+     "triangles": 24341
+    }
+   ],
+   "materials": [
+    {
+     "name": "pachira_aquatica_01_bark",
+     "alphaMode": "OPAQUE"
+    },
+    {
+     "name": "pachira_aquatica_01_leaves",
+     "alphaMode": "OPAQUE"
+    }
+   ],
+   "files": [
+    "pachira_aquatica_01.bin",
+    "pachira_aquatica_01_1k.gltf",
+    "textures/pachira_aquatica_01_bark_arm_1k.jpg",
+    "textures/pachira_aquatica_01_bark_diff_1k.jpg",
+    "textures/pachira_aquatica_01_bark_nor_gl_1k.jpg",
+    "textures/pachira_aquatica_01_leaves_alpha_1k.png",
+    "textures/pachira_aquatica_01_leaves_arm_1k.jpg",
+    "textures/pachira_aquatica_01_leaves_diff_1k.jpg",
+    "textures/pachira_aquatica_01_leaves_nor_gl_1k.jpg"
+   ]
+  },
+  {
+   "id": "periwinkle_plant",
+   "name": "Periwinkle Plant",
+   "author": "Amal Kumar",
+   "source_url": "https://polyhaven.com/a/periwinkle_plant",
+   "api_files_url": "https://api.polyhaven.com/files/periwinkle_plant",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "periwinkle_plant_1k.gltf",
+   "bytes": 3011015,
+   "triangles": 34350,
+   "variants": [
+    {
+     "node": "periwinkle_plant_04_LOD0",
+     "triangles": 4108
+    },
+    {
+     "node": "periwinkle_plant_06_LOD0",
+     "triangles": 1478
+    },
+    {
+     "node": "periwinkle_plant_03_LOD0",
+     "triangles": 5338
+    },
+    {
+     "node": "periwinkle_plant_02_LOD0",
+     "triangles": 9096
+    },
+    {
+     "node": "periwinkle_plant_05_LOD0",
+     "triangles": 3078
+    },
+    {
+     "node": "periwinkle_plant_01_LOD0",
+     "triangles": 11252
+    }
+   ],
+   "materials": [
+    {
+     "name": "periwinkle_plant",
+     "alphaMode": "BLEND"
+    }
+   ],
+   "files": [
+    "periwinkle_plant.bin",
+    "periwinkle_plant_1k.gltf",
+    "textures/periwinkle_plant_arm_1k.jpg",
+    "textures/periwinkle_plant_diff_1k.jpg",
+    "textures/periwinkle_plant_nor_gl_1k.jpg",
+    "textures/periwinkle_plant_opacity_1k.png"
+   ]
+  },
+  {
+   "id": "pine_sapling_small",
+   "name": "Pine Sapling Small",
+   "author": "Rob Tuytel, Rico Cilliers",
+   "source_url": "https://polyhaven.com/a/pine_sapling_small",
+   "api_files_url": "https://api.polyhaven.com/files/pine_sapling_small",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "pine_sapling_small_1k.gltf",
+   "bytes": 22051235,
+   "triangles": 398144,
+   "variants": [
+    {
+     "node": "pine_sapling_small_b",
+     "triangles": 122235
+    },
+    {
+     "node": "pine_sapling_small_a",
+     "triangles": 142506
+    },
+    {
+     "node": "pine_sapling_small_c",
+     "triangles": 133403
+    }
+   ],
+   "materials": [
+    {
+     "name": "pine_sapling_small_bark",
+     "alphaMode": "OPAQUE"
+    },
+    {
+     "name": "pine_sapling_small_twig",
+     "alphaMode": "MASK"
+    }
+   ],
+   "files": [
+    "pine_sapling_small.bin",
+    "pine_sapling_small_1k.gltf",
+    "textures/pine_sapling_small_bark_arm_1k.jpg",
+    "textures/pine_sapling_small_bark_diff_1k.jpg",
+    "textures/pine_sapling_small_bark_nor_gl_1k.jpg",
+    "textures/pine_sapling_small_twig_alpha_1k.png",
+    "textures/pine_sapling_small_twig_arm_1k.jpg",
+    "textures/pine_sapling_small_twig_diff_1k.jpg",
+    "textures/pine_sapling_small_twig_nor_gl_1k.jpg"
+   ]
+  },
+  {
+   "id": "quaternius_palm_trees_stilizzate",
+   "name": "Palm Trees",
+   "author": "Quaternius",
+   "source_url": "https://poly.pizza/m/VYslw9DEi6",
+   "file_url": "https://static.poly.pizza/88fb0209-5e1e-4cb0-9d11-112e6140ab13.glb",
+   "license": "CC0 1.0",
+   "license_url": "https://poly.pizza/m/VYslw9DEi6",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "stylised/low-poly",
+   "main_file": "quaternius_palm_trees.glb",
+   "bytes": 1120784,
+   "triangles": 1920,
+   "variants": [
+    {
+     "node": "PalmTree_3",
+     "triangles": 344
+    },
+    {
+     "node": "PalmTree_5",
+     "triangles": 264
+    },
+    {
+     "node": "PalmTree_4",
+     "triangles": 472
+    },
+    {
+     "node": "PalmTree_1",
+     "triangles": 472
+    },
+    {
+     "node": "PalmTree_2",
+     "triangles": 368
+    }
+   ],
+   "materials": [
+    {
+     "name": "PalmTree_Trunk",
+     "alphaMode": "OPAQUE"
+    },
+    {
+     "name": "PalmTree_Leaves",
+     "alphaMode": "BLEND"
+    }
+   ],
+   "files": [
+    "quaternius_palm_trees.glb"
+   ]
+  },
+  {
+   "id": "quiver_tree_01",
+   "name": "Quiver Tree 01",
+   "author": "James Ray Cock, Dario Barresi, Rico Cilliers",
+   "source_url": "https://polyhaven.com/a/quiver_tree_01",
+   "api_files_url": "https://api.polyhaven.com/files/quiver_tree_01",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "quiver_tree_01_1k.gltf",
+   "bytes": 8880481,
+   "triangles": 150124,
+   "variants": [
+    {
+     "node": "quiver_tree_01",
+     "triangles": 150124
+    }
+   ],
+   "materials": [
+    {
+     "name": "quiver_tree_01_trunk",
+     "alphaMode": "OPAQUE"
+    },
+    {
+     "name": "quiver_tree_01_leaf",
+     "alphaMode": "BLEND"
+    }
+   ],
+   "files": [
+    "quiver_tree_01.bin",
+    "quiver_tree_01_1k.gltf",
+    "textures/quiver_tree_01_leaf_arm_1k.jpg",
+    "textures/quiver_tree_01_leaf_diff_1k.jpg",
+    "textures/quiver_tree_01_leaf_nor_gl_1k.jpg",
+    "textures/quiver_tree_01_trunk_arm_1k.jpg",
+    "textures/quiver_tree_01_trunk_diff_1k.jpg",
+    "textures/quiver_tree_01_trunk_nor_gl_1k.jpg"
+   ]
+  },
+  {
+   "id": "searsia_lucida",
+   "name": "Searsia Lucida",
+   "author": "James Ray Cock, Jenelle van Heerden",
+   "source_url": "https://polyhaven.com/a/searsia_lucida",
+   "api_files_url": "https://api.polyhaven.com/files/searsia_lucida",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "searsia_lucida_1k.gltf",
+   "bytes": 19871241,
+   "triangles": 377192,
+   "variants": [
+    {
+     "node": "searsia_lucida_a_LOD0",
+     "triangles": 113405
+    },
+    {
+     "node": "searsia_lucida_b_LOD0",
+     "triangles": 88629
+    },
+    {
+     "node": "searsia_lucida_c_LOD0",
+     "triangles": 77603
+    },
+    {
+     "node": "searsia_lucida_d_LOD0",
+     "triangles": 56320
+    },
+    {
+     "node": "searsia_lucida_e_LOD0",
+     "triangles": 27701
+    },
+    {
+     "node": "searsia_lucida_f_LOD0",
+     "triangles": 7232
+    },
+    {
+     "node": "searsia_lucida_g_LOD0",
+     "triangles": 6302
+    }
+   ],
+   "materials": [
+    {
+     "name": "searsia_lucida",
+     "alphaMode": "OPAQUE"
+    },
+    {
+     "name": "searsia_lucida_leaves",
+     "alphaMode": "BLEND"
+    },
+    {
+     "name": "searsia_lucida_twigs",
+     "alphaMode": "BLEND"
+    }
+   ],
+   "files": [
+    "searsia_lucida.bin",
+    "searsia_lucida_1k.gltf",
+    "textures/searsia_lucida_alpha_1k.png",
+    "textures/searsia_lucida_arm_1k.jpg",
+    "textures/searsia_lucida_diff_1k.jpg",
+    "textures/searsia_lucida_nor_gl_1k.jpg"
+   ]
+  },
+  {
+   "id": "shrub_02",
+   "name": "Shrub 02",
+   "author": "Rico Cilliers",
+   "source_url": "https://polyhaven.com/a/shrub_02",
+   "api_files_url": "https://api.polyhaven.com/files/shrub_02",
+   "license": "CC0 1.0",
+   "license_url": "https://polyhaven.com/license",
+   "license_deed": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "realism": "realistic (photoscanned)",
+   "resolution": "1k",
+   "main_file": "shrub_02_1k.gltf",
+   "bytes": 2058166,
+   "triangles": 27254,
+   "variants": [
+    {
+     "node": "shrub_02_a",
+     "triangles": 7590
+    },
+    {
+     "node": "shrub_02_b",
+     "triangles": 5242
+    },
+    {
+     "node": "shrub_02_c",
+     "triangles": 9234
+    },
+    {
+     "node": "shrub_02_d",
+     "triangles": 5188
+    }
+   ],
+   "materials": [
+    {
+     "name": "shrub_02",
+     "alphaMode": "MASK"
+    }
+   ],
+   "files": [
+    "shrub_02.bin",
+    "shrub_02_1k.gltf",
+    "textures/shrub_02_alpha_1k.png",
+    "textures/shrub_02_arm_1k.jpg",
+    "textures/shrub_02_diff_1k.jpg",
+    "textures/shrub_02_nor_gl_1k.jpg"
+   ]
+  }
+ ],
+ "total_bytes": 134209385
+}

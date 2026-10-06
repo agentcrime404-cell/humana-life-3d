@@ -1,0 +1,220 @@
+/* HUD stile reference: vetro blu notte, bordi sottili, icone bianche. Tutti gli elementi restano DOM interattivi. */
+:root{--safe-top:env(safe-area-inset-top,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--hud-bg:#0c1726e6;--hud-line:#9fb6d038;--hud-glow:#35a8ff;--hud-text:#f4f7fb}
+button{transition:transform .12s,background .15s,box-shadow .15s}button:active{transform:scale(.93)}button:focus-visible{outline:2px solid #63e9ff;outline-offset:3px}
+button svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;pointer-events:none}
+button svg.art{stroke:none}
+#hud .glass{background:var(--hud-bg);border:1px solid var(--hud-line);box-shadow:0 6px 22px #0006,inset 0 1px 0 #ffffff14;backdrop-filter:blur(8px);border-radius:16px}
+#hud .sr,#hud .actions span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Scheda giocatore */
+.identity{position:fixed;left:calc(12px + var(--safe-left));top:calc(10px + var(--safe-top));display:flex;align-items:center;gap:11px;width:304px;min-width:0;padding:6px 12px 6px 6px;z-index:4}
+.identity .portrait{width:74px;height:74px;flex:0 0 74px;border-radius:50%;border:3px solid #3aa6ff;box-shadow:0 0 0 2px #0c1726,0 0 12px #2a8cff88;background:#1d5f8a}
+.identity .id-main{flex:1;min-width:0}
+.identity strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:18px;font-weight:700;color:var(--hud-text);letter-spacing:.2px}
+.level-line{display:flex;align-items:center;gap:8px;margin:6px 0 7px}.identity .level-line span{display:inline;margin:0;font-size:13px;font-weight:600;color:#e9eef5;white-space:nowrap}
+.level-line progress{flex:1;max-width:122px;height:7px;border:0;border-radius:5px;overflow:hidden;background:#24324a;accent-color:#2fd47a}.level-line progress::-webkit-progress-bar{background:#24324a}.level-line progress::-webkit-progress-value{background:linear-gradient(90deg,#1fc46b,#5ef0a0)}.level-line progress::-moz-progress-bar{background:linear-gradient(90deg,#1fc46b,#5ef0a0)}
+.wallet{display:flex;align-items:center;gap:14px;height:24px}.identity .wallet span{display:inline-flex;align-items:center;gap:6px;margin:0;color:#fff;font-size:15px}.wallet svg{width:19px;height:19px}.wallet b{font-weight:700}
+.wallet #wallet-plus{margin-left:auto;min-height:24px;height:24px;width:24px;padding:0;border-radius:6px;font-size:19px;line-height:1;background:#1a2a40;border:1px solid #ffffff40;display:grid;place-items:center}
+#hud-vip{position:absolute;right:12px;top:8px;display:flex;flex-direction:column;align-items:center;color:#7d8899;font-size:10px;font-weight:800;letter-spacing:.5px}#hud-vip svg{width:30px;height:23px}#hud-vip span{display:block;margin-top:1px;color:inherit;font-size:10px}
+#hud-vip.vip{color:#ffc928;text-shadow:0 0 8px #ffb30066}#hud-vip.vip svg{filter:drop-shadow(0 0 4px #ffb30088)}
+.identity .id-main{padding-right:40px}
+.identity #settings,.identity #connection,.map #online,#map-open{display:none}
+
+/* Pulsanti social a sinistra */
+.social{position:fixed;top:calc(133px + var(--safe-top));left:calc(12px + var(--safe-left));display:grid;gap:9px;max-height:calc(100dvh - 380px);overflow-y:auto;overscroll-behavior:contain;padding:2px;z-index:3}
+.social button{position:relative;width:62px;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;border-radius:13px;background:var(--hud-bg);border:1px solid var(--hud-line);color:#fff;box-shadow:0 4px 12px #0005}
+.social button svg{width:26px;height:26px;stroke-width:1.9}.social span{font-size:12px;font-weight:600;color:#e9eef5}
+.social button.selected{background:#16304d;border-color:#5fb6ff;box-shadow:0 0 12px #2a8cff55}.social button.active{border-color:#4fe08c;box-shadow:0 0 12px #2fd47a77}
+.social button[data-badge]:not([data-badge=""])::after{content:attr(data-badge);position:absolute;top:-4px;right:-4px;border-radius:9px;background:#e5484d;color:#fff;min-width:18px;font-size:10px;padding:2px 4px}
+
+/* Minimappa */
+.map{position:fixed;top:calc(10px + var(--safe-top));right:calc(12px + var(--safe-right));width:252px;padding:6px 6px 6px;z-index:3}
+.map-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:1px 6px 6px;font-size:14px}.map #area{color:#fff;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#world-clock{color:#fff;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}#world-clock::first-letter{color:#ffc928}
+.map-view{position:relative}.map canvas{display:block;width:240px;height:150px;border-radius:11px;cursor:pointer;border:1px solid #ffffff1f}
+.map-view button{position:absolute;bottom:6px;width:26px;height:26px;min-height:26px;padding:0;border-radius:50%;background:#0c1726d9;border:1px solid #ffffff55;font-size:18px;line-height:1;display:grid;place-items:center}#map-minus{left:6px}#map-plus{right:6px}
+
+/* Joystick */
+#joystick{position:fixed;left:calc(46px + var(--safe-left));bottom:calc(46px + var(--safe-bottom));width:190px;height:190px;border-radius:50%;display:grid;place-items:center;touch-action:none;border:2px solid #ffffff3a;background:radial-gradient(circle,#ffffff14 0 48%,#0c172670 49% 100%);box-shadow:0 5px 22px #0006,inset 0 0 18px #ffffff12;z-index:3}
+#joystick::before{content:'';position:absolute;inset:0;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23ffffffcc' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M45 12l5-5 5 5M45 88l5 5 5-5M12 45l-5 5 5 5M88 45l5 5-5 5'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat}
+#joystick>div{width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffffff,#d5dbe3 70%,#b9c1cc);border:0;box-shadow:0 4px 12px #0007;pointer-events:none}
+
+/* Azioni a destra */
+.actions{position:fixed;right:calc(14px + var(--safe-right));bottom:calc(6px + var(--safe-bottom));display:flex;align-items:flex-end;gap:10px;z-index:3}
+.actions button{position:relative;width:74px;height:74px;margin-bottom:30px;display:grid;place-items:center;padding:0;border-radius:50%;background:var(--hud-bg);border:2px solid #ffffff30;color:#fff;box-shadow:0 5px 16px #0006;touch-action:none}
+.actions svg{width:34px;height:34px;stroke-width:1.7}
+.actions #inventory{width:80px;height:80px;margin-bottom:27px;background:radial-gradient(circle,#123c66,#0c1f38);border:3px solid #37a6ff;box-shadow:0 0 16px #2a8cffaa,inset 0 0 12px #2a8cff55}
+.actions #phone{width:96px;height:126px;margin-bottom:0;border-radius:20px;background:radial-gradient(circle at 50% 40%,#16365c,#0b1a2e);border:3px solid #37a6ff;box-shadow:0 0 18px #2a8cffaa}
+.actions #phone svg{width:58px;height:86px}
+.actions #interact.available{border-color:#ffd56a;box-shadow:0 0 16px #ffc92888}
+.actions #run.active{border-color:#4fe08c;box-shadow:0 0 14px #2fd47a88}
+.actions .unread::after{content:'';width:12px;height:12px;background:#e5484d;border:2px solid #0b1a2e;border-radius:50%;position:absolute;top:6px;right:8px}
+
+/* Barra chat */
+#chat{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(26px + var(--safe-bottom));width:clamp(300px,36vw,456px);padding:6px;border-radius:30px!important;z-index:3}
+#chat-form{display:flex;align-items:center;gap:6px}#chat-form button{width:44px;height:44px;min-height:44px;display:grid;place-items:center;padding:8px;border-radius:50%;background:transparent;border:0;color:#fff;flex-shrink:0}
+#chat-form #chat-mic{background:#18273b;border:1px solid #ffffff2a}#chat-form #chat-mic.active{color:#4fe08c;border-color:#4fe08c}#chat-form #chat-send{border:2px solid #5fb6ff;color:#8fd0ff}
+#chat-input{flex:1;min-width:0;border:0;background:transparent;padding:10px 6px;font-size:15px;color:#fff}#chat-input::placeholder{color:#c4ccd8}
+#messages:empty{display:none}#messages{max-height:76px;padding:4px 10px 6px}
+#nearby-hint{position:fixed;left:50%;transform:translateX(-50%);bottom:110px;z-index:3}#toast{top:calc(130px + var(--safe-top))}
+#fps{display:none}
+.phone-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.phone-grid button{min-height:70px;margin:0!important;background:linear-gradient(140deg,#16304d,#0c1726)}
+
+/* Schermi medi */
+@media(max-width:1050px){.identity{width:270px}.identity .portrait{width:58px;height:58px;flex-basis:58px}.identity strong{font-size:15px}.map{width:200px}.map canvas{width:188px;height:118px}.social button{width:54px;height:54px}.social span{font-size:10px}#joystick{width:150px;height:150px;left:22px;bottom:30px}#joystick>div{width:62px;height:62px}.actions button{width:60px;height:60px;margin-bottom:22px}.actions #inventory{width:66px;height:66px;margin-bottom:19px}.actions #phone{width:76px;height:100px}.actions #phone svg{width:46px;height:68px}#chat{left:calc(184px + var(--safe-left));right:calc(316px + var(--safe-right));width:auto;min-width:0;transform:none}}
+
+/* Telefono verticale */
+@media(max-width:700px) and (orientation:portrait){
+ .identity{width:222px;left:calc(6px + var(--safe-left));top:calc(6px + var(--safe-top));gap:7px;padding:5px 8px 5px 5px}.identity .portrait{width:44px;height:44px;flex-basis:44px;border-width:2px}.identity strong{font-size:13px}.identity .id-main{padding-right:30px}.level-line{gap:4px;margin:3px 0}.identity .level-line span{font-size:10px}.level-line progress{height:5px}.wallet{gap:8px;height:20px}.identity .wallet span{font-size:12px;gap:3px}.wallet svg{width:14px;height:14px}.wallet #wallet-plus{width:20px;height:20px;min-height:20px;font-size:15px}#hud-vip{right:7px;top:5px}#hud-vip svg{width:22px;height:17px}#hud-vip span{font-size:8px}
+ .map{right:calc(6px + var(--safe-right));top:calc(6px + var(--safe-top));width:136px;padding:4px}.map-head{font-size:10px;padding:0 3px 4px}.map canvas{width:126px;height:84px}.map-view button{width:22px;height:22px;min-height:22px;font-size:15px;bottom:4px}#map-minus{left:4px}#map-plus{right:4px}
+ .social{left:calc(6px + var(--safe-left));top:calc(108px + var(--safe-top));gap:6px;max-height:calc(100dvh - 400px)}.social button{width:48px;height:48px;border-radius:11px}.social button svg{width:21px;height:21px}.social span{font-size:9px}
+ #joystick{width:128px;height:128px;left:calc(14px + var(--safe-left));bottom:calc(78px + var(--safe-bottom))}#joystick>div{width:52px;height:52px}
+ .actions{display:grid;grid-template-columns:repeat(2,auto);align-items:center;justify-items:center;gap:8px;right:calc(10px + var(--safe-right));bottom:calc(76px + var(--safe-bottom))}.actions button,.actions #inventory{width:56px;height:56px;margin:0}.actions svg{width:26px;height:26px}.actions #phone{width:56px;height:74px;border-radius:14px}.actions #phone svg{width:34px;height:52px}
+ #chat{left:calc(8px + var(--safe-left));right:calc(8px + var(--safe-right));width:auto;transform:none;bottom:calc(8px + var(--safe-bottom));padding:4px}#chat-form button{width:38px;height:38px;min-height:38px;padding:6px}#messages{max-height:62px}#nearby-hint{bottom:250px}#toast{top:170px}
+ .typing .actions,.typing #joystick,.typing .social{visibility:hidden}
+}
+
+/* Telefono orizzontale */
+@media(max-height:500px) and (orientation:landscape){
+ .identity{top:calc(5px + var(--safe-top));width:250px;padding:4px 8px 4px 4px;gap:7px}.identity .portrait{width:46px;height:46px;flex-basis:46px;border-width:2px}.identity strong{font-size:14px}.level-line{margin:2px 0}.wallet{height:20px}.identity .wallet span{font-size:12px}.wallet svg{width:15px;height:15px}#hud-vip svg{width:22px;height:17px}
+ .social{top:calc(70px + var(--safe-top));gap:5px;max-height:calc(100dvh - 150px);scrollbar-width:none}.social button{width:46px;height:46px}.social button svg{width:20px;height:20px}.social span{font-size:8px}
+ .map{top:calc(5px + var(--safe-top));width:170px;padding:4px}.map-head{font-size:11px;padding:0 4px 3px}.map canvas{width:160px;height:86px}
+ #joystick{width:112px;height:112px;left:calc(70px + var(--safe-left));bottom:calc(12px + var(--safe-bottom))}#joystick>div{width:46px;height:46px}
+ .actions{bottom:calc(6px + var(--safe-bottom));right:calc(8px + var(--safe-right));gap:7px}.actions button{width:50px;height:50px;margin-bottom:12px}.actions svg{width:24px;height:24px}.actions #inventory{width:54px;height:54px;margin-bottom:10px}.actions #phone{width:58px;height:76px}.actions #phone svg{width:34px;height:52px}
+ #chat{bottom:calc(10px + var(--safe-bottom));left:calc(190px + var(--safe-left));right:calc(250px + var(--safe-right));width:auto;min-width:0;transform:none}#chat-form button{width:36px;height:36px;min-height:36px;padding:6px}#messages{max-height:38px}#nearby-hint{bottom:70px}#toast{top:80px}
+ .typing .actions,.typing #joystick{visibility:hidden}
+}
+
+/* Ordine esplicito: mondo sotto l'interfaccia, modali nel top layer del browser. */
+#world{z-index:0}#hud{position:fixed;inset:0;z-index:10;pointer-events:none}#hud button,#hud input,#hud canvas,#hud #joystick,#hud #messages{pointer-events:auto}#auth{z-index:20}#startup-error{position:fixed;left:5%;right:5%;top:15%;z-index:100;background:#092b40;padding:24px;border:2px solid #f0c98c;border-radius:16px}#startup-error[hidden]{display:none}
+
+/* Telefono stile smartphone */
+#iphone{position:fixed;inset:0;z-index:15;display:grid;place-items:center;background:#02101c88;backdrop-filter:blur(3px)}#iphone[hidden]{display:none}
+#iphone .device{position:relative;height:min(86dvh,760px);aspect-ratio:9/19.5;max-width:94vw;border-radius:54px;padding:12px;background:#0b0b0d;box-shadow:0 0 0 2px #3a3a3e,0 0 0 5px #1b1b1d,0 30px 80px #000a;display:flex;flex-direction:column;overflow:hidden}
+#iphone .device::before{content:'';position:absolute;inset:12px;border-radius:44px;background:radial-gradient(120% 70% at 20% 10%,#ff9f6e 0,#e8507a 30%,#6b3fd6 62%,#1d2b6b 100%);z-index:0}
+#iphone .island{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:32%;height:30px;border-radius:20px;background:#000;z-index:3}
+#iphone .status{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 26px 0;height:44px;color:#fff;font-size:15px}
+#iphone .status .clock{font-weight:700;letter-spacing:.3px}#iphone .status .bars{display:flex;align-items:flex-end;gap:2px;margin-left:auto;margin-right:8px}#iphone .bars i{width:3px;background:#fff;border-radius:1px}#iphone .bars i:nth-child(1){height:4px}#iphone .bars i:nth-child(2){height:6px}#iphone .bars i:nth-child(3){height:8px}#iphone .bars i:nth-child(4){height:10px}
+#iphone .battery{width:24px;height:12px;border:1.5px solid #fff;border-radius:4px;padding:1.5px;position:relative}#iphone .battery i{display:block;height:100%;width:78%;background:#fff;border-radius:2px}#iphone .battery::after{content:'';position:absolute;right:-4px;top:3px;width:2px;height:4px;background:#fff;border-radius:1px}
+#iphone .screen{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;padding:6px 14px 0;color:#fff;overflow:auto;scrollbar-width:none}
+#iphone .date{text-align:center;font-size:13px;text-transform:capitalize;opacity:.9;margin:6px 0 14px}
+#iphone .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 8px;align-content:start}
+#iphone .app{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:0;min-height:0;color:#fff}#iphone .app:active .tile{filter:brightness(.8)}
+#iphone .tile{width:min(58px,15vw);aspect-ratio:1;border-radius:24%;display:grid;place-items:center;box-shadow:0 3px 8px #0004,inset 0 1px 0 #ffffff55}#iphone .tile svg{width:58%;height:58%;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#iphone .label{font-size:11px;text-shadow:0 1px 3px #0008;white-space:nowrap}
+#iphone .dock{margin-top:auto;margin-bottom:8px;display:flex;justify-content:space-around;padding:12px 6px;border-radius:30px;background:#ffffff38;backdrop-filter:blur(14px)}#iphone .dock .label{display:none}
+#iphone .home-bar{position:relative;z-index:3;align-self:center;width:36%;height:5px;min-height:5px;border-radius:3px;background:#fff;border:0;padding:0;margin:8px 0 6px;opacity:.9}
+#iphone .screen.contacts,#iphone .screen.call{background:#000c}#iphone .screen.contacts{background:#f2f2f7;color:#111;margin:0 -14px;padding:6px 16px 0}
+#iphone .app-head{display:flex;align-items:center;gap:10px}#iphone .app-head h3{margin:6px 0;font-size:26px}#iphone .back{background:none;border:0;color:#007aff;padding:0;min-height:30px;font-size:16px}
+#iphone .contact{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #d1d1d6}#iphone .who{flex:1;display:grid}#iphone .who small{color:#8e8e93}#iphone .who small.online{color:#34c759}
+#iphone .avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(160deg,#a1a1aa,#6b6b72);color:#fff;font-weight:700;font-size:18px}#iphone .avatar.big{width:110px;height:110px;font-size:46px;margin:40px auto 10px}
+#iphone .call-btn{width:40px;height:40px;min-height:40px;border-radius:50%;padding:9px;background:#34c759;border:0}#iphone .call-btn:disabled{background:#c7c7cc}
+#iphone svg.fill{width:100%;height:100%;fill:#fff;stroke:none}#iphone .hint{color:#8e8e93;font-size:14px}
+#iphone .screen.call{margin:0 -14px;padding:0 16px;background:linear-gradient(180deg,#1c2b3a,#0a0f16)}#iphone .calling{display:flex;flex-direction:column;align-items:center;height:100%}#iphone .calling h2{margin:4px 0;font-size:30px;font-weight:500}#iphone .calling .call-time{opacity:.75;margin:4px 0}
+#iphone .call-actions{margin-top:auto;margin-bottom:40px;display:flex;justify-content:space-around;width:100%}#iphone .act{display:grid;justify-items:center;gap:6px}#iphone .act small{color:#fff;font-size:12px}
+#iphone .act button{width:72px;height:72px;min-height:72px;border-radius:50%;border:0;padding:20px}#iphone .accept{background:#34c759}#iphone .decline{background:#ff3b30}#iphone .mute{background:#ffffff33}#iphone .mute.on{background:#fff}#iphone .mute.on svg{fill:#111}
+@media(max-height:500px) and (orientation:landscape){#iphone .device{height:94dvh;aspect-ratio:auto;width:min(380px,48vw);border-radius:30px}#iphone .device::before{border-radius:22px}#iphone .island{display:none}#iphone .status{padding-top:4px;height:28px}#iphone .grid{gap:8px 4px}#iphone .tile{width:44px}#iphone .avatar.big{width:70px;height:70px;font-size:30px;margin:10px auto 4px}#iphone .call-actions{margin-bottom:12px}#iphone .act button{width:56px;height:56px;min-height:56px;padding:15px}}
+
+body.pointer-mode #joystick{display:none}body.pointer-mode #world{cursor:pointer}
+
+.slot-reels{display:flex;justify-content:center;gap:10px;margin:14px 0}.slot-reels span{font-size:44px;width:76px;height:76px;display:grid;place-items:center;background:linear-gradient(#fff,#e9edf1);border-radius:14px;box-shadow:inset 0 2px 6px #0003}.slot-result{text-align:center;font-weight:700;color:#ffd35a;min-height:20px}
+
+.avatar-preview{display:block;margin:0 auto 8px;border-radius:16px;width:180px;height:220px}.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}#modal-body .chips button{margin:0;min-height:32px;padding:5px 10px;font-size:12px;border-radius:16px}#modal-body .chips button.on{background:#2a6fd6;border-color:#8fd0ff}#modal-body .swatch{width:28px;height:28px;min-height:28px!important;padding:0!important;border-radius:50%!important;border:2px solid #ffffff55}#modal-body .swatch.on{outline:3px solid #fff}.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:44dvh;overflow:auto}.shop-item{display:grid;gap:3px;padding:8px;border-radius:12px;background:#ffffff10;border:1px solid #ffffff1f}.shop-item .dot{width:22px;height:22px;border-radius:50%;border:2px solid #fff6}.shop-item small{color:#cfe1ee}#modal-body .shop-item button{margin:0;min-height:32px;padding:4px}
+/* Chiamata: sempre dentro lo schermo del telefono (niente margini negativi, contenuto compresso se lo spazio è poco). */
+#iphone .screen.call{margin:0;padding:0 12px;box-sizing:border-box;overflow:hidden;border-radius:42px}
+#iphone .calling{box-sizing:border-box;width:100%;min-height:0;height:100%;padding:clamp(24px,8dvh,70px) 0 0;overflow:hidden;text-align:center}
+#iphone .calling .avatar.big{width:clamp(64px,12dvh,104px);height:clamp(64px,12dvh,104px);font-size:clamp(26px,5dvh,44px);flex:none}
+#iphone .calling h2{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(20px,3.6dvh,30px)}
+#iphone .call-actions{box-sizing:border-box;margin:auto 0 clamp(16px,5dvh,40px);padding:0 6px;gap:8px;flex-wrap:nowrap}
+#iphone .call-actions .act button{width:clamp(52px,8dvh,68px);height:clamp(52px,8dvh,68px);min-height:0;padding:clamp(12px,2dvh,18px);flex:none}
+
+/* ── Tema HUMANA life 2.0: vetro scuro, accenti oro e menta, animazioni morbide ── */
+:root{--hl-gold:#f4d597;--hl-gold2:#e2b56a;--hl-mint:#7fe8d1;--hl-ink:#0b1622;--hl-panel:rgba(10,22,36,.86);--hl-line:rgba(244,213,151,.28);--hl-radius:18px}
+#modal{background:linear-gradient(160deg,rgba(16,35,58,.96),rgba(9,20,33,.97));border:1px solid var(--hl-line);border-radius:22px;box-shadow:0 24px 70px #000a,inset 0 1px 0 #ffffff12;backdrop-filter:blur(14px)}
+#modal[open]{animation:hl-pop .22s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes hl-pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+#modal::backdrop{background:rgba(4,10,18,.55);backdrop-filter:blur(3px)}
+#modal .modal-head h2,#modal-title{color:var(--hl-gold);letter-spacing:.02em}
+#modal-body button:not(.bp-sw):not(.atm-keys button):not(.atm-pad button):not(.atm-card){border-radius:14px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));color:#fff;font-weight:650;padding:10px 14px;transition:transform .12s,background .15s,border-color .15s}
+#modal-body button:not(.bp-sw):not(.atm-keys button):not(.atm-pad button):not(.atm-card):hover{border-color:var(--hl-gold);background:rgba(244,213,151,.14)}
+#modal-body button:not(.bp-sw):not(.atm-keys button):not(.atm-pad button):not(.atm-card):active{transform:scale(.97)}
+#modal-body button:first-of-type:not(.bp-sw):not(.atm-keys button):not(.atm-pad button):not(.atm-card){background:linear-gradient(90deg,var(--hl-gold),var(--hl-gold2));color:#1a1205;border-color:transparent}
+#modal-body h3{color:var(--hl-mint);font-size:15px;letter-spacing:.03em}
+#modal-body .muted{opacity:.72}
+#toast{background:linear-gradient(90deg,rgba(16,35,58,.96),rgba(11,22,34,.96));border:1px solid var(--hl-line);border-radius:16px;box-shadow:0 12px 34px #0009;font-weight:600;padding:11px 20px}
+.glass{background:var(--hl-panel);border-color:var(--hl-line);border-radius:var(--hl-radius)}
+.social button{background:var(--hl-panel);border:1px solid var(--hl-line);border-radius:16px;transition:transform .12s,border-color .15s}
+.social button:hover{border-color:var(--hl-gold);transform:translateY(-1px)}
+.actions button{background:radial-gradient(circle at 30% 25%,rgba(40,70,100,.95),rgba(10,22,36,.95));border:2px solid var(--hl-line);box-shadow:0 8px 22px #0008,inset 0 1px 0 #ffffff22;transition:transform .1s}
+.actions button:active{transform:scale(.93)}
+#voice.active{border-color:#34c759!important;box-shadow:0 0 0 3px rgba(52,199,89,.25)}
+#chat-form,#chat .glass{border-radius:22px}
+#job-hud,#inspect-toggle,#build-toggle{backdrop-filter:blur(10px)}
+
+/* Telefono: numero, tastierino, rubrica, YouTube */
+#iphone .my-number{margin:2px 0 6px;font-size:12px;opacity:.75;text-align:center}
+#iphone .ph-tabs{display:flex;gap:4px;margin:0 0 8px}#iphone .ph-tabs button{flex:1;border:0;border-radius:10px;padding:6px 0;background:#ffffff14;color:#111;font-weight:600;font-size:12px}#iphone .screen.contacts .ph-tabs button{background:#e5e5ea;color:#111}#iphone .ph-tabs button.on{background:#34c759!important;color:#fff!important}
+#iphone .dial-display{text-align:center;font-size:26px;letter-spacing:.06em;min-height:40px;margin:6px 0;color:#111}
+#iphone .dial-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;justify-items:center;margin:6px 0}#iphone .dial-key{width:62px;height:62px;border-radius:50%;border:0;background:#e5e5ea;color:#111;font-size:24px;font-weight:500}#iphone .dial-key:active{background:#c7c7cc}
+#iphone .dial-row{display:flex;justify-content:center;align-items:center;gap:22px;margin:8px 0}#iphone .call-btn.big{width:64px;height:64px;min-height:64px;padding:16px}#iphone .dial-save{border:0;background:#007aff;color:#fff;border-radius:12px;padding:8px 14px;font-weight:600}#iphone .dial-del{border:0;background:none;color:#ff3b30;font-size:16px}
+#iphone .yt{display:flex;flex-direction:column;gap:8px}#iphone .yt-player{aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;display:grid;place-items:center}#iphone .yt-player iframe{width:100%;height:100%;border:0}#iphone .yt-empty{color:#fff9;font-size:12px;padding:10px;text-align:center}
+#iphone .yt-form{display:flex;gap:6px}#iphone .yt-form input{flex:1;min-width:0;border-radius:10px;border:1px solid #ffffff33;background:#ffffff14;color:#fff;padding:8px}#iphone .yt-go{border:0;border-radius:10px;background:#e62117;color:#fff;font-weight:700;padding:0 14px}
+#iphone .yt-search{border:0;border-radius:10px;background:#ffffff1c;color:#fff;padding:8px;font-weight:600}#iphone .yt-label{opacity:.7}#iphone .yt-recent{display:grid;grid-template-columns:1fr 1fr;gap:6px}#iphone .yt-thumb{border:0;padding:0;border-radius:8px;overflow:hidden;background:#000}#iphone .yt-thumb img{width:100%;display:block}
+/* Telefono: ogni schermata resta dentro il bordo del dispositivo; tastierino e video si adattano all'altezza. */
+#iphone .screen{box-sizing:border-box;max-width:100%;overflow-x:hidden}
+#iphone .screen.contacts,#iphone .screen.youtube{margin:0;padding:6px 10px 0;border-radius:40px 40px 0 0}
+#iphone .dial-pad{gap:clamp(4px,1.2dvh,10px)}
+#iphone .dial-key{width:clamp(40px,8.5dvh,62px);height:clamp(40px,8.5dvh,62px);font-size:clamp(16px,3.2dvh,24px)}
+#iphone .dial-display{font-size:clamp(16px,3.6dvh,26px);min-height:0;margin:2px 0}
+#iphone .call-btn.big{width:clamp(44px,8.5dvh,64px);height:clamp(44px,8.5dvh,64px);min-height:0;padding:clamp(10px,2dvh,16px)}
+#iphone .dial-row{margin:clamp(4px,1dvh,8px) 0}
+#iphone .ph-tabs button{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#iphone .contact{min-width:0}#iphone .contact .who{min-width:0;overflow:hidden}#iphone .contact .who b,#iphone .contact .who small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#iphone .yt-player{max-height:38dvh}
+@media (orientation:landscape) and (max-height:520px){
+ #iphone .app-head h3{font-size:18px;margin:0}#iphone .app-head{padding:2px 0}#iphone .my-number{margin:0 0 2px;font-size:10px}
+ #iphone .ph-tabs{margin:0 0 4px}#iphone .ph-tabs button{padding:4px 0;font-size:11px}
+ #iphone .dial-display{font-size:15px}#iphone .dial-pad{gap:3px}#iphone .dial-key{width:30px;height:30px;font-size:14px}
+ #iphone .call-btn.big{width:36px;height:36px;padding:8px}#iphone .dial-save{padding:5px 10px;font-size:12px}#iphone .dial-row{margin:3px 0;gap:14px}
+ #iphone .yt-player{max-height:46dvh}}
+#iphone .dial-key,#iphone .ph-tabs button,#iphone .dial-save,#iphone .dial-del,#iphone .yt-go,#iphone .yt-search,#iphone .yt-thumb{min-height:0!important}
+@media (orientation:landscape) and (max-height:520px){#iphone .dial-key{height:30px!important;width:30px!important;padding:0}#iphone .ph-tabs button{height:26px}}
+.online-count{display:block;font-size:12px;font-weight:700;color:#7dffa0;text-shadow:0 1px 2px #000a}
+#iphone .yt-results{display:flex;flex-direction:column;gap:6px;margin-top:8px}#iphone .yt-row{display:flex;gap:8px;align-items:center;text-align:left;background:#1c1c1e;color:#fff;border:0;border-radius:10px;padding:4px;font-size:12px}#iphone .yt-row img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;flex:none}#iphone .yt-row span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#cam3d{position:fixed;right:12px;top:42%;display:flex;flex-direction:column;gap:8px;z-index:30}#cam3d[hidden]{display:none}#cam3d button{width:48px;height:48px;border-radius:50%;border:0;background:rgba(17,24,39,.65);color:#fff;font-size:22px;backdrop-filter:blur(4px)}
+#cam3d .cam-label{color:#fff;font-size:12px;font-weight:700;text-align:center;text-shadow:0 1px 3px #000;min-height:14px}
+#bigmap{position:fixed;inset:0;z-index:60;background:#1b2635;touch-action:none}#bigmap canvas{width:100%;height:100%;display:block}
+#bigmap .bm-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;padding:12px 16px;background:linear-gradient(#0b1220e6,#0b122000);color:#fff}
+#bigmap .bm-top strong{flex:1;font-size:18px}#bigmap button{border:0;border-radius:12px;background:#111827d9;color:#fff;font-weight:700;font-size:16px;padding:10px 16px;cursor:pointer}
+#bigmap .bm-back{font-size:18px;background:#e5484d}#bigmap .bm-zoom{display:flex;gap:8px}#bigmap .bm-zoom button{width:46px;font-size:22px;padding:6px}
+#bigmap .bm-hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:#111827d9;color:#fff;padding:8px 14px;border-radius:12px;font-size:13px;max-width:calc(100% - 32px);text-align:center}
+#bigmap .bm-clear{position:absolute;right:16px;bottom:60px}
+
+/* HUMANA life 3D: finestra di un'app aperta dentro lo schermo del telefono */
+#modal.in-phone{position:fixed;margin:0;max-width:none;max-height:none;overflow:auto;padding:12px 12px 16px;border:0;border-radius:6px 6px 34px 34px;box-shadow:none;background:linear-gradient(160deg,rgba(16,35,58,.985),rgba(9,20,33,.99))}
+#modal.in-phone::backdrop{background:transparent;backdrop-filter:none}
+#modal.in-phone .modal-head h2{font-size:17px}
+
+/* NPL Bank: app della banca nel telefono */
+#iphone .screen.npl{background:linear-gradient(180deg,#062a3a,#0a1d2e);margin:0;padding:6px 12px 0;border-radius:40px 40px 0 0;color:#eaf6f5}
+#iphone .screen.npl .app-head h3{color:#eaf6f5}#iphone .screen.npl .back{color:#5fe0c8}
+#iphone .npl{display:flex;flex-direction:column;gap:8px;align-items:stretch;padding-bottom:16px}
+#iphone .npl-logo{align-self:center;display:flex;align-items:baseline;gap:6px;margin-top:6px;padding:10px 18px;border-radius:18px;background:linear-gradient(140deg,#19c3a6,#0b5d7a);box-shadow:0 6px 18px #0006}
+#iphone .npl-logo b{font-size:26px;letter-spacing:2px;color:#fff}#iphone .npl-logo span{font-size:15px;color:#d9fff7}
+#iphone .npl-sub,#iphone .npl-msg{text-align:center;margin:2px 0;font-size:13px;opacity:.9}#iphone .npl-dots{text-align:center;font-size:22px;letter-spacing:4px;color:#5fe0c8;min-height:30px}
+#iphone .screen.npl .dial-key{background:#12384a;color:#eaf6f5}#iphone .screen.npl .dial-key:active{background:#1b5068}
+#iphone .npl-link{background:none;border:0;color:#5fe0c8;font-size:13px;min-height:0;padding:2px;align-self:center}#iphone .npl-note{display:block;text-align:center;opacity:.65;font-size:11px;margin-top:4px}
+#iphone .npl-card{border-radius:18px;padding:14px 16px;background:linear-gradient(140deg,#19c3a6,#0b5d7a);display:flex;flex-direction:column;gap:2px;box-shadow:0 8px 20px #0006}
+#iphone .npl-card b{font-size:28px;color:#fff}#iphone .npl-card small,#iphone .npl-card span{color:#d9fff7;font-size:12px}
+#iphone .npl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}#iphone .npl-tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:16px;border:1px solid #1f566c;background:#0e3142;color:#eaf6f5;font-size:13px;min-height:0}
+#iphone .npl-tile i{font-style:normal;font-size:24px}#iphone .npl h4{margin:4px 0 0;font-size:17px}
+#iphone .npl-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:14px;border:1px solid #1f566c;background:#0e3142;color:#eaf6f5;font-size:13px;min-height:0;text-align:left}
+#iphone .npl-item{display:flex;flex-direction:column;gap:1px;min-width:0}#iphone .npl-item span{font-size:11px;opacity:.75}#iphone .npl-val{color:#5fe0c8;white-space:nowrap}
+#iphone .npl-go{background:#19c3a6;color:#04222b;border:0;border-radius:12px;padding:6px 12px;font-weight:700;min-height:0;font-size:13px}#iphone .npl-go:disabled{background:#28505c;color:#9fb8bd}
+#iphone .npl-free{display:flex;gap:6px}#iphone .npl-free input{flex:1;min-width:0;border-radius:12px;border:1px solid #1f566c;background:#082331;color:#eaf6f5;padding:8px 10px;font-size:13px}
+
+/* HUMANA life 3D: la città deve occupare lo schermo. Pannelli più leggeri e trasparenti, niente sfocatura sopra il 3D (costa fotogrammi). */
+body.is3d #hud .glass,body.is3d .glass,body.is3d .social button,body.is3d #cam3d button,body.is3d #job-hud,body.is3d #inspect-toggle,body.is3d #build-toggle{backdrop-filter:none;-webkit-backdrop-filter:none}
+body.is3d #hud .glass,body.is3d .glass,body.is3d .social button{background:rgba(10,22,36,.58)}
+body.is3d #cam3d button{background:rgba(17,24,39,.5)}
+@media (max-width:700px){body.is3d .social button{transform:scale(.88);transform-origin:left top}}

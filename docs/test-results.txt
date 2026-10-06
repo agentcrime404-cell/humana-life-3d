@@ -1,0 +1,27 @@
+Collaudo finale: npm test — HUMANA 0.4.0 — Node.js v24.19.0
+Esito verificato dal comando: exit code 0.
+
+PASS Multitouch: joystick e corsa indipendenti
+PASS Cambio app, chat e menu azzerano input
+PASS Collisioni, velocità e attenuazione voce
+PASS Client e moduli HTTP; sorgenti server non esposti
+PASS Password hash, autenticazione e profilo
+PASS Presenza e input autorevoli con due client WebSocket
+PASS Permessi richieste amicizia
+PASS Chat e segnalazione
+PASS Blocco e signaling WebRTC
+PASS Porte, interno condiviso e seduta esclusiva
+PASS Logout e revoca presenza
+PASS Revoca sessione scaduta su socket aperto
+PASS Contenitore integrazione due client
+PASS Avvio del pacchetto e arresto server
+PASS Persistenza database e migrazione
+PASS Campionamento terreno in cinque zone e cache limitata
+PASS Renderer asset e minimappa ad alta densità
+PASS Annullamento microfono con flusso arrivato in ritardo (mock)
+PASS Mute individuale e stop del parlato (mock)
+PASS Raggiungibilità zone, ingressi e limite marino
+
+Riepilogo Node test runner: tests 20, pass 20, fail 0, cancelled 0, skipped 0.
+Durata ultima esecuzione verificata: 1884.37833 ms.
+Non è una prova di microfoni reali o touch Android: leggere COLLAUDO-0.4.md.

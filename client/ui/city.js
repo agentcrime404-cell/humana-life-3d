@@ -1,0 +1,126 @@
+import {MAPS,distance} from '/shared/world.js';
+import {BUS_STOPS} from '/shared/district.js';
+import {MALL_SHOPS,SIM_PRICE,BOATS,BOAT_PRICE,DEALERS,JUKEBOX,JUKEBOX_PRICE,DRINKS,PACKS,ATM_RATE,WEAR,WEAR_ITEMS,COLORS,HAIR_STYLES,BEARD_STYLES,HAIR_COLORS,BARBER_PRICE} from '/shared/catalog.js';
+// Bancomat e fermate dell'autobus: interazioni di quartiere.
+export function installCity({net,api,modal,button,el,notify,closeModal,getMe,renderer,getUser,onUser}){
+ const euro=c=>(c/100).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+ // Ville: offerta di acquisto/affitto quando si prova a entrare in una villa non propria.
+ net.addEventListener('villa',e=>villa(e.detail));
+ const loadVillas=()=>{if(getMe())api('/villas').then(v=>{renderer.villaStatus=v;}).catch(()=>{});};setInterval(loadVillas,20000);document.addEventListener('humana:villas',loadVillas);net.addEventListener('welcome',()=>setTimeout(loadVillas,500));
+ function villa(v){const box=modal('🏡 Villa sul mare');
+  if(v.status==='taken'){box.append(el('p',`Questa villa è di ${v.owner} (${v.mode==='buy'?'proprietà':'in affitto fino al '+new Date(v.until).toLocaleDateString('it-IT')}).`));return;}
+  if(v.status==='mine'){box.append(el('p',v.mode==='buy'?'È tua per sempre. Premi la mano alla porta per entrare.':'In affitto fino al '+new Date(v.until).toLocaleDateString('it-IT')+'.'),button(`Rinnova affitto · ${400} monete`,()=>deal(v.id,'rent')),button('Comprala',()=>deal(v.id,'buy')));return;}
+  box.append(el('p','Villa con giardino e piscina. Solo tu potrai entrare.'),button(`🔑 Compra · ${v.price.toLocaleString('it-IT')} monete`,()=>deal(v.id,'buy')),button(`📅 Affitta ${v.days} giorni · ${v.rent} monete`,()=>deal(v.id,'rent')),el('p','Si paga con le monete del gioco. Massimo due ville per giocatore.','muted'));}
+ async function deal(id,mode){try{const r=await api('/villa','POST',{id,mode});closeModal();notify(mode==='buy'?'🏡 Villa comprata! Entra dalla porta.':'🏡 Villa affittata fino al '+new Date(r.until).toLocaleDateString('it-IT'));document.dispatchEvent(new CustomEvent('humana:wallet',{detail:await api('/state')}));document.dispatchEvent(new Event('humana:villas'));}catch(e){notify(e.message);}}
+ // Slot machine: fiches gratuite, rulli animati, esito dal server.
+ async function slot(){const box=modal('🎰 Slot Vesuvio');const info=el('p','Fiches gratuite: 100 al giorno. Non si comprano e non si convertono in monete.','muted');const reels=el('div','slot-reels');for(let i=0;i<3;i++)reels.append(el('span',undefined,'🍒'));const result=el('p','','slot-result');const count=el('p','');box.append(count,reels,result);
+  const refresh=async()=>{count.textContent='Fiches: '+(await api('/fiches')).fiches;};await refresh();
+  for(const bet of [1,5,10])box.append(button(`Gira · ${bet} fiche${bet>1?'s':''}`,async()=>{result.textContent='';const spin=setInterval(()=>{for(const r of reels.children)r.textContent=['🍋','🍒','🔔','⭐','7️⃣','💎'][Math.floor(Math.random()*6)];},70);
+   try{const r=await api('/slot','POST',{bet});await new Promise(res=>setTimeout(res,900));clearInterval(spin);[...reels.children].forEach((s,i)=>s.textContent=r.reels[i]);result.textContent=r.win>bet?`🎉 Hai vinto ${r.win} fiches!`:r.win===bet?'Puntata restituita':'Ritenta!';count.textContent='Fiches: '+r.fiches;}catch(e){clearInterval(spin);result.textContent=e.message;}}));box.append(info);}
+ // Anteprima dell'avatar con il renderer del gioco.
+ function preview(canvas,avatar){const c=canvas.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,canvas.width,canvas.height);const g=c.createRadialGradient(canvas.width/2,canvas.height*.6,10,canvas.width/2,canvas.height*.6,canvas.width*.7);g.addColorStop(0,'#2b4a63');g.addColorStop(1,'#0c1726');c.fillStyle=g;c.fillRect(0,0,canvas.width,canvas.height);
+  c.save();c.translate(canvas.width/2,canvas.height-18);c.scale(1.35,1.35);const budget=renderer.lookBudget;renderer.lookBudget=-1;const n=renderer.hitPlayers.length;renderer.avatar(c,{id:'preview',x:0,y:0,direction:Math.PI/4,moving:false,avatar},{id:'preview'});renderer.hitPlayers.length=n;renderer.lookBudget=budget;c.restore();}
+ async function fashion(shop){const box=modal(shop?shop.icon+' '+shop.name:'👗 Moda Market'),SL=Object.entries(WEAR).filter(([k])=>!shop?.slots||shop.slots.includes(k));const state=await api('/state');let owned=new Set(state.inventory.map(i=>i.item)),avatar=structuredClone(getUser().avatar);avatar.wear??={};
+  const cv=el('canvas');cv.width=180;cv.height=220;cv.className='avatar-preview';const tabs=el('div',undefined,'chips'),filters=el('div',undefined,'chips'),grid=el('div',undefined,'shop-grid'),bar=el('p','','muted');
+  let slot=SL[0][0],model=-1,color=-1,shown=40;
+  const draw=()=>{preview(cv,avatar);tabs.replaceChildren(...SL.map(([k,w])=>{const b=button(w.label,()=>{slot=k;model=-1;color=-1;shown=40;draw();});b.classList.toggle('on',k===slot);return b;}));
+   filters.replaceChildren(...[[-1,'Tutti'],...WEAR[slot].models.map((m,i)=>[i,m])].map(([i,m])=>{const b=button(m,()=>{model=i;shown=40;draw();});b.classList.toggle('on',i===model);return b;}),...COLORS.map(([n,h],i)=>{const b=button('',()=>{color=color===i?-1:i;shown=40;draw();});b.className='swatch'+(i===color?' on':'');b.style.background=h;b.title=n;return b;}));
+   const items=WEAR_ITEMS.filter(i=>i.slot===slot&&(model<0||i.style===model)&&(color<0||i.color===COLORS[color][1]));bar.textContent=`${items.length} articoli · ${WEAR_ITEMS.length} in tutto il negozio · saldo ${state.balance} monete`;
+   grid.replaceChildren(...items.slice(0,shown).map(it=>{const card=el('div',undefined,'shop-item');const sw=el('span',undefined,'dot');sw.style.background=it.color;const worn=avatar.wear[it.slot]?.id===it.id;
+    card.onmouseenter=()=>{const t=structuredClone(avatar);t.wear[it.slot]={style:it.style,color:it.color,id:it.id};preview(cv,t);};card.onmouseleave=()=>preview(cv,avatar);
+    card.append(sw,el('b',it.name),el('small',owned.has(it.id)?(worn?'Indossato':'Posseduto'):`${it.price} monete`),owned.has(it.id)?button(worn?'Togli':'Indossa',()=>wear(it,worn)):button('Compra',()=>buy(it)));return card;}));
+   if(items.length>shown)grid.append(button(`Mostra altri (${items.length-shown})`,()=>{shown+=40;draw();}));};
+  async function buy(it){try{const r=await api('/purchase','POST',{item:it.id,requestId:crypto.randomUUID()});state.balance=r.balance;owned.add(it.id);notify('Acquistato: '+it.name);await wear(it,false);}catch(e){notify(e.message);}}
+  async function wear(it,remove){try{const a=await api('/wear','POST',remove?{remove:it.slot}:{item:it.id});avatar=a;avatar.wear??={};onUser({...getUser(),avatar:a});draw();}catch(e){notify(e.message);}}
+  box.append(cv,bar,tabs,filters,grid);draw();}
+ async function barber(){const box=modal('✂ Barbiere Totò');const base=structuredClone(getUser().avatar);let hair=base.hair?.style??0,beard=base.beard??0,col=Math.max(0,HAIR_COLORS.findIndex(h=>h[1]===base.hair?.color));
+  const cv=el('canvas');cv.width=180;cv.height=220;cv.className='avatar-preview';const rows=el('div');const draw=()=>{preview(cv,{...base,hair:{style:hair,color:HAIR_COLORS[col][1]},beard});
+   const pick=(title,list,cur,set)=>{const wrap=el('div');wrap.append(el('h4',title));const chips=el('div',undefined,'chips');list.forEach((n,i)=>{const b=button(Array.isArray(n)?'':n,()=>{set(i);draw();});if(Array.isArray(n)){b.className='swatch';b.style.background=n[1];b.title=n[0];}b.classList.toggle('on',i===cur);chips.append(b);});wrap.append(chips);return wrap;};
+   rows.replaceChildren(pick(`Taglio (${HAIR_STYLES.length})`,HAIR_STYLES,hair,i=>hair=i),pick(`Barba (${BEARD_STYLES.length})`,BEARD_STYLES,beard,i=>beard=i),pick('Colore capelli',HAIR_COLORS,col,i=>col=i));};
+  box.append(cv,rows,button(`💈 Conferma · ${BARBER_PRICE} monete`,async()=>{try{const r=await api('/barber','POST',{hair,beard,color:col});onUser({...getUser(),avatar:r.avatar});closeModal();notify('Nuovo look! ✂');}catch(e){notify(e.message);}}));draw();}
+ function nearby(me){if(!me)return null;
+  if(me.room==='fashion'&&MAPS.fashion.props.some(p=>['rack','mirror','counter'].includes(p.kind)&&distance(p,me)<2.4))return {kind:'fashion',label:'✋ Sfoglia il catalogo'};
+  if(me.room==='barber'&&MAPS.barber.props.some(p=>p.kind==='barberchair'&&distance(p,me)<2.2))return {kind:'barber',label:'✋ Siediti dal barbiere'};
+  if(me.room==='casino'&&MAPS.casino.props.some(p=>p.kind==='slot'&&distance(p,me)<2))return {kind:'slot',label:'✋ Gioca alla slot'};
+  const atm=MAPS[me.room]?.props.find(p=>p.kind==='atm'&&distance(p,me)<2);if(atm)return {kind:'atm',label:'✋ Bancomat'};
+  if(window.HUMANA_3D&&me.room==='lungomare'){const d=DEALERS.find(d=>distance({x:d.x+d.w/2,y:d.y+d.h+1.2},me)<3.4);if(d)return {kind:'dealer',dealer:d,label:'✋ '+d.name};}
+  if(window.HUMANA_3D&&(me.room==='mall'||me.room==='mall2')){const sh=MALL_SHOPS.find(q=>(q.room||'mall')===me.room&&distance(q,me)<2.6);if(sh)return {kind:'mall',shop:sh,label:'✋ '+sh.name};}
+  if(window.HUMANA_3D&&BOATS[me.room]&&!me.seat&&distance(BOATS[me.room].dock,me)<3.5)return {kind:'boat',label:'✋ '+BOATS[me.room].name};
+  if(window.HUMANA_3D&&JUKEBOX[me.room]&&distance(JUKEBOX[me.room],me)<2.6)return {kind:'jukebox',label:'✋ Jukebox'};
+  if(MAPS[me.room]?.props.some(p=>p.kind==='vending'&&distance(p,me)<2.2))return {kind:'vending',label:'✋ Distributore di bevande'};
+  if(me.room==='lungomare'&&!MAPS.lungomare.front){const stop=BUS_STOPS.find(s=>distance(s,me)<2.4);if(stop)return {kind:'bus',stop,label:'✋ Fermata · '+stop.name};}
+  return null;}
+ // Bancomat realistico: carta, PIN (simulato, nessun dato reale), menu con tasti laterali, scontrino.
+ const beep=(f=880)=>{try{const a=beep.ctx||(beep.ctx=new AudioContext()),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+.07);}catch{}};
+ async function atm(remote=false){const box=modal(remote?'Home banking · Banca del Golfo':'Bancomat · Banca del Golfo');const m=el('div','','atm');
+  m.innerHTML='<div class="atm-top"><b>BANCA DEL GOLFO</b><span>Prelievo · Ricarica · Cambio</span></div><div class="atm-body"><div class="atm-keys l"></div><div class="atm-screen"><div class="atm-title"></div><div class="atm-text"></div><div class="atm-opts"></div></div><div class="atm-keys r"></div></div><div class="atm-bottom"><div class="atm-pad"></div><div class="atm-slots"><button class="atm-card" type="button"><i></i>Inserisci carta</button><div class="atm-cash"></div><div class="atm-receipt"></div></div></div>';
+  box.append(m,el('p','Monete e gemme sono virtuali e non si riconvertono in denaro. Il PIN è simulato: inserisci 4 cifre qualsiasi.','muted'));
+  const q=s=>m.querySelector(s),L=[...Array(4)].map(()=>el('button')),R=[...Array(4)].map(()=>el('button'));q('.atm-keys.l').append(...L);q('.atm-keys.r').append(...R);
+  let pin='',onKey=null;const pad=q('.atm-pad');for(const k of ['1','2','3','4','5','6','7','8','9','✕','0','OK']){const b=el('button',k);b.type='button';b.className=k==='✕'?'red':k==='OK'?'green':'';b.onclick=()=>{beep(k==='OK'?1200:900);onKey?.(k);};pad.append(b);}
+  const screen=(title,text,opts=[])=>{q('.atm-title').textContent=title;q('.atm-text').textContent=text;const o=q('.atm-opts');o.replaceChildren();[...L,...R].forEach(b=>{b.onclick=null;b.disabled=true;});opts.slice(0,8).forEach((op,i)=>{const side=i<4?L:R,k=side[i%4];const d=el('div',op.label);d.className='atm-opt '+(i<4?'l':'r');d.style.gridRow=String(i%4+1);d.onclick=()=>{beep();op.run();};o.append(d);k.disabled=false;k.onclick=d.onclick;});};
+  const receipt=t=>{const r=q('.atm-receipt');r.textContent=t;r.classList.remove('out');void r.offsetWidth;r.classList.add('out');};
+  const cash=t=>{const c=q('.atm-cash');c.textContent=t;c.classList.remove('out');void c.offsetWidth;c.classList.add('out');};
+  let s;const load=async()=>{s=await api('/state');};
+  const back={label:'Indietro',run:()=>menu()};
+  const menu=async()=>{await load();screen('Menu principale','Saldo disponibile: '+s.balance.toLocaleString('it-IT')+' monete · '+s.gems+(s.gems===1?' gemma':' gemme'),[
+   {label:'Saldo',run:()=>screen('Saldo','Monete: '+s.balance.toLocaleString('it-IT')+' · Gemme: '+s.gems,[{label:'Stampa scontrino',run:()=>receipt('BANCA DEL GOLFO\nSaldo: '+s.balance+' monete\nGemme: '+s.gems+'\n'+new Date().toLocaleString('it-IT'))},back])},
+   {label:'Cambia gemme',run:()=>screen('Cambio gemme','1 gemma = '+ATM_RATE+' monete',[...[1,5,10].map(n=>({label:n+' 💎 → '+n*ATM_RATE+' 🪙',run:async()=>{try{await api('/atm/exchange','POST',{gems:n});document.dispatchEvent(new CustomEvent('humana:wallet'));cash('+'+n*ATM_RATE+' 🪙');notify('Cambio eseguito');menu();}catch(e){screen('Operazione negata',e.message,[back]);}}})),back])},
+   {label:'Ricarica',run:()=>screen('Ricarica','Scegli un pacchetto o un importo libero (1 € = 250 monete).',[...PACKS.slice(0,3).map(p=>({label:p.name+' · '+(p.amount/100).toFixed(2)+' €',run:()=>topup({pack:p.id})})),{label:'Importo libero',run:askAmount},back])},
+   {label:'Mobilità',run:()=>{closeModal();garage();}},
+   {label:'Esci',run:()=>{q('.atm-card').classList.remove('in');screen('Arrivederci','Ritira la carta.',[]);setTimeout(start,1800);}}]);};
+  // Ricarica: in prova (casa) l'accredito è immediato; con Stripe vero si apre la pagina di pagamento.
+  const topup=async body=>{screen('Attendere…','Pagamento in corso',[]);try{const r=await api('/checkout','POST',body);if(r.simulated){document.dispatchEvent(new CustomEvent('humana:wallet'));cash('+'+r.coins+' 🪙'+(r.gems?' +'+r.gems+' 💎':''));receipt('BANCA DEL GOLFO\nRicarica di prova\n'+(r.amount/100).toFixed(2)+' € → '+r.coins+' monete'+(r.gems?' + '+r.gems+' gemme':'')+'\nNessun addebito reale\n'+new Date().toLocaleString('it-IT'));notify('✅ Ricarica accreditata (prova, nessun addebito)');menu();return;}try{localStorage.setItem('humana-checkout',r.session);}catch{}const w=window.open(r.url,'_blank');if(!w)location.href=r.url;}catch(e){screen('Operazione negata',e.message,[back]);}};
+  // Importo libero digitato sul tastierino (in euro).
+  const askAmount=()=>{let v='';const show=()=>q('.atm-text').textContent=(v||'0')+' € → '+Math.round((Number(v)||0)*250)+' monete';screen('Importo libero','0 € → 0 monete',[{label:'Conferma',run:()=>{const n=Number(v);if(!(n>=1&&n<=500)){q('.atm-text').textContent='Importo da 1 a 500 €';return;}onKey=null;topup({custom:Math.round(n*100)});}},{label:'Annulla',run:()=>{onKey=null;menu();}}]);onKey=k=>{if(k==='✕')v='';else if(k==='OK'){const n=Number(v);if(n>=1&&n<=500){onKey=null;topup({custom:Math.round(n*100)});}return;}else if(v.length<3)v+=k;show();};};
+  const askPin=()=>{pin='';screen('Digita il PIN','○ ○ ○ ○',[{label:'Annulla',run:()=>start()}]);onKey=k=>{if(k==='✕')pin='';else if(k==='OK'){if(pin.length===4){onKey=null;screen('Attendere…','Verifica in corso',[]);setTimeout(()=>menu().catch(e=>screen('Errore',e.message,[])),900);}return;}else if(pin.length<4)pin+=k;q('.atm-text').textContent=('●'.repeat(pin.length)+'○'.repeat(4-pin.length)).split('').join(' ');};};
+  const start=()=>{onKey=null;q('.atm-card').classList.remove('in');screen('Benvenuto',remote?'Accedi al tuo conto':'Inserisci la carta per iniziare',[{label:remote?'Accedi':'Inserisci carta',run:()=>q('.atm-card').click()}]);};
+  q('.atm-card').onclick=()=>{q('.atm-card').classList.add('in');beep(600);setTimeout(askPin,700);};
+  start();}
+ async function garage(){const box=modal('🛴 Mobilità · Noleggio Golfo');box.append(el('p','Caricamento…','muted'));let g;try{g=await api('/vehicles');}catch(e){box.replaceChildren(el('p',e.message));return;}
+  box.replaceChildren(el('p','Saldo: '+g.balance.toLocaleString('it-IT')+' monete. Monopattino e bici si sbloccano per sempre; scooter, auto e furgoni si noleggiano a tempo. Si guidano solo all’aperto.','muted'));
+  const list=el('div','','garage');for(const v of g.vehicles){const card=el('div','','vcard'+(g.active===v.id?' on':''));const left=v.until?Math.ceil((v.until-Date.now())/60000):0;
+   card.append(el('div',v.emoji,'vemoji'),el('b',v.name),el('small','Velocità ×'+v.speed+(v.owned?' · tuo':left?' · ancora '+left+' min':'')));
+   const act=async(path,body,msg)=>{try{await api(path,'POST',body);document.dispatchEvent(new CustomEvent('humana:wallet'));notify(msg);garage();}catch(e){notify(e.message);}};
+   if(g.active===v.id)card.append(button('Scendi',()=>act('/vehicle/use',{id:''},'Sei sceso dal mezzo')));
+   else if(v.owned||left)card.append(button('Usa',()=>act('/vehicle/use',{id:v.id},v.emoji+' Buon viaggio!')));
+   else if(v.buy)card.append(button('Sblocca · '+v.buy+' 🪙',()=>act('/vehicle/buy',{id:v.id},v.name+' sbloccato!')));
+   else card.append(button('Noleggia '+v.minutes+' min · '+v.rent+' 🪙',()=>act('/vehicle/rent',{id:v.id},v.name+' noleggiato: buon viaggio!')));
+   list.append(card);}box.append(list);}
+ function bus(stop){const box=modal('🚌 Fermata · '+stop.name);box.append(el('p','Scegli dove andare. Il viaggio dura qualche secondo.','muted'));
+  for(const s of BUS_STOPS.filter(s=>s.id!==stop.id))box.append(button('➜ '+s.name,()=>{net.send({type:'bus',to:s.id});closeModal();}));}
+ // Distributore di bevande: si sceglie e si paga in monete.
+ function vending(){const box=modal('🥤 Distributore di bevande');box.append(el('p','Scegli una bevanda: si paga in monete.'));const list=el('div','','people');for(const d of DRINKS){const row=el('div',undefined,'person');row.append(el('strong',d.icon+' '+d.name),el('small',d.price+' monet'+(d.price===1?'a':'e')),button('Prendi',async()=>{try{const r=await api('/vending','POST',{id:d.id});document.dispatchEvent(new CustomEvent('humana:wallet',{detail:r}));notify(d.icon+' '+d.name+' · buona bevuta!');}catch(e){notify(e.message);}}));list.append(row);}box.append(list);}
+ // Jukebox del locale: si cerca un brano, si paga in monete e lo sentono tutti quelli che sono nel locale.
+ function jukebox(){const box=modal('🎵 Jukebox');const now=el('p',window.humanaJuke?'In riproduzione: '+(window.humanaJuke.title||'musica')+' · scelto da '+window.humanaJuke.by:'Nessun brano in riproduzione.');
+  const form=document.createElement('form');form.className='yt-form';const inp=document.createElement('input');inp.placeholder='Cerca una canzone o un cantante…';const go=button('🔎',()=>{});go.type='submit';form.append(inp,go);
+  const chips=el('div','','chips');const list=el('div','','people');
+  const search=async q=>{list.replaceChildren(el('small','Ricerca…'));try{const r=await api('/youtube?q='+encodeURIComponent(q));list.replaceChildren();if(!r.videos.length)list.append(el('small','Nessun brano trovato'));for(const v of r.videos.slice(0,10)){const row=el('div',undefined,'person');row.append(el('strong',v.title),button('▶ Metti · '+JUKEBOX_PRICE+' monete',async()=>{try{const w=await api('/jukebox','POST',{id:v.id,title:v.title});document.dispatchEvent(new CustomEvent('humana:wallet',{detail:w}));notify('🎵 Nel locale ora suona: '+v.title);closeModal();}catch(e){notify(e.message);}}));list.append(row);}}catch(e){list.replaceChildren(el('small',e.message));}};
+  for(const [t,q] of [['Napoletana','canzone napoletana classica'],['Pop italiano','pop italiano successi'],['Dance','dance hits'],['Rock','rock classico'],['Jazz','jazz lounge'],['Latino','musica latina']]){const c=button(t,()=>{inp.value=q;search(q);});chips.append(c);}
+  form.onsubmit=e=>{e.preventDefault();if(inp.value.trim())search(inp.value.trim());};box.append(now,el('p','Scegli la musica del locale: '+JUKEBOX_PRICE+' monete a brano, la sentono tutti i presenti.'),form,chips,list);}
+ // Negozio di mezzi: i modelli si comprano una volta sola (in monete) e poi si usano da qui o dall'app Mobilità del telefono.
+ async function dealer(d){const box=modal(d.icon+' '+d.name);box.append(el('p','Caricamento…','muted'));let g;try{g=await api('/dealer','POST',{shop:d.id});}catch(e){box.replaceChildren(el('p',e.message));return;}
+  box.replaceChildren(el('p','Saldo: '+g.balance.toLocaleString('it-IT')+' monete. Il mezzo comprato resta tuo: lo ritrovi anche nel telefono, app Mobilità.','muted'));
+  const list=el('div','','garage');for(const v of g.vehicles){const card=el('div','','vcard'+(g.active===v.id?' on':''));const dot=el('span','','swatch');dot.style.cssText='display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;margin-left:6px;border:1px solid #ffffff88;background:'+v.color;
+   const nm=el('b',v.name);nm.append(dot);card.append(el('div',v.emoji,'vemoji'),nm,el('small','Velocità ×'+v.speed+(v.owned?' · tuo':'')));
+   const act=async(path,body,msg)=>{try{await api(path,'POST',body);document.dispatchEvent(new CustomEvent('humana:wallet'));notify(msg);dealer(d);}catch(e){notify(e.message);}};
+   if(g.active===v.id)card.append(button('Scendi',()=>act('/vehicle/use',{id:''},'Sei sceso dal mezzo')));
+   else if(v.owned)card.append(button('Sali',()=>act('/vehicle/use',{id:v.id},v.emoji+' Buon viaggio!')));
+   else card.append(button('Compra · '+v.buy.toLocaleString('it-IT')+' 🪙',()=>act('/vehicle/buy',{id:v.id},v.name+': è tuo!')));
+   list.append(card);}box.append(list);}
+ // Negozio SIM: si sceglie il proprio numero di telefono tra quelli liberi (o se ne scrive uno).
+ async function sim(){const box=modal('📱 Negozio SIM');box.append(el('p','Caricamento…','muted'));let d;try{d=await api('/phone/sim');}catch(e){box.replaceChildren(el('p',e.message));return;}
+  box.replaceChildren(el('p','Il tuo numero: '+d.mine),el('p','Scegli un numero nuovo: costa '+d.price+' monete. Chi ti aveva in rubrica dovrà salvare il numero nuovo.','muted'));
+  const take=async n=>{try{const r=await api('/phone/sim','POST',{number:n});document.dispatchEvent(new CustomEvent('humana:wallet'));notify('📱 Il tuo nuovo numero è '+r.pretty);closeModal();}catch(e){notify(e.message);}};
+  const list=el('div','','people');for(const q of d.numbers){const row=el('div',undefined,'person');row.append(el('strong',q.pretty),button('Scegli · '+d.price+' 🪙',()=>take(q.number)));list.append(row);}
+  const form=document.createElement('form');form.className='yt-form';const inp=document.createElement('input');inp.placeholder='Oppure scrivi: 081 e altre 7 cifre';inp.inputMode='numeric';inp.maxLength=12;const go=button('Prendi',()=>{});go.type='submit';form.append(inp,go);form.onsubmit=e=>{e.preventDefault();take(inp.value);};box.append(list,form);}
+ // Noleggio barche: giro guidato nel golfo.
+ function boat(B){const box=modal('⛵ '+B.name);box.append(el('p',B.speed?'Giro in motoscafo: esci dal porticciolo, passi davanti a Castel dell’Ovo e arrivi sotto il Vesuvio, poi torni al molo. Durante il giro guardi il panorama (gira la visuale come vuoi).':'Giro in barca nel golfo: parti dal molo, esci in mare aperto e torni qui. Durante il giro guardi il panorama (gira la visuale come vuoi).'),button('Parti · '+BOAT_PRICE+' monete',async()=>{try{const r=await api('/boat','POST',{});document.dispatchEvent(new CustomEvent('humana:wallet',{detail:r}));closeModal();notify('⛵ Si parte! Giro di circa '+Math.max(1,Math.round(r.seconds/60))+' minuti');}catch(e){notify(e.message);}}));}
+ function interact(me){const n=nearby(me);if(!n)return false;if(n.kind==='boat'){boat(BOATS[me.room]);return true;}if(n.kind==='mall'){const k=n.shop.kind;if(k==='sim')sim();else if(k==='fashion')fashion(n.shop).catch(e=>notify(e.message));else document.getElementById('inventory')?.click();return true;}if(n.kind==='dealer'){dealer(n.dealer);return true;}if(n.kind==='jukebox'){jukebox();return true;}if(n.kind==='vending'){vending();return true;}if(n.kind==='atm')atm().catch(e=>notify(e.message));else if(n.kind==='slot')slot().catch(e=>notify(e.message));else if(n.kind==='fashion')fashion().catch(e=>notify(e.message));else if(n.kind==='barber')barber().catch(e=>notify(e.message));else bus(n.stop);return true;}
+ // Conferma del pagamento al ritorno da Stripe (stessa scheda o app riaperta).
+ let confirming=false;async function confirmCheckout(){let id=new URLSearchParams(location.search).get('checkout');if(id==='cancel'){history.replaceState(null,'',location.pathname);notify('Pagamento annullato');id=null;}
+  try{id=id&&id!=='cancel'?id:localStorage.getItem('humana-checkout');}catch{}if(!id||confirming||!getMe())return;confirming=true;
+  try{const r=await api('/checkout/confirm','POST',{session:id});if(r.pending)return;try{localStorage.removeItem('humana-checkout');}catch{}history.replaceState(null,'',location.pathname);if(!r.already)notify(`Pagamento ricevuto: +${r.gems} gemme, +${r.coins} monete`);document.dispatchEvent(new CustomEvent('humana:wallet',{detail:await api('/state')}));}
+  catch(e){if(e.message.includes('non valid')||e.message.includes('altro account')){try{localStorage.removeItem('humana-checkout');}catch{}}}finally{confirming=false;}}
+ addEventListener('focus',confirmCheckout);document.addEventListener('visibilitychange',()=>{if(!document.hidden)confirmCheckout();});
+ return {nearby,interact,confirmCheckout,atm,garage};
+}

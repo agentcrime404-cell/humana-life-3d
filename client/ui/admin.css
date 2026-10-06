@@ -1,0 +1,10 @@
+/* Pannello admin (pagina separata dal gioco) */
+body.admin{margin:0;overflow:hidden;background:#0b1622}
+body.admin #world{position:fixed;inset:0;width:100%;height:100%}
+#admin-bar{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;gap:14px;padding:8px 14px;background:#0b1622f2;color:#fff;font:13px system-ui;border-bottom:1px solid #5eead455}
+#admin-bar b{color:#5eead4}#admin-bar span{opacity:.75;margin-right:auto}#admin-bar a{color:#ffd35a}
+#admin-bar button{border:0;border-radius:10px;padding:6px 12px;background:#ffffff1c;color:#fff;font-weight:600;cursor:pointer}#admin-bar #admin-reset{background:#7f1d1d}
+body.admin #build-panel{top:56px;bottom:12px}
+body.admin #toast{position:fixed;left:50%;top:60px;transform:translateX(-50%);z-index:70}
+#admin-login form label{display:grid;gap:4px;text-align:left}#admin-google{display:flex;justify-content:center;margin-top:10px}
+body.admin #build-toggle{display:none}

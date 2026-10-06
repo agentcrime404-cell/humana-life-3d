@@ -1,0 +1,48 @@
+
+> humana-isometrica@2.1.0-mvp.1 test
+> node --test tests/*.test.js
+
+✔ Multitouch: joystick e corsa indipendenti, rilascio non lascia movimento bloccato (1.642818ms)
+✔ Cambio app, chat e menu azzerano gli input (0.399573ms)
+✔ Collisioni, velocità e attenuazione voce (2.429254ms)
+▶ Due client reali: account, sincronizzazione, social, interni e permessi
+  ✔ Client e moduli serviti, sorgenti server non esposti (58.217966ms)
+  ✔ Password hash, autenticazione e profilo (56.561659ms)
+  ✔ Presenza, input autorevoli e disconnessione (221.509108ms)
+  ✔ Richieste amicizia: solo destinatario può accettare (9.943897ms)
+  ✔ Chat reale e segnalazione (23.230794ms)
+  ✔ Blocco esclude presenza e segnalazione WebRTC (190.5963ms)
+  ✔ Porta verificata, interno condiviso e seduta esclusiva (878.443142ms)
+  ✔ Logout revoca sessione e presenza (26.369091ms)
+  ✔ Sessione scaduta revocata anche su socket aperto (20.883273ms)
+✔ Due client reali: account, sincronizzazione, social, interni e permessi (1653.685947ms)
+✔ Avvio del pacchetto: server risponde e si arresta correttamente (156.157715ms)
+▶ HUMANA V2: persistenza, economia, case, messaggi ed eventi reali
+  ✔ Stato protetto, default e preferenze salvate (20.719967ms)
+  ✔ Acquisto server-side: stanza, saldo, proprietà e idempotenza (39.158213ms)
+  ✔ Case: privacy, inviti autorizzati, arredi posseduti e revoca (28.930158ms)
+  ✔ Blocco revoca casa e impedisce messaggi; conversazioni isolate (16.952536ms)
+  ✔ Eventi: accesso privato, iscrizione e limiti (14.975599ms)
+  ✔ Ordini nei locali e premio misurato dal server (13.775154ms)
+  ✔ HUD: XP, livello, VIP e gemme non falsificabili dal client (17.173574ms)
+  ✔ Refresh con stessa sessione e ritorno dopo disconnessione (62.824678ms)
+  ✔ PWA e moduli: risorse servite senza 404 (33.341536ms)
+✔ HUMANA V2: persistenza, economia, case, messaggi ed eventi reali (457.213685ms)
+✔ Database: migrazione ripetibile e dati conservati dopo il riavvio (11.060079ms)
+✔ V2: posizione, economia, casa e preferenze persistono riaprendo SQLite (3.169019ms)
+✔ Client: riconnessione automatica, backoff e nessun retry dopo logout (1058.890001ms)
+✔ Rendering terreno: nessun buco marino nelle zone percorribili e cache limitata (990.862221ms)
+✔ Renderer con tutti gli asset e minimappa ad alta densità (349.57266ms)
+✔ V2: casa arredata, notte e nuovi distretti renderizzano senza errori (532.99809ms)
+✔ Microfono: annullare il permesso in attesa arresta il flusso ottenuto in ritardo (1.413411ms)
+✔ Voce: stop cancella parlato e mute individuale azzera il volume (0.987049ms)
+✔ Lungomare: ogni ingresso è raggiungibile e il mare è invalicabile (153.476261ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2283.41983
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.

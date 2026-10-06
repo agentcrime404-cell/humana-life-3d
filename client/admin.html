@@ -1,0 +1,9 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1622">
+<title>HUMANA life · Admin mappa</title><link rel="stylesheet" href="/ui/style.css"><link rel="stylesheet" href="/ui/admin.css"></head><body class="admin">
+<canvas id="world" aria-label="Mappa di HUMANA (editor)"></canvas>
+<section id="admin-login" class="veil"><form id="admin-form" class="card welcome"><div class="eyebrow">HUMANA life · PANNELLO ADMIN</div><h1>Editor della mappa</h1><p>Accedi con un account admin per modificare il mondo.</p>
+<label>Nome giocatore<input name="username" autocomplete="username" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+<button type="submit">ENTRA</button><div id="admin-google"></div><p id="admin-error" class="error" role="alert"></p></form></section>
+<div id="admin-bar" hidden><b>🛠 HUMANA life · Admin mappa</b><span id="admin-user"></span><a href="/" target="_blank" rel="noopener">Apri il gioco ↗</a><button id="admin-update" type="button">⬆️ Aggiorna tutti i giocatori</button><button id="admin-view" type="button">🏙️ Vista</button><button id="admin-npc" type="button">👥 Persone finte</button><button id="admin-reset" type="button">Ripristina mappa originale</button><button id="admin-logout" type="button">Esci</button></div>
+<div id="toast" role="status"></div>
+<script type="module" src="/admin.js"></script></body></html>
