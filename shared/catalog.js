@@ -112,3 +112,20 @@ export const SIM_PRICE=50;
 export const BOAT_PRICE=40,BOAT_SPEED=9;
 export const BOATS={lungomare:{name:'Noleggio barche del Golfo',dock:{x:19,y:17},route:[[13,11],[2,2],[-34,-12],[-70,14],[-52,46],[-14,30]]},
  mergellina:{name:'Noleggio barche Mergellina',dock:{x:281,y:311},speed:22,route:[[292,312],[364,348],[452,364],[720,336],[728,336],[744,356],[756,556],[1500,520],[2350,620],[3150,720]]}};
+
+// Luna park di HUMANA life 3D (il 2D non lo usa): biglietteria con il giostraio e le giostre su cui si sale. Prezzi in monete.
+// Misure e percorsi stanno qui perché li usano sia il server (dove si siede chi sale) sia il disegno 3D delle giostre.
+export const FUNFAIR={booth:{x:153,y:54},rides:{
+ 'ruota-panoramica':{name:'Ruota panoramica',emoji:'🎡',price:8,x:162,y:40,w:9,seconds:40,laps:2,note:'Cabina chiusa e vista sul golfo dall’alto'},
+ 'giostra-cavalli':{name:'Giostra dei cavalli',emoji:'🎠',price:5,x:162,y:54,w:7,seconds:28,laps:5,note:'Cavalli che salgono e scendono'},
+ 'calcinculo':{name:'Calcinculo (seggiolini volanti)',emoji:'🎪',price:6,x:162,y:68,w:8,seconds:30,laps:6,note:'Seggiolini che volano in tondo'},
+ 'tazze':{name:'Tazze che girano',emoji:'☕',price:5,x:176,y:68,w:7,seconds:26,laps:4,note:'Una tazza tutta per te'}}};
+export const rideGeom=art=>{const R=FUNFAIR.rides[art];if(!R)return null;const S=Math.max(8,R.w);
+ if(art==='ruota-panoramica'){const r=S*.48;return {S,r,cy:r+1.4,rho:r};}
+ if(art==='giostra-cavalli')return {S,rho:S*.46*.72};
+ if(art==='calcinculo'){const top=S*.42*.9;return {S,rho:top+3.4*Math.sin(.3),top,chain:3.4,tilt:.3};}
+ return {S,rho:S*.46*.66};};
+// Percorso di chi sale: lo stesso numero di punti per ogni giro; il server li percorre in modo uniforme nel tempo (ride.uniform).
+export function ridePlan(art){const R=FUNFAIR.rides[art],G=rideGeom(art);if(!R)return null;const N=40,pts=[],wheel=art==='ruota-panoramica',a0=wheel?Math.PI:0,da=Math.PI*2*R.laps;
+ for(let k=0;k<=N*R.laps;k++){const a=a0+Math.PI*2*k/N;pts.push(wheel?{x:R.x+G.rho*Math.sin(a),y:R.y}:{x:R.x+G.rho*Math.cos(a),y:R.y+G.rho*Math.sin(a)});}
+ return {pts,a0,da,to:{x:R.x-G.S/2-1.8,y:R.y+(wheel?3.5:0),name:R.name}};}

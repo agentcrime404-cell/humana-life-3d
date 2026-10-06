@@ -2,7 +2,7 @@ import {cleanAvatar} from '../shared/avatar.js';
 import {LOOKS} from '../shared/looks.js';import {setNapoli} from '../shared/napoli.js';import {registerMergellina,registerMallFloor} from '../shared/world.js';
 // Zona Mergellina di HUMANA life 3D (mappa vera OpenStreetMap), se il file della mappa esiste.
 let napoliLoaded=false;function loadMergellina(){if(napoliLoaded)return;napoliLoaded=true;try{setNapoli(JSON.parse(readFileSync(new URL('../client/assets/world/napoli/map/mergellina.json',import.meta.url),'utf8')));registerMergellina();}catch(e){console.warn('Mergellina non caricata:',e.message);}}
-import http from 'node:http';import https from 'node:https';import {readFileSync,createReadStream} from 'node:fs';import {readFile,stat} from 'node:fs/promises';import {fileURLToPath} from 'node:url';import {resolve as pathResolve,extname,sep,dirname as pathDirname,join as pathJoin} from 'node:path';import {randomUUID} from 'node:crypto';import {WebSocketServer} from 'ws';
+import http from 'node:http';import https from 'node:https';import {readFileSync,createReadStream} from 'node:fs';import {readFile,stat} from 'node:fs/promises';import {gzipSync} from 'node:zlib';import {fileURLToPath} from 'node:url';import {resolve as pathResolve,extname,sep,dirname as pathDirname,join as pathJoin} from 'node:path';import {randomUUID} from 'node:crypto';import {WebSocketServer} from 'ws';
 import {database} from './database.js';import {hashPassword,verify,token,resolve,publicUser,digest} from './auth.js';import {Game} from './game.js';import {payments} from './payments.js';import {Living} from './living.js';import {saveReport,logError} from './reports.js';import {MapEditor} from './editor.js';import {Jobs} from './jobs.js';import {Phone} from './phone.js';import {verifyGoogle,googleUser,googleClientId,randomSecret} from './google.js';
 const root=fileURLToPath(new URL('..',import.meta.url));
 // Origini dell'app Android (Capacitor). L'accesso usa token Bearer, non cookie.
@@ -12,7 +12,7 @@ const APP_ORIGINS=new Set(['http://localhost','https://localhost','capacitor://l
 export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqlite',edition=''}={}){
  if(edition==='3d'){loadMergellina();registerMallFloor();} // la zona Mergellina esiste solo in HUMANA life 3D
  const db=database(dbPath),game=new Game(db),limits=new Map();
- function rate(key,max){const now=Date.now();let r=limits.get(key);if(!r||now-r.time>60000)limits.set(key,r={time:now,n:0});if(limits.size>10000)limits.delete(limits.keys().next().value);return ++r.n<=max;}
+ const zipped=new Map();function rate(key,max){const now=Date.now();let r=limits.get(key);if(!r||now-r.time>60000)limits.set(key,r={time:now,n:0});if(limits.size>10000)limits.delete(limits.keys().next().value);return ++r.n<=max;}
  const living=new Living(db,game);living.edition=edition;const editor=new MapEditor(db,game);const jobs=new Jobs(db,game);game.jobs=jobs;const phone=new Phone(db,game);game.phone=phone;game.living=living;const pay=payments(db);
  const handler=async(req,res)=>{
   const json=(code,data)=>{res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
@@ -103,7 +103,13 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
    const prefix=url.pathname.startsWith('/shared/')?'shared':'client';
    const rel=decodeURIComponent(url.pathname==='/'?(edition==='3d'?'3d.html':'index.html'):url.pathname==='/admin'?'admin.html':url.pathname==='/3d'?'3d.html':url.pathname==='/real'?'real.html':url.pathname==='/scarica'?(edition==='3d'?'scarica-3d.html':'scarica.html'):url.pathname.replace(/^\/(?:shared\/)?/,''));
    const base=pathResolve(root,prefix),path=pathResolve(base,rel);if(!path.startsWith(base+sep)||rel.split('/').some(p=>p.startsWith('.')))return json(403,{error:'Accesso negato'});
-   const file=await readFile(path);res.writeHead(200,{'Content-Type':({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.json':'application/json'})[extname(path)]||'application/octet-stream','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Permissions-Policy':'camera=(), microphone=(self)','Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:file);
+   const file=await readFile(path),head={'Content-Type':({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.json':'application/json'})[extname(path)]||'application/octet-stream','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Permissions-Policy':'camera=(), microphone=(self)','Cache-Control':'no-cache'};
+   // Solo HUMANA life 3D: ETag per non riscaricare ciò che non è cambiato, immagini e modelli tenuti in memoria dal telefono per 3 giorni
+   // (prima ogni apertura riscaricava tutto: centinaia di MB), testi compressi. HUMANA life (2D) resta com'era.
+   if(edition==='3d'){const st=await stat(path),etag='"'+st.size.toString(16)+'-'+Math.floor(st.mtimeMs).toString(16)+'"',heavy=url.pathname.startsWith('/assets/')||url.pathname.startsWith('/vendor/');head.ETag=etag;head['Cache-Control']=heavy?'public, max-age=259200':'no-cache';
+    if(req.headers['if-none-match']===etag){res.writeHead(304,{ETag:etag,'Cache-Control':head['Cache-Control']});res.end();return;}
+    if(/gzip/.test(req.headers['accept-encoding']||'')&&['.html','.js','.css','.json','.svg','.gltf','.webmanifest'].includes(extname(path))&&file.length>1024){const key=path+etag,z=(zipped.get(key)||zipped.set(key,gzipSync(file)).get(key));if(zipped.size>300)zipped.delete(zipped.keys().next().value);head['Content-Encoding']='gzip';head.Vary='Accept-Encoding';head['Content-Length']=z.length;res.writeHead(200,head);res.end(req.method==='HEAD'?undefined:z);return;}}
+   res.writeHead(200,head);res.end(req.method==='HEAD'?undefined:file);
   }catch(e){if(!res.headersSent)json(e.status||(e.code==='ENOENT'?404:500),{error:e.status?e.message:e.code==='ENOENT'?'Risorsa non trovata':'Errore del server'});else res.end();}
  };
  const server=process.env.TLS_CERT&&process.env.TLS_KEY?https.createServer({cert:readFileSync(process.env.TLS_CERT),key:readFileSync(process.env.TLS_KEY)},handler):http.createServer(handler);

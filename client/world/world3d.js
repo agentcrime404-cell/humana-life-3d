@@ -6,7 +6,7 @@ import {GLTFLoader} from '../vendor/three/GLTFLoader.js';
 import {clone as cloneSkinned} from '../vendor/three/SkeletonUtils.js';
 import {RGBELoader} from '../vendor/three/RGBELoader.js';import {mergeGeometries} from '../vendor/three/BufferGeometryUtils.js';import {OutlineEffect} from '../vendor/three/OutlineEffect.js';
 import {MAPS,MODE,F,doors,cityEdge,SHORE,BEACH} from '/shared/world.js';
-import {JUKEBOX,DEALERS,VEHICLES_3D,MALL_SHOPS,BOATS} from '/shared/catalog.js';import {LOOKS} from '/shared/looks.js';import {avatarSpec,buildAvatar,poseAvatar} from './avatar3d.js';import {surface,STREETS,busPosition,VILLA_LOTS,FENCE_GATES,LANDMARKS} from '/shared/district.js';import {Traffic} from '/shared/traffic.js';import {VEHICLE} from '/shared/catalog.js';import {NAPOLI,napoliStand,napoliCell,napoliPlaces} from '/shared/napoli.js';
+import {JUKEBOX,DEALERS,VEHICLES_3D,MALL_SHOPS,BOATS,FUNFAIR,rideGeom} from '/shared/catalog.js';import {LOOKS} from '/shared/looks.js';import {avatarSpec,buildAvatar,poseAvatar} from './avatar3d.js';import {surface,STREETS,busPosition,VILLA_LOTS,FENCE_GATES,LANDMARKS} from '/shared/district.js';import {Traffic} from '/shared/traffic.js';import {VEHICLE} from '/shared/catalog.js';import {NAPOLI,napoliStand,napoliCell,napoliPlaces} from '/shared/napoli.js';
 
 const GROUND={grass:'#7fae5a',garden:'#7c9959',track:'#c0573f',playground:'#e58a4e',parking:'#5f5e68',pool:'#4fc3e0',road:'#55545d',roadline:'#5d5c66',crosswalk:'#e9e9e9',curb:'#bfb7aa',cobble:'#77716a',dirt:'#a7845c',rock:'#8b8a86',snow:'#f4f7fa',water:'#3d9bd0',tiles:'#ddd6ca',marble:'#ece8e1',sand:'#ead39f',wood:'#a8774f',stone:'#c9c2b6',sidewalk:'#c4bdb1'};
 const CHARS=['male-a','male-b','male-c','male-d','male-e','male-f','female-a','female-b','female-c','female-d','female-e','female-f'];
@@ -83,7 +83,7 @@ export class World3D{
   // Con due dita sullo schermo resta il gesto "ruota" di sopra, così i due movimenti non si sommano.
   {const T=new Map();
    world.addEventListener('pointerdown',e=>{if(!this.active||e.pointerType!=='touch'||e.target!==world&&e.target.tagName!=='CANVAS')return;T.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,moved:false});});
-   addEventListener('pointermove',e=>{const t=T.get(e.pointerId);if(!t)return;const dx=e.clientX-t.x,dy=e.clientY-t.y;t.x=e.clientX;t.y=e.clientY;if(!t.moved){if(Math.hypot(e.clientX-t.x0,e.clientY-t.y0)<8)return;t.moved=true;}this.suppressClick=performance.now();if(T.size===1){this.yaw-=dx*.006;this.pitch=Math.max(-.6,Math.min(.6,this.pitch-dy*.004));this.autoYaw=false;}});
+   addEventListener('pointermove',e=>{const t=T.get(e.pointerId);if(!t)return;const dx=e.clientX-t.x,dy=e.clientY-t.y;t.x=e.clientX;t.y=e.clientY;if(!t.moved){if(Math.hypot(e.clientX-t.x0,e.clientY-t.y0)<8)return;t.moved=true;}this.suppressClick=performance.now();if(T.size===1){this.yaw-=dx*.006;this.pitch=Math.max(-.6,Math.min(.6,this.pitch+dy*.004));this.autoYaw=false;}});
    for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{T.delete(e.pointerId);},true);}
   const bar=this.bar=document.createElement('div');bar.id='cam3d';bar.hidden=true;
   const f=document.createElement('button');f.type='button';f.textContent='🎥';f.setAttribute('aria-label','Cambia telecamera (C)');f.onclick=()=>this.cycle();bar.append(f);const tv=document.createElement('button');tv.type='button';tv.textContent='🗺️';tv.setAttribute('aria-label','Vai a Mergellina / torna al Lungomare');tv.onclick=()=>{dispatchEvent(new CustomEvent('humana-travel',{detail:this.room==='mergellina'?'lungomare':'mergellina'}));this.camLabel.textContent=this.room==='mergellina'?'Lungomare…':'Mergellina…';};bar.append(tv);this.travelBtn=tv;{const gf=document.createElement('button');gf.type='button';gf.textContent={min:'⚡',med:'✨',high:'💎',ultra:'🎬'}[this.gfx];gf.title='Grafica: '+{min:'Bassa (telefoni lenti)',med:'Media (telefoni)',high:'Alta (PC)',ultra:'Ultra (PC potenti: immagine più nitida e contrastata)'}[this.gfx]+' — tocca per cambiare';gf.setAttribute('aria-label',gf.title);gf.onclick=()=>{try{localStorage.setItem('humana-gfx',{min:'med',med:'high',high:'ultra',ultra:'min'}[this.gfx]);}catch{}location.reload();};bar.append(gf);}this.camLabel=document.createElement('small');this.camLabel.className='cam-label';bar.append(this.camLabel);
@@ -258,7 +258,7 @@ export class World3D{
    for(const x of [-w*.25,w*.25]){B(1.3,.04,.04,x,1.5,zm,'#9aa3a9');for(const k of [-.6,.6])this.cy(g,.03,.03,1.3,x+k,.82,zm,'#9aa3a9',6);for(let i=0;i<5;i++)B(.06,.7,.42,x-.48+i*.24,1.12,zm,C[(i+seed)%6]);}}}
  cy(g,r1,r2,h,x,y,z,c,n=12){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,n),this.sm(c));o.position.set(x,y,z);g.add(o);return o;}
  // Giostre del luna park in 3D vero (prima erano le figure piatte del 2D messe in piedi): S = larghezza a terra in metri.
- funfair(art,S){const g=new THREE.Group(),W='#f4f1ea',R='#d9262c',C=['#e5484d','#ffc928','#2f9e5b','#3fa7d6','#8a5cff','#ff8a3d'],T=Math.PI*2;
+ funfair(art,S){const nr=this.funfairRide(art,S);if(nr)return nr;const g=new THREE.Group(),W='#f4f1ea',R='#d9262c',C=['#e5484d','#ffc928','#2f9e5b','#3fa7d6','#8a5cff','#ff8a3d'],T=Math.PI*2;
   if(art==='ruota-panoramica'){const r=S*.48,cy=r+1.4;for(const z of [-.7,.7]){const t=new THREE.Mesh(new THREE.TorusGeometry(r,.11,6,36),this.sm(R));t.position.set(0,cy,z);g.add(t);const t2=new THREE.Mesh(new THREE.TorusGeometry(r*.55,.07,5,28),this.sm(W));t2.position.set(0,cy,z);g.add(t2);
     for(let i=0;i<12;i++)this.bx(g,.07,r,.07,Math.sin(i/12*T)*r/2,cy+Math.cos(i/12*T)*r/2,z,W).rotation.z=-i/12*T;
     for(const sx of [-1,1])this.bx(g,.28,cy*1.12,.28,sx*cy*.28,cy/2,z*1.5,W).rotation.z=sx*.5;}
@@ -280,6 +280,76 @@ export class World3D{
    this.bx(g,4,.3,2.6,a*.2,.15,b*1.25,'#8a8f98');this.bx(g,4,.2,2.6,a*.2,3,b*1.25,R);for(const x of [-1.8,1.8])this.cy(g,.1,.1,2.8,a*.2+x,1.5,b*1.25,W,6);}
   else return null;
   g.traverse(o=>{if(o.isMesh)o.castShadow=!this.mobile;});return g;}
+ // ---- Giostre del luna park su cui si sale (ruota panoramica, cavalli, calcinculo, tazze) ----
+ // Ogni giostra ha una parte che gira (rot) e lampadine; mentre qualcuno è seduto la giostra gira in base alla sua posizione (angolo mandato dal server: p.rideA),
+ // quando è vuota gira piano da sola. Le misure vengono da rideGeom() in shared/catalog.js, le stesse che usa il server per portare il passeggero.
+ funfairRide(art,S){
+  const G=rideGeom(art);if(!G||!['ruota-panoramica','giostra-cavalli','calcinculo','tazze'].includes(art))return null;
+  const T=Math.PI*2,W='#f4f1ea',R='#d9262c',Y='#ffc928',C=['#e5484d','#ffc928','#2f9e5b','#3fa7d6','#8a5cff','#ff8a3d'],g=new THREE.Group(),rot=new THREE.Group();g.add(rot);
+  const bulbM=this.bulbM??=Object.assign(new THREE.MeshBasicMaterial({color:'#fff2b8'}),{userData:{outlineParameters:{visible:false}}});
+  const bulbs=(p,pts,s=.09)=>{const im=new THREE.InstancedMesh(this.bulbG??=new THREE.SphereGeometry(1,6,4),bulbM,pts.length),M=new THREE.Matrix4(),q=new THREE.Quaternion(),v=new THREE.Vector3(),sc=new THREE.Vector3(s,s,s);pts.forEach((c,i)=>{M.compose(v.set(c[0],c[1],c[2]),q,sc);im.setMatrixAt(i,M);});im.userData.keep=true;im.frustumCulled=false;im.castShadow=false;p.add(im);return im;};
+  const ring=(n,rad,y,z=0)=>Array.from({length:n},(_,i)=>[Math.cos(i/n*T)*rad,y,Math.sin(i/n*T)*rad+z]);
+  const cone=(p,rad,h,n,y,c1,c2)=>{const pos=[],col=[],A=new THREE.Color(c1),B=new THREE.Color(c2);for(let i=0;i<n;i++){const a0=i/n*T,a1=(i+1)/n*T,c=i%2?A:B;pos.push(0,h,0,Math.cos(a0)*rad,0,Math.sin(a0)*rad,Math.cos(a1)*rad,0,Math.sin(a1)*rad);for(let k=0;k<3;k++)col.push(c.r,c.g,c.b);}
+   const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));ge.setAttribute('color',new THREE.Float32BufferAttribute(col,3));ge.computeVertexNormals();const m=new THREE.Mesh(ge,this.stripeM??=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}));m.position.y=y;m.userData.keep=true;p.add(m);return m;};
+  let apply=()=>{},idleW=.4;
+  if(art==='giostra-cavalli'){const r=S*.46,horses=[];idleW=.55;
+   this.cy(g,r*1.05,r*1.1,.3,0,.15,0,'#3a2a1e',32);this.cy(g,r*1.02,r*1.02,.05,0,.32,0,'#6b4a2f',32);bulbs(g,ring(28,r*1.06,.24),.07);
+   this.cy(rot,r*.98,r*.98,.1,0,.42,0,'#c9a46a',32);this.cy(rot,r*.2,r*.2,.12,0,.5,0,Y,16);this.cy(rot,.45,.45,4.3,0,2.6,0,'#f1d99a',16);
+   for(let i=0;i<8;i++){const a=i/8*T;this.bx(rot,.62,.95,.05,Math.cos(a)*.47,2.3,Math.sin(a)*.47,'#dfe9f0').rotation.y=-a+Math.PI/2;}
+   this.cy(rot,r*1.04,r*1.0,.4,0,4.85,0,R,32);cone(rot,r*1.1,1.9,16,5.05,R,W);this.cy(rot,.1,.1,.7,0,7,0,Y);bulbs(rot,[...ring(28,r*1.02,4.62),...ring(14,r*.55,4.64)],.08);
+   for(let i=0;i<8;i++){const a=i/8*T,x=Math.cos(a)*r*.72,z=Math.sin(a)*r*.72,base=1.15+(i%2)*.35,hc=i%2?'#f6f1e7':['#7a4a2a','#3b2a22','#caa06a','#9a6a3a'][(i>>1)%4],sc=C[i%6];
+    this.cy(rot,.035,.035,4.25,x,2.65,z,'#d4a73a',6);
+    const h=new THREE.Group();h.position.set(x,base,z);h.rotation.y=-a;rot.add(h);
+    this.bx(h,.34,.42,.95,0,0,0,hc);const neck=this.bx(h,.2,.5,.22,0,.34,.5,hc);neck.rotation.x=-.5;this.bx(h,.2,.22,.4,0,.62,.78,hc).rotation.x=.3;this.bx(h,.12,.1,.12,0,.55,.98,'#e8c9b0');
+    this.bx(h,.09,.2,.05,.07,.8,.62,hc);this.bx(h,.09,.2,.05,-.07,.8,.62,hc);this.bx(h,.06,.44,.08,0,.62,.36,'#2b1d14').rotation.x=-.45;const tl=this.bx(h,.08,.45,.08,0,.08,-.52,'#2b1d14');tl.rotation.x=.45;
+    this.bx(h,.38,.07,.42,0,.24,.0,sc);this.bx(h,.36,.05,.06,0,.12,.2,Y);
+    for(const sx of [-1,1])for(const sz of [-1,1]){const lg=this.bx(h,.08,.46,.08,sx*.11,-.36,sz*.32,hc);if(sz>0)lg.rotation.x=-.25;}
+    horses.push({h,base,ph:(i%2)*Math.PI});}
+   apply=ph=>{rot.rotation.y=-ph;for(const q of horses)q.h.position.y=q.base+.16*Math.sin(3*ph+q.ph);};}
+  else if(art==='calcinculo'){const r=S*.42,top=G.top,Lc=G.chain,tl=G.tilt;idleW=.9;
+   this.cy(g,r*.55,r*.72,.45,0,.22,0,'#8a8f98',20);this.cy(g,r*.5,r*.5,.1,0,.5,0,R,20);bulbs(g,ring(20,r*.62,.3),.07);
+   this.cy(g,.32,.5,6,0,3.5,0,W,14);for(const y of [1.2,2.6,4]){this.cy(g,.52-y*.02,.52-y*.02,.28,0,y,0,R,14);}
+   rot.position.y=6.4;this.cy(rot,top+.5,top+.2,.5,0,0,0,R,28);this.cy(rot,top*.5,top*.6,.15,0,.3,0,W,20);cone(rot,top+.55,1.4,16,.25,R,Y);this.cy(rot,.1,.1,.6,0,1.9,0,Y);bulbs(rot,ring(24,top+.45,-.28),.08);
+   for(let i=0;i<12;i++){const a=i/12*T,pv=new THREE.Group();pv.position.set(Math.cos(a)*top,-.3,Math.sin(a)*top);pv.rotation.y=-a;pv.rotation.z=tl;rot.add(pv);
+    for(const sz of [-.26,.26])this.bx(pv,.03,Lc,.03,0,-Lc/2,sz,'#9aa3a9');
+    this.bx(pv,.5,.1,.62,0,-Lc,0,C[i%6]);this.bx(pv,.07,.38,.62,-.24,-Lc+.22,0,C[i%6]);this.bx(pv,.5,.05,.05,.2,-Lc+.18,.32,'#9aa3a9');this.bx(pv,.5,.05,.05,.2,-Lc+.18,-.32,'#9aa3a9');}
+   apply=ph=>{rot.rotation.y=-ph;};}
+  else if(art==='tazze'){const r=S*.46,rho=G.rho,cups=[];idleW=.5;
+   this.cy(g,r*1.04,r*1.08,.3,0,.15,0,'#8a8f98',32);bulbs(g,ring(24,r*1.05,.3),.07);
+   this.cy(rot,r*.98,r*.98,.12,0,.36,0,'#e98ab0',32);this.cy(rot,r*.3,r*.45,.9,0,.9,0,W,16);this.cy(rot,.12,.12,3,0,2.4,0,'#9aa3a9',8);cone(rot,r*.82,1.3,12,3.7,R,Y);bulbs(rot,ring(12,r*.8,3.6),.08);
+   for(let i=0;i<6;i++){const a=i/6*T,cg=new THREE.Group();cg.position.set(Math.cos(a)*rho,.4,Math.sin(a)*rho);rot.add(cg);
+    const wall=new THREE.Mesh(new THREE.CylinderGeometry(.95,.7,.75,18,1,true),(this.cupM??={})[C[i]]??=new THREE.MeshLambertMaterial({color:C[i],side:THREE.DoubleSide}));wall.position.y=.4;cg.add(wall);
+    this.cy(cg,.7,.7,.06,0,.05,0,C[i],18);this.cy(cg,.6,.6,.05,0,.14,0,'#f1d99a',18);{const rim=new THREE.Mesh(new THREE.TorusGeometry(.95,.045,5,20),this.sm(W));rim.rotation.x=Math.PI/2;rim.position.y=.78;cg.add(rim);}
+    const hd=new THREE.Mesh(new THREE.TorusGeometry(.28,.05,5,12),this.sm(W));hd.position.set(.95,.5,0);hd.rotation.y=Math.PI/2;cg.add(hd);cups.push(cg);}
+   apply=ph=>{rot.rotation.y=-ph;for(const c of cups)c.rotation.y=ph*2.4;};}
+  else if(art==='ruota-panoramica'){const r=G.r,cy=G.cy,gons=[];idleW=.2;
+   this.bx(g,S*.8,.25,3.4,0,.12,0,'#8a8f98');this.bx(g,S*.5,.3,1.4,-S*.62,.1,2.4,'#bfb7aa');bulbs(g,[-S*.38,-S*.2,0,S*.2,S*.38].map(x=>[x,.3,1.7]),.08);
+   for(const z of [-1.1,1.1])for(const sx of [-1,1]){this.bx(g,.28,cy*1.1,.3,sx*cy*.3,cy/2,z,W).rotation.z=sx*.5;this.bx(g,.7,.22,.8,sx*cy*.58,.11,z,'#8a8f98');}
+   this.cy(g,.4,.4,2.8,0,cy,0,'#8a8f98').rotation.x=Math.PI/2;
+   rot.position.y=cy;const L=[];
+   for(const z of [-.7,.7]){const t=new THREE.Mesh(new THREE.TorusGeometry(r,.12,6,40),this.sm(R));t.position.z=z;rot.add(t);const t2=new THREE.Mesh(new THREE.TorusGeometry(r*.58,.07,5,28),this.sm(W));t2.position.z=z;rot.add(t2);
+    for(let i=0;i<24;i++){const a=i/24*T;L.push([Math.sin(a)*r,Math.cos(a)*r,z*1.16]);}for(let i=0;i<12;i++){const a=i/12*T;this.bx(rot,.07,r,.07,Math.sin(a)*r/2,Math.cos(a)*r/2,z,W).rotation.z=-a;}}
+   this.cy(rot,.55,.55,1.6,0,0,0,'#c9ced6',14).rotation.x=Math.PI/2;bulbs(rot,L,.09);
+   for(let i=0;i<12;i++){const a=i/12*T,pv=new THREE.Group();pv.position.set(Math.sin(a)*r,Math.cos(a)*r,0);rot.add(pv);
+    this.bx(pv,.06,.5,.06,-.45,-.28,0,'#9aa3a9');this.bx(pv,.06,.5,.06,.45,-.28,0,'#9aa3a9');this.bx(pv,.06,.1,1.3,0,0,0,W);
+    this.bx(pv,1.05,.1,1.05,0,-1,0,C[i%6]);this.bx(pv,1.05,.4,.06,0,-.78,.5,C[i%6]);this.bx(pv,1.05,.4,.06,0,-.78,-.5,C[i%6]);this.bx(pv,.06,.4,1.05,.52,-.78,0,C[i%6]);this.bx(pv,.06,.4,1.05,-.52,-.78,0,C[i%6]);
+    this.bx(pv,.8,.08,.38,0,-.5,-.1,'#f1d99a');for(const sx of [-.5,.5])for(const sz of [-.5,.5])this.bx(pv,.05,.6,.05,sx,-.7,sz,W);this.bx(pv,1.15,.09,1.15,0,-.1,0,C[(i+3)%6]);gons.push(pv);}
+   apply=ph=>{const al=Math.PI-ph;rot.rotation.z=al;for(const p of gons)p.rotation.z=-al;};}
+  rot.traverse(o=>{if(o.isMesh)o.userData.keep=true;});
+  g.traverse(o=>{if(o.isMesh&&!o.isInstancedMesh)o.castShadow=!this.mobile;});
+  g.userData.ride={apply,idleW};apply(art==='ruota-panoramica'?Math.PI:0);return g;}
+ // Altezza (sopra il terreno) a cui sta seduto chi è sulla giostra; a = angolo mandato dal server.
+ rideOff(art,a=0){const G=rideGeom(art);if(!G)return 0;if(art==='giostra-cavalli')return .91+.16*Math.sin(3*a);if(art==='calcinculo')return 2.45;if(art==='tazze')return .05;return G.cy+G.r*Math.cos(a)-.91;}
+ // Giostre che girano: se qualcuno è seduto seguono la sua posizione, altrimenti girano piano.
+ animRides(list,dt){for(const R of this.rides||[]){if(Math.abs(R.cx-this.target.x)+Math.abs(R.cz-this.target.z)>150)continue;let ph;const rd=list.find(p=>p.seat==='giostra'&&p.rideArt===R.art&&p.rideA!==undefined&&p.rideA!==null);if(rd){ph=rd.rideA;R.idle=ph;}else{R.idle=(R.idle||0)+dt*R.idleW;ph=R.idle;}R.apply(ph);}}
+ // Biglietteria del luna park con il giostraio: si preme Interagisci vicino e si sceglie la giostra.
+ funfairBooth(id){const B=FUNFAIR.booth,y0=this.lev(B.x,B.y),g=new THREE.Group(),R='#d9262c',W='#f4f1ea';
+  this.bx(g,2.6,1.05,1.4,0,.525,.35,'#7a1f2b');this.bx(g,2.8,.07,1.6,0,1.09,.35,'#f1e6d0');this.bx(g,2.6,.9,.08,0,.5,-.35,'#5a1620');for(const sx of [-1.25,1.25])this.bx(g,.1,2.6,.1,sx,1.3,-.35,W);for(const sx of [-1.25,1.25])this.bx(g,.1,1.6,.1,sx,1.8,.95,W);
+  for(let i=0;i<8;i++)this.bx(g,.34,.1,2.0,-1.19+i*.34,2.7,.3,i%2?W:R);this.bx(g,2.8,.5,.06,0,2.3,1.0,'#ffc928');
+  const lamps=new THREE.InstancedMesh(this.bulbG??=new THREE.SphereGeometry(1,6,4),this.bulbM??=Object.assign(new THREE.MeshBasicMaterial({color:'#fff2b8'}),{userData:{outlineParameters:{visible:false}}}),9),M=new THREE.Matrix4();for(let i=0;i<9;i++){M.compose(new THREE.Vector3(-1.35+i*.34,2.6,1.3),new THREE.Quaternion(),new THREE.Vector3(.07,.07,.07));lamps.setMatrixAt(i,M);}lamps.userData.keep=true;lamps.frustumCulled=false;g.add(lamps);
+  g.traverse(o=>{if(o.isMesh&&!o.isInstancedMesh)o.castShadow=!this.mobile;});g.position.set(B.x,y0,B.y);g.rotation.y=-Math.PI/2;this.share(g);id.g.add(g);
+  id.g.add(this.label('🎟️ BIGLIETTI · GIOSTRE',B.x,y0+3.4,B.y,'#fff8e8','#7a1f2b',.9));this.col.c.push([B.x,B.y,1.5]);
+  if(!this.toon)this.realPerson(null,'giostraio').then(o=>{if(!o||id.dead)return;o.root.position.set(0,0,-.05);o.actions.Idle?.play();g.add(o.root);(this.extraMix??=[]).push(o.mixer);}).catch(()=>{});}
  bx(g,w,h,d,x,y,z,c){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),this.sm(c));o.position.set(x,y,z);g.add(o);return o;}
  // Scooter (stile Vespa), bici e monopattino: pochi pezzi, uniti per colore.
  // Moto: due ruote, telaio, serbatoio, sella, manubrio e scarico; la forma cambia col tipo (naked, enduro, custom, sportiva carenata).
@@ -1089,7 +1159,7 @@ export class World3D{
   if(k==='statue'){const g=new THREE.Group(),m=new THREE.MeshLambertMaterial({color:'#d9d4c8'});const base=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.6,1.8),m);base.position.y=.8;const body=new THREE.Mesh(new THREE.CapsuleGeometry(.35,1.2,4,10),new THREE.MeshLambertMaterial({color:'#9aa7a3'}));body.position.y=2.6;g.add(base,body);return at(g);}
   if(k==='umbrella'){const g=new THREE.Group();const pole=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,2.3),new THREE.MeshLambertMaterial({color:'#eee'}));pole.position.y=1.15;const top=new THREE.Mesh(new THREE.ConeGeometry(1.3,.6,10),new THREE.MeshLambertMaterial({color:p.color||'#e5484d'}));top.position.y=2.3;g.add(pole,top);return at(g);}
   // Oggetti con immagine (giostre, statue, piscine…): sagoma che guarda sempre la telecamera.
-  if(k==='deco'&&p.art){const rd=this.funfair(p.art,Math.max(8,(p.w||3)));if(rd)return at(rd,false);}
+  if(k==='deco'&&p.art){const rd=this.funfair(p.art,Math.max(8,(p.w||3)));if(rd){at(rd,false);if(rd.userData.ride){this.rides=(this.rides||[]).filter(q=>q.art!==p.art);this.rides.push({...rd.userData.ride,art:p.art,cx:p.x,cz:p.y,idle:Math.random()*6});}if(p.id==='luna-giostra-cavalli'&&!id.booth){id.booth=1;this.funfairBooth(id);}return;}}
   if(k==='deco'&&p.art){const tex=await new Promise(ok=>new THREE.TextureLoader().load((this.r2d.assetBase||'')+'/assets/oggetti/'+p.art+'.png',ok,undefined,()=>ok(null)));if(!tex||id.dead)return;tex.colorSpace=THREE.SRGBColorSpace;
    const w=(p.w||3),h=w*tex.image.height/tex.image.width,s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,alphaTest:.3}));s.center.set(.5,.04);s.scale.set(w,h,1);s.position.set(p.x,y0,p.y);id.g.add(s);}}
  fence(){const E=cityEdge(),mat=this.sm('#f1ece2'),post=new THREE.CylinderGeometry(.07,.07,1.1,6),geo=[];
@@ -1304,6 +1374,7 @@ export class World3D{
   if(this.seaT)this.seaT.offset.set(this.clock*.012,this.clock*.007);if(this.seaN)this.seaN.offset.set(this.clock*.011,this.clock*.006);if(this.foam){const o=Math.sin(this.clock*.9)*.45/Math.SQRT2;this.foam.position.set(o,0,o);this.foamT.offset.x=this.clock*.02;}
   // Destinazione della mappa: colonna di luce sul punto scelto; sparisce quando ci arrivi.
   {const wp=this.waypoint;if(wp&&wp.room===me.room&&me.id){if(!this.beam){this.beam=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,60,16,1,true),new THREE.MeshBasicMaterial({color:'#ffd23f',transparent:true,opacity:.35,depthWrite:false,side:THREE.DoubleSide}));this.scene.add(this.beam);}this.beam.visible=true;this.beam.position.set(wp.x,30,wp.y);this.beam.material.opacity=.25+.12*Math.sin(this.clock*4);if(Math.hypot(me.x-wp.x,me.y-wp.y)<2.5){this.waypoint=null;dispatchEvent(new CustomEvent('humana-arrived',{detail:wp}));}}else if(this.beam)this.beam.visible=false;}
+  this.animRides(list,dt);for(const m of this.extraMix||[])m.update(dt);
   for(const b of this.boats||[]){if(Math.abs(b.position.x-this.target.x)+Math.abs(b.position.z-this.target.z)>120)continue;const t=this.clock+b.userData.phase;b.position.y=Math.sin(t*1.3)*.08;b.rotation.z=Math.sin(t*.9)*.04;}
   if(this.lod&&this.room==='mergellina')this.lod(this.target.x,this.target.z);
   const seen=new Set();this.hit=[];
@@ -1313,7 +1384,7 @@ export class World3D{
      this.wakeM=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,side:THREE.DoubleSide});this.wakeM.userData.outlineParameters={visible:false};}
     const wk=new THREE.Mesh(new THREE.PlaneGeometry(7,26).rotateX(-Math.PI/2),this.wakeM);wk.position.set(0,.42,-16);wk.rotation.y=Math.PI;wk.renderOrder=11;e.boatO.add(wk);e.wake=wk;}else if(!onBoat&&e.boatO){e.root.remove(e.boatO);e.boatO=null;}
    if(e.boatO){e.boatO.rotation.x=Math.sin(this.clock*1.7)*.035-.03;e.boatO.rotation.z=Math.sin(this.clock*1.1)*.05;}
-   const onBus=p.seat==='bus',hidden=p.seat==='car';e.root.visible=!hidden;if(onBus&&!e.busO){e.busO=this.bus();e.root.add(e.busO);}else if(!onBus&&e.busO){e.root.remove(e.busO);e.busO=null;}if(e.blob)e.blob.visible=!onBus&&!e.sprite;{const gy=onBoat?.42+Math.sin(this.clock*1.3)*.06:this.lev(p.x,p.y);e.gy=e.gy===undefined?gy:e.gy+(gy-e.gy)*Math.min(1,dt*12);e.root.position.set(p.x,e.gy,p.y);}
+   const onBus=p.seat==='bus',hidden=p.seat==='car';e.root.visible=!hidden;if(onBus&&!e.busO){e.busO=this.bus();e.root.add(e.busO);}else if(!onBus&&e.busO){e.root.remove(e.busO);e.busO=null;}if(e.blob)e.blob.visible=!onBus&&!e.sprite;{const gy=onBoat?.42+Math.sin(this.clock*1.3)*.06:p.seat==='giostra'&&p.rideArt?this.lev(p.x,p.y)+this.rideOff(p.rideArt,p.rideA||0):this.lev(p.x,p.y);e.gy=e.gy===undefined?gy:e.gy+(gy-e.gy)*Math.min(1,dt*12);e.root.position.set(p.x,e.gy,p.y);}
    const carId=p.vehicle&&!p.seat?p.vehicle:null,car=carId&&(VEHICLE[carId]?.base||carId);this.vehicle(e,carId);{const big=car&&['auto','furgone','cabrio'].includes(car);e.blob.scale.set(big?2.3:car?1.2:1,1,big?5.2:car?2.3:1);if(e.sprite)e.sprite.material.color.copy(this.tint);}
    const yaw=heading(p.direction||0);if(e.yaw===undefined||car)e.yaw=yaw;else{let dd=yaw-e.yaw;dd=Math.atan2(Math.sin(dd),Math.cos(dd));e.yaw+=dd*Math.min(1,12*dt);}e.root.rotation.y=e.yaw;
    if(p.parkedAt&&p.parkedAt.t!==e.parkedT&&!car){e.parkedT=p.parkedAt.t;this.park(p.parkedAt);}
@@ -1333,7 +1404,7 @@ export class World3D{
   for(const [id,e] of this.players)if(!seen.has(id))this.dropAvatar(id,e);
   // Telecamere: a piedi 2.5D (bassa, vede cielo e palazzi), terza persona, prima persona;
   // in auto: dietro l'auto, esterna (orbita), cofano, abitacolo. Il passaggio tra una e l'altra è sfumato.
-  this.target.lerp(new THREE.Vector3(me.x,0,me.y),1-Math.exp(-12*dt));
+  this.target.lerp(new THREE.Vector3(me.x,me.seat==='giostra'&&me.rideArt?Math.max(0,this.rideOff(me.rideArt,me.rideA||0)-.4):0,me.y),1-Math.exp(-12*dt));
   if(this.spin)this.yaw+=this.spin*1.8*dt;
   const mode=this.mode(me),car=!!me.vehicle,dirYaw=Math.atan2(-Math.cos(me.direction||0),-Math.sin(me.direction||0));
   const follow=car?(mode!=='car-orbit'):(mode==='third'||mode==='first');
