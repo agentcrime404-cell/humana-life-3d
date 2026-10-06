@@ -218,3 +218,26 @@ body.is3d #hud .glass,body.is3d .glass,body.is3d .social button,body.is3d #cam3d
 body.is3d #hud .glass,body.is3d .glass,body.is3d .social button{background:rgba(10,22,36,.58)}
 body.is3d #cam3d button{background:rgba(17,24,39,.5)}
 @media (max-width:700px){body.is3d .social button{transform:scale(.88);transform-origin:left top}}
+
+/* 3D su telefono (2026-10-06): bottoni più grandi, distanziati e senza sovrapposizioni. Il PC non cambia.
+   I tre bottoni della telecamera/mappa/grafica stanno in fila sotto la minimappa; azioni e telefono in una griglia 2×2 in basso a destra. */
+body.is3d #world,body.is3d #world canvas{touch-action:none}
+@media (max-width:700px) and (orientation:portrait){
+ body.is3d #cam3d{top:calc(140px + var(--safe-top));right:calc(6px + var(--safe-right));flex-direction:row;gap:12px;align-items:center}
+ body.is3d #cam3d button{width:42px;height:42px;font-size:19px}
+ body.is3d #cam3d .cam-label{position:absolute;right:0;top:48px;white-space:nowrap;min-height:0}
+ body.is3d .actions{gap:18px 20px;bottom:calc(84px + var(--safe-bottom))}
+ body.is3d .actions button,body.is3d .actions #inventory{width:58px;height:58px}
+ body.is3d .actions #phone{width:58px;height:76px}
+ body.is3d .social{gap:12px}
+}
+@media (max-height:500px) and (orientation:landscape){
+ body.is3d #cam3d{top:calc(142px + var(--safe-top));right:calc(10px + var(--safe-right));flex-direction:row;gap:14px;align-items:center}
+ body.is3d #cam3d button{width:42px;height:42px;font-size:19px}
+ body.is3d #cam3d .cam-label{position:absolute;right:0;top:48px;white-space:nowrap;min-height:0}
+ body.is3d .actions{display:grid;grid-template-columns:repeat(2,auto);gap:14px 18px;align-items:end;justify-items:center;bottom:calc(8px + var(--safe-bottom));right:calc(12px + var(--safe-right))}
+ body.is3d .actions button,body.is3d .actions #inventory{margin:0;width:54px;height:54px}
+ body.is3d .actions #phone{margin:0;width:58px;height:76px}
+ body.is3d .social{gap:10px;top:calc(100px + var(--safe-top));max-height:calc(100dvh - 108px)}
+ body.is3d #chat{right:calc(190px + var(--safe-right))}
+}
