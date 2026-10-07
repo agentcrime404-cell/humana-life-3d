@@ -10,6 +10,9 @@ const fromFile=(()=>{try{return (fs.readFileSync('.env','utf8').match(/^TELEGRAM
 const TOKEN=(fromFile||process.env.TELEGRAM_BOT_TOKEN||'').trim();
 if(!TOKEN){console.error('Manca TELEGRAM_BOT_TOKEN in .env');process.exit(2);}
 const API='https://api.telegram.org/bot'+TOKEN+'/';
+// SICUREZZA: il bot risponde SOLO al proprietario (TELEGRAM_OWNER_ID in .env, chat privata). Chiunque altro lo contatti viene ignorato in silenzio: nessuna risposta, nessun salvataggio.
+const envFile=(()=>{try{return fs.readFileSync('.env','utf8');}catch{return '';}})();const OWNER=Number((envFile.match(/^TELEGRAM_OWNER_ID=(.*)$/m)||[])[1]||process.env.TELEGRAM_OWNER_ID||0);
+if(!OWNER){console.error('Manca TELEGRAM_OWNER_ID in .env: senza non si accende, per sicurezza.');process.exit(2);}
 const call=async(m,body,form)=>(await fetch(API+m,{method:'POST',headers:form?undefined:{'Content-Type':'application/json'},body:form||JSON.stringify(body)})).json();
 
 // ---- disegno della mappa in un PNG (senza librerie: pixel + zlib) ----
@@ -53,9 +56,9 @@ async function mappa(id){const r=renderMap(),f=new FormData();f.append('chat_id'
  const ph=new FormData();ph.append('chat_id',String(id));ph.append('photo',new Blob([r.png],{type:'image/png'}),'mappa.png');await call('sendPhoto',null,ph);
  const leg=r.pois.map(p=>p.n+'. '+p.name+' ('+Math.round(p.x)+', '+Math.round(p.y)+')').join('\n');for(let i=0;i<leg.length;i+=3800)await send(id,(i?'':'Legenda (x, y in metri):\n')+leg.slice(i,i+3800));return a.ok;}
 if(process.argv[2]==='--prova'){const r=renderMap();fs.writeFileSync(process.argv[3]||'mappa-prova.png',r.png);console.log('mappa',r.W,r.H,r.pois.length,'luoghi');process.exit(0);}
-if(process.argv[2]==='--invia'){const id=JSON.parse(fs.readFileSync(SAVE,'utf8')).id;console.log(await mappa(id)?'mappa inviata':'errore');process.exit(0);}
-let offset=0;console.log('Bot acceso. Comandi: /mappa /aiuto');
-for(;;){try{const u=await call('getUpdates',{offset,timeout:30,allowed_updates:['message']});for(const up of u.result||[]){offset=up.update_id+1;const m=up.message;if(!m)continue;const id=m.chat.id;try{fs.writeFileSync(SAVE,JSON.stringify({id,name:m.chat.first_name||''}));}catch{}
+if(process.argv[2]==='--invia'){const id=OWNER;console.log(await mappa(id)?'mappa inviata':'errore');process.exit(0);}
+let offset=0,ignored=0;console.log('Bot acceso. Comandi: /mappa /aiuto');
+for(;;){try{const u=await call('getUpdates',{offset,timeout:30,allowed_updates:['message']});for(const up of u.result||[]){offset=up.update_id+1;const m=up.message;if(!m)continue;const id=m.chat.id;if(m.from?.id!==OWNER||id!==OWNER||m.chat.type!=='private'){ignored++;if(ignored<=3||ignored%20===0)console.warn('Messaggio ignorato da un utente non autorizzato (totale '+ignored+')');continue;}
   const t=(m.text||m.caption||'').trim();
   if(/^\/(mappa|map)\b/i.test(t)){await send(id,'⏳ Preparo la mappa…');try{await mappa(id);}catch(e){await send(id,'Errore nella mappa: '+e.message);}}
   else if(/^\/(aiuto|help|start)\b/i.test(t))await send(id,'Napoli life · comandi:\n/mappa – ti mando la mappa con i luoghi numerati\nScrivimi qualsiasi modifica che vuoi e viene salvata per Claude.');

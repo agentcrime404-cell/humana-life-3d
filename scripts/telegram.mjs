@@ -9,10 +9,9 @@ const fromFile=(()=>{try{return (fs.readFileSync('.env','utf8').match(/^TELEGRAM
 const TOKEN=(fromFile||process.env.TELEGRAM_BOT_TOKEN||'').trim(),API='https://api.telegram.org/bot'+TOKEN+'/',FILE='data/telegram-chat.json',SITE=process.env.PUBLIC_URL||'https://humana-life-3d.onrender.com';
 if(!TOKEN){console.error('Manca TELEGRAM_BOT_TOKEN in .env');process.exit(2);}
 const call=async(m,body,form)=>{const r=await fetch(API+m,{method:'POST',headers:form?undefined:{'Content-Type':'application/json'},body:form||JSON.stringify(body)});return r.json();};
-async function chatId(){try{return JSON.parse(fs.readFileSync(FILE,'utf8')).id;}catch{}
- const u=await call('getUpdates',{});const m=(u.result||[]).map(x=>x.message||x.my_chat_member?.chat&&{chat:x.my_chat_member.chat}).filter(Boolean).pop();
- if(!m){console.error('Apri Telegram, cerca @Napolilife_bot e premi AVVIA (Start): poi riprova.');process.exit(3);}
- fs.mkdirSync('data',{recursive:true});fs.writeFileSync(FILE,JSON.stringify({id:m.chat.id,name:m.chat.first_name||m.chat.title||''}));return m.chat.id;}
+// Si scrive SOLO al proprietario (TELEGRAM_OWNER_ID in .env): nessuna scoperta automatica della chat.
+const fromEnv=(()=>{try{return Number((fs.readFileSync('.env','utf8').match(/^TELEGRAM_OWNER_ID=(.*)$/m)||[])[1]);}catch{return 0;}})();
+async function chatId(){const id=fromEnv||Number(process.env.TELEGRAM_OWNER_ID)||0;if(!id){console.error('Manca TELEGRAM_OWNER_ID in .env: per sicurezza non si scrive a nessuno.');process.exit(3);}return id;}
 const arg=process.argv.slice(2),id=await chatId();
 const keyboard={inline_keyboard:[[{text:'📱 Scarica APK',url:SITE+'/scarica-3d'},{text:'▶️ Gioca online',url:SITE+'/'}]]};
 if(arg[0]==='--qr'){const {default:QR}=await import('qrcode');const png=await QR.toBuffer(SITE+'/scarica-3d',{width:520,margin:2});const f=new FormData();f.append('chat_id',String(id));f.append('caption','📷 QR per scaricare Napoli life sul telefono\n'+SITE+'/scarica-3d');f.append('photo',new Blob([png],{type:'image/png'}),'qr.png');const r=await call('sendPhoto',null,f);console.log(r.ok?'QR inviato':JSON.stringify(r));}

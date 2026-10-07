@@ -33,7 +33,7 @@ Le **password e le chiavi** NON sono in questo file: stanno in `SEGRETI-PRIVATI.
 - Gli altri progetti dell'utente su Render (`kouverte-*`) e `lumix.best` NON vanno toccati.
 
 ## Telegram (aggiornamenti e mappa)
-- Bot **@Napolilife_bot**; token in `.env` (`TELEGRAM_BOT_TOKEN`); chat dell'utente salvata in `data/telegram-chat.json` (utente LumiX, `@LumixTg`).
+- Bot **@Napolilife_bot**; token in `.env` (`TELEGRAM_BOT_TOKEN`). **Sicurezza: il bot parla SOLO con il proprietario** (`TELEGRAM_OWNER_ID=8740220904` in `.env`, utente LumiX `@LumixTg`, solo chat privata): chiunque altro lo contatti viene ignorato in silenzio e i messaggi partono solo verso quell'id. Senza `TELEGRAM_OWNER_ID` il bot non si accende.
 - Messaggi: `node --env-file-if-exists=.env scripts/telegram.mjs "testo"`; `... --qr` invia il QR di download; `... --apk` invia il file APK.
 - Bot interattivo (deve restare acceso sul PC): `npm run bot` (`scripts/telegram-bot.mjs`). Comando **/mappa**: manda la mappa di Napoli Centro con luoghi numerati, griglia ogni 20 m e legenda; ogni altro messaggio dell'utente viene salvato in `data/telegram-inbox.jsonl` → **leggi quel file all'inizio di ogni sessione**: sono richieste di modifiche che vuole fare.
 
