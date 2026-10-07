@@ -225,3 +225,4 @@ Cartelle sul Desktop: `HUMANA life`, `HUMANA life 3D`, `HUMANA life real` (avvii
 - shared/traffic.js enrich(): scooter, furgoni, camion ESI (6-13), densità per ora, parcheggio e ripartenza, speedK (traffico).
 - client/world/ambient.js: gabbiani, barche lontane, alberi che ondeggiano, suoni sintetizzati (humana-ambient=off per spegnerli), eventi (ambulanza, pattuglia, incidente, traffico, musicista, fuochi, temporale).
 - ESI deposito in shared/catalog.js (ESI). Passeggero in auto visibile agli altri. Tasto Ruba nel menu di sinistra; X telefono torna alla Home; tasto ↻ orientamento. Test: tests/citylife.test.js.
+- Ospedale del Golfo (HOSPITAL in catalog.js, x68 y118) con ambulanze; evento Mercato rionale (MARKET, 8-14) in ambient.js.
