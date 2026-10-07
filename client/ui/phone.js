@@ -25,7 +25,7 @@ export function installPhone(ctx){
  const tick=()=>{root.querySelector('.clock').textContent=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});const t=root.querySelector('.call-time');if(t&&calls.startedAt){const s=Math.floor((Date.now()-calls.startedAt)/1000);t.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}};
  setInterval(tick,1000);
  function open(){root.hidden=false;setControls(false);render();tick();}
- function close(){if(calls.state!=='idle'){home();return;}hosted=false;root.hidden=true;setControls(true);}
+ function close(){if(calls.state!=='idle'){home();return;}ytNow=null;view='home';screen.replaceChildren();if(dlg?.open){try{dlg.close();}catch{}}hosted=false;root.hidden=true;setControls(true);}
  // HUMANA life 3D: le app si aprono DENTRO lo schermo del telefono (la finestra del gioco viene messa sopra lo schermo) e si resta nel telefono finché non lo si chiude.
  // Nel 2D resta tutto com'era: il telefono si chiude e l'app si apre a tutto schermo.
  const inPhone=!!window.HUMANA_3D,dlg=document.getElementById('modal');let hosted=false;

@@ -26,7 +26,7 @@ export class Traffic{
  density(h){const b=(a,z)=>a<=z?h>=a&&h<z:h>=a||h<z;return b(7,9.5)?1:b(17,20)?1:b(9.5,17)?.72:b(20,23)?.55:.28;}
  update(dt,others){dt=Math.min(dt,.1);this.time=(this.time||0)+dt;
   if(this.rich&&this.viewer){this.within=r=>{const h=this.hour??12;return r[0]<=r[1]?h>=r[0]&&h<r[1]:h>=r[0]||h<r[1];};const dens=this.density(this.hour??12);for(const c of this.cars){if(c.u===undefined&&!c.hours)continue;const want=c.hours?this.within(c.hours):c.u<dens;if(want===!c.off)continue;const q=c.path.pointAt(c.s);if(Math.hypot(q.x-this.viewer.x,q.y-this.viewer.y)<55)continue;
-    if(want){let free=true;for(const o of this.cars){if(o===c||o.off)continue;const p=o.path.pointAt(o.s);if(Math.hypot(p.x-q.x,p.y-q.y)<9){free=false;break;}}if(!free)continue;c.v=0;c.park=null;}c.off=!want;}}
+    if(want){let free=true;for(const o of this.cars){if(o===c||o.off)continue;const p=o.path.pointAt(o.s);if(Math.hypot(p.x-q.x,p.y-q.y)<9){free=false;break;}}if(!free)continue;c.v=0;c.park=null;if(c.canPark&&c.parkAt===undefined){const g=c.parkGap||[c.path.length*.25,c.path.length*.65];c.parkAt=(c.s+g[0]+Math.random()*(g[1]-g[0]))%c.path.length;}}c.off=!want;}}
   const list=this.cars.filter(c=>!c.off).map(c=>{const q=c.path.pointAt(c.s);return {c,q};});
   for(const {c,q} of list){const h=q.direction,fx=Math.cos(h),fy=Math.sin(h);let limit=c.speed(c.s)*(this.speedK||1),pull=0;
    const check=(x,y,size,isBus)=>{const dx=x-q.x,dy=y-q.y,fwd=dx*fx+dy*fy,lat=Math.abs(-dx*fy+dy*fx);if(lat>1.7+size)return;

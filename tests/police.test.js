@@ -29,3 +29,20 @@ test('Il furto vale per acquisti, barbiere, bevande, benzina e mezzi',()=>{
  for(const q of ['/api/purchase','/api/barber','/api/vending','/api/service/order','/api/fuel/refill','/api/vehicle/buy'])assert.ok(STEAL_PATHS.includes(q),q);
  assert.ok(!STEAL_PATHS.includes('/api/atm/exchange')&&!STEAL_PATHS.includes('/api/slot'),'banca e slot non si rubano');
 });
+
+import {WebSocket} from 'ws';
+import {createApp} from '../server/index.js';
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+test('Prigione: uscire e rientrare non libera; la cella e le auto restano salvate',async t=>{
+ const app=createApp({dbPath:':memory:',edition:'3d'});await new Promise(r=>app.server.listen(0,'127.0.0.1',r));t.after(()=>app.close());
+ const base=`http://127.0.0.1:${app.server.address().port}`;
+ const reg=await (await fetch(base+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'Ladro_1',password:'test-secret-ladro'})})).json();
+ const connect=async()=>{const ws=new WebSocket(base.replace('http','ws')+'/ws'),m=[];ws.on('message',b=>m.push(JSON.parse(b)));await new Promise(r=>ws.once('open',r));ws.send(JSON.stringify({type:'auth',token:reg.token}));for(let i=0;i<100&&!m.some(x=>x.type==='welcome');i++)await pause(20);return {ws,m};};
+ let c=await connect();await pause(150);let p=app.game.players.get(reg.user.id);assert.ok(p,'giocatore connesso');
+ p.wanted={t0:Date.now(),until:Date.now()-1,caught:true,station:POLICE[0].id,value:5};app.game.police.save(p);app.game.police.tick(p);assert.ok(p.jail,'arrestato');
+ c.ws.close();await pause(200);c=await connect();await pause(200);p=app.game.players.get(reg.user.id);
+ assert.ok(p.jail,'dopo il rientro è ancora in cella');const cell=prisonCell(POLICE[0]);assert.ok(Math.hypot(p.x-cell.x,p.y-cell.y)<1,'ed è dentro la cella');
+ // da detenuto 'travel' non porta a Mergellina
+ c.ws.send(JSON.stringify({type:'travel',to:'mergellina'}));await pause(150);assert.equal(app.game.players.get(reg.user.id).room,'lungomare','in cella non si viaggia');
+ c.ws.close();
+});

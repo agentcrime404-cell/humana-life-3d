@@ -174,7 +174,7 @@ export const STAFF_ROLE={bar:'Barista',pizzeria:'Pizzaiolo',osteria:'Oste',vesuv
 export const solidBlocks=()=>{const out=[...arenaBlocks()];
  for(const g of GAS){const G=gasGeom(g);out.push(G.shop);for(const p of G.pumps)out.push([p.x-.45,p.y-.6,p.x+.45,p.y+.6]);for(const dx of [-6,6])out.push([G.cx+dx-.2,G.island.y-1.9,G.cx+dx+.2,G.island.y-1.5]);}
  for(const c of POLICE){const P=policeGeom(c);out.push(P.build,...P.cars,[P.flag.x-.2,P.flag.y-.2,P.flag.x+.2,P.flag.y+.2]);}
- out.push(esiGeom(ESI).build,hospGeom(HOSPITAL).build);
+ out.push(esiGeom(ESI).build,hospGeom(HOSPITAL).build);for(const m of MODERN)out.push(...modernGeom(m).houses);
  return out;};
 // Furti e prigione (solo HUMANA life 3D): si può prendere tutto senza pagare, ma se un agente ti vede finisci in cella per un minuto, poi ti liberano.
 export const PRISON={seconds:60,catch:.8,delay:[5,9]};
@@ -189,3 +189,6 @@ export const esiGeom=e=>({build:[e.x+1,e.y,e.x+e.w-1,e.y+4.5],door:{x:e.x+e.w/2,
 export const HOSPITAL={id:'hosp',name:'Ospedale del Golfo',x:68,y:118,w:14,h:10};
 export const hospGeom=h=>({build:[h.x+1,h.y,h.x+h.w-1,h.y+5.8],door:{x:h.x+h.w/2,y:h.y+7},bays:[[h.x+1,h.y+7.4,h.x+4.5,h.y+9.6],[h.x+h.w-4.5,h.y+7.4,h.x+h.w-1,h.y+9.6]]});
 export const MARKET={name:'Mercato rionale',x:70,y:98,w:12,h:7};
+// Residenze moderne (solo HUMANA life 3D): due gruppi di case bianche a tetto piatto con giardino e piscina, nella zona est.
+export const MODERN=[{id:'mod1',x:151,y:11,w:16,h:9,name:'Residenze moderne Nord'},{id:'mod2',x:155,y:26,w:16,h:9,name:'Residenze moderne Est'}];
+export const modernGeom=m=>({houses:[[m.x+1,m.y+.5,m.x+6.5,m.y+5],[m.x+8.8,m.y+1,m.x+15,m.y+5.5]],pool:[m.x+2,m.y+6.2,m.x+6.5,m.y+8.4]});

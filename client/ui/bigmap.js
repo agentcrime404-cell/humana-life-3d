@@ -48,7 +48,7 @@ export function openBigMap({me:getMe,players:getPlayers,pointer,w3,notify}){
   const [ix,iy]=toScreen(Z.x0,Z.y0);g.drawImage(Z.img,ix,iy,Z.w*s,Z.h*s);
   const fs=Math.round(Math.max(14,Math.min(26,k*7))*dpr);g.font=fs+'px system-ui';g.textAlign='center';g.textBaseline='middle';
   // Raggruppa i POI vicini sullo schermo: i cluster mostrano il numero, i singoli solo l'icona; il nome completo compare solo per quello selezionato.
-  hits=[];{const R=fs*1.9,cl=[];for(const p of pois){if(off.has(p.cat)||p===sel)continue;const [x,y]=toScreen(p.x,p.y);if(x<-40||y<-40||x>cv.width+40||y>cv.height+40)continue;let c=cl.find(q=>Math.hypot(q.x-x,q.y-y)<R);if(c){c.items.push(p);c.x+=(x-c.x)/c.items.length;c.y+=(y-c.y)/c.items.length;}else cl.push({x,y,items:[p]});}
+  hits=[];{const R=fs*1.9*(k>=11?.4:1),cl=[];for(const p of pois){if(off.has(p.cat)||p===sel)continue;const [x,y]=toScreen(p.x,p.y);if(x<-40||y<-40||x>cv.width+40||y>cv.height+40)continue;let c=cl.find(q=>Math.hypot(q.x-x,q.y-y)<R);if(c){c.items.push(p);c.x+=(x-c.x)/c.items.length;c.y+=(y-c.y)/c.items.length;}else cl.push({x,y,items:[p]});}
    for(const c of cl){const one=c.items.length===1,p=c.items[0];g.fillStyle='rgba(255,255,255,.96)';g.beginPath();g.arc(c.x,c.y,fs*(one?.75:.9),0,7);g.fill();g.lineWidth=2.5*dpr;g.strokeStyle=one?CAT_COL[p.cat]:'#1f2a44';g.stroke();
     if(one){g.fillStyle='#000';g.font=fs+'px system-ui';g.fillText(p.icon,c.x,c.y+1);}else{g.fillStyle='#1f2a44';g.font='800 '+Math.round(fs*.8)+'px system-ui';g.fillText(String(c.items.length),c.x,c.y+1);g.font=fs+'px system-ui';}
     hits.push({x:c.x,y:c.y,r:fs*.95,c});}}
@@ -60,14 +60,17 @@ export function openBigMap({me:getMe,players:getPlayers,pointer,w3,notify}){
   {const path=pointer.path&&pointer.room===room?pointer.path:null;if(path&&path.length&&me){g.save();g.lineCap='round';g.lineJoin='round';g.beginPath();const [sx,sy]=toScreen(me.x,me.y);g.moveTo(sx,sy);for(const q of path){const [qx,qy]=toScreen(q.x,q.y);g.lineTo(qx,qy);}g.strokeStyle='rgba(255,255,255,.95)';g.lineWidth=9*dpr;g.stroke();g.strokeStyle='#1e90ff';g.lineWidth=5*dpr;g.setLineDash([14*dpr,9*dpr]);g.lineDashOffset=-performance.now()/40*dpr;g.stroke();g.restore();}}
   if(me){const [x,y]=toScreen(me.x,me.y),a=me.direction||0,t=(performance.now()%1400)/1400;g.save();g.translate(x,y);g.fillStyle='rgba(30,144,255,'+(.35*(1-t))+')';g.beginPath();g.arc(0,0,(16+34*t)*dpr,0,7);g.fill();g.fillStyle='rgba(30,144,255,.25)';g.beginPath();g.arc(0,0,20*dpr,0,7);g.fill();g.rotate(a);g.fillStyle='#1e90ff';g.strokeStyle='#fff';g.lineWidth=2.5*dpr;g.beginPath();g.moveTo(15*dpr,0);g.lineTo(-10*dpr,10*dpr);g.lineTo(-5*dpr,0);g.lineTo(-10*dpr,-10*dpr);g.closePath();g.fill();g.stroke();g.restore();
    g.font='800 '+Math.round(12*dpr)+'px system-ui';g.lineWidth=3*dpr;g.strokeStyle='#fff';g.fillStyle='#0b5fb8';g.strokeText('TU',x,y-26*dpr);g.fillText('TU',x,y-26*dpr);g.font=fs+'px system-ui';}
-  root.querySelector('.bm-clear').hidden=!(wp&&wp.room===room);if(sel&&!card.hidden&&(performance.now()|0)%10===0)showCard();raf=requestAnimationFrame(draw);}
+  root.querySelector('.bm-clear').hidden=!(wp&&wp.room===room);raf=requestAnimationFrame(draw);}
  const dpr=()=>Math.min(2,devicePixelRatio||1);
  // Tocco: un cluster fa zoom e si separa, un POI si seleziona (nome, categoria, distanza e VAI), un punto libero diventa una destinazione da confermare.
- const card=document.createElement('div');card.className='bm-card';card.hidden=true;root.append(card);
- const showCard=()=>{if(!sel){card.hidden=true;return;}const m=here(),d=m?dist(sel,m):0;card.hidden=false;card.replaceChildren();const t=document.createElement('div');t.className='bm-ct';const n=document.createElement('b');n.textContent=sel.name;const sub=document.createElement('span');sub.textContent=(sel.cat?CATS[sel.cat][0]+' '+CATS[sel.cat][1]:'📍 Punto sulla mappa')+' · '+d+' m';t.append(n,sub);const go=document.createElement('button');go.className='bm-go';go.textContent='VAI';go.onclick=()=>goTo(sel);const x=document.createElement('button');x.className='bm-x';x.textContent='✕';x.setAttribute('aria-label','Chiudi');x.onclick=()=>{sel=null;showCard();};card.append(t,go,x);};
+ const card=document.createElement('div');card.className='bm-card';card.hidden=true;root.append(card);let cyc=0;
+ const subText=()=>{const m=here();return (sel.cat?CATS[sel.cat][0]+' '+CATS[sel.cat][1]:'📍 Punto sulla mappa')+' · '+(m?dist(sel,m):0)+' m';};
+ const ivCard=setInterval(()=>{if(sel&&card._sub)card._sub.textContent=subText();},700);
+ const showCard=()=>{if(!sel){card.hidden=true;return;}const m=here(),d=m?dist(sel,m):0;card.hidden=false;card.replaceChildren();const t=document.createElement('div');t.className='bm-ct';const n=document.createElement('b');n.textContent=sel.name;const sub=document.createElement('span');sub.textContent=subText();card._sub=sub;t.append(n,sub);const go=document.createElement('button');go.className='bm-go';go.textContent='VAI';go.onclick=()=>goTo(sel);const x=document.createElement('button');x.className='bm-x';x.textContent='✕';x.setAttribute('aria-label','Chiudi');x.onclick=()=>{sel=null;showCard();};card.append(t,go,x);};
  function goTo(to){if(inside){notify('Esci dal locale per andarci');return;}const me=getMe();if(!me)return;if(pointer.go(me,to)){w3.waypoint={x:to.x,y:to.y,room,name:to.name};notify('📍 Percorso verso '+to.name+' · ci vai da solo');}else notify('Lì non si può arrivare');}
  function setTarget(X,Y){const w=toWorld(X*dpr(),Y*dpr()),px=X*dpr(),py=Y*dpr();let best=null,bd=1e9;for(const h of hits){const d=Math.hypot(h.x-px,h.y-py);if(d<h.r+10*dpr()&&d<bd){bd=d;best=h;}}
   if(best?.c){const its=best.c.items;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,mx=0,my=0;for(const p of its){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);mx+=p.x;my+=p.y;}
+   if(k>=11&&its.length>1){sel=its[cyc++%its.length];tween={cx:sel.x,cy:sel.y,k:Math.max(k,12)};showCard();return;}
    const span=Math.max(x1-x0,y1-y0,.5),want=Math.min(16,Math.max(k*1.9,Math.min(cv.width,cv.height)*.36/span));tween={cx:mx/its.length,cy:my/its.length,k:want};if(its.length===1){sel=its[0];showCard();}return;}
   if(best?.sel)return;
   if(best&&best.c===undefined)return;
@@ -81,6 +84,6 @@ export function openBigMap({me:getMe,players:getPlayers,pointer,w3,notify}){
  const [zo,zi]=root.querySelectorAll('.bm-zoom button');zo.onclick=()=>k=k/1.4;zi.onclick=()=>k=k*1.4;
  root.querySelector('.bm-clear').onclick=()=>{w3.waypoint=null;pointer.cancel();notify('Percorso tolto');};
  const bar=root.querySelector('.bm-cats');for(const [key,[ic,nm]] of Object.entries(CATS)){if(!pois.some(p=>p.cat===key))continue;const b=document.createElement('button');b.type='button';b.className='bm-cat on';b.title=nm;b.setAttribute('aria-label',nm);b.innerHTML='<i>'+ic+'</i><small>'+nm+'</small>';b.onclick=()=>{if(off.has(key))off.delete(key);else off.add(key);b.classList.toggle('on',!off.has(key));};bar.append(b);}
- const close=()=>{cancelAnimationFrame(raf);removeEventListener('keydown',key);root.remove();};
+ const close=()=>{clearInterval(ivCard);cancelAnimationFrame(raf);removeEventListener('keydown',key);root.remove();};
  const key=e=>{if(e.key==='Escape'||e.key==='m'||e.key==='M'){e.preventDefault();close();}};addEventListener('keydown',key);
  root.querySelector('.bm-back').onclick=close;draw();return true;}

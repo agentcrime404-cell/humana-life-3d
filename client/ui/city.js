@@ -46,7 +46,6 @@ export function installCity({net,api,modal,button,el,notify,closeModal,getMe,get
   if(window.HUMANA_3D&&MENU[me.room]&&!me.seat&&!me.consuming&&distance(COUNTER,me)<3.4)return {kind:'service',room:me.room,label:'✋ Ordina al bancone · '+STAFF_ROLE[me.room]};
   if(window.HUMANA_3D&&me.room==='lungomare'&&!me.fueling&&GAS.some(g=>distance(gasGeom(g).island,me)<FUEL.zone-.5)&&(me.vehicle||me.fuelFor))return {kind:'fuel',label:'⛽ Distributore · fai il pieno'};
   if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&POLICE.some(c=>distance(policeGeom(c).door,me)<3.8))return {kind:'police',label:'✋ Parla con l’agente'};
-  if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&!me.vehicle&&!me.arena&&!me.jail){const a=getW3?.()?.life?.nearest(me.x,me.y);if(a)return {kind:'npc',a,label:'💬 Parla con '+npcName(a)};}
   if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&!me.arena&&distance(ARENA.kiosk,me)<3.8)return {kind:'arena',label:'✋ Arena paintball · Armeria'};
   if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&distance(FUNFAIR.booth,me)<3.8)return {kind:'giostre',label:'✋ Giostre del luna park'};
   if(window.HUMANA_3D&&me.room==='lungomare'){const d=DEALERS.find(d=>distance({x:d.x+d.w/2,y:d.y+d.h+1.2},me)<3.4);if(d)return {kind:'dealer',dealer:d,label:'✋ '+d.name};}
@@ -55,6 +54,7 @@ export function installCity({net,api,modal,button,el,notify,closeModal,getMe,get
   if(window.HUMANA_3D&&JUKEBOX[me.room]&&distance(JUKEBOX[me.room],me)<2.6)return {kind:'jukebox',label:'✋ Jukebox'};
   if(MAPS[me.room]?.props.some(p=>p.kind==='vending'&&distance(p,me)<2.2))return {kind:'vending',label:'✋ Distributore di bevande'};
   if(me.room==='lungomare'&&!MAPS.lungomare.front){const stop=BUS_STOPS.find(s=>distance(s,me)<2.4);if(stop)return {kind:'bus',stop,label:'✋ Fermata · '+stop.name};}
+  if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&!me.vehicle&&!me.arena&&!me.jail){const a=getW3?.()?.life?.nearest(me.x,me.y);if(a)return {kind:'npc',a,label:'💬 Parla con '+npcName(a)};}
   return null;}
  // Bancomat realistico: carta, PIN (simulato, nessun dato reale), menu con tasti laterali, scontrino.
  const beep=(f=880)=>{try{const a=beep.ctx||(beep.ctx=new AudioContext()),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+.07);}catch{}};

@@ -109,10 +109,10 @@ export class CityLife{
   if(this.acc>=.25){this.acc=0;const cand=[];for(const a of this.agents){if(!a.on||a.state==='in'||a.hide){this.release(a);continue;}const d=Math.abs(a.x-px)+Math.abs(a.z-pz);if(d<this.radius)cand.push([d,a]);else this.release(a);}
    cand.sort((p,q)=>p[0]-q[0]);const want=cand.slice(0,this.max).map(c=>c[1]);for(const a of this.agents)if(a.rig&&!want.includes(a))this.release(a);
    for(const a of want){if(a.rig)continue;const esi=a.kind==='sweeper'||a.kind==='crew',type=esi?'esi':'gen';let r=this.rigs.find(q=>!q.busy&&q.o&&q.type===type);const have=this.rigs.filter(q=>q.type===type).length,cap=esi?(this.w.mobile?3:5):this.max;if(!r&&have<cap&&this.pending<2){this.pending++;const rig={o:null,busy:null,cur:'',actions:null,type};this.rigs.push(rig);this.w.realPerson(null,'cl'+this.rigs.length*5+7).then(o=>{this.pending--;if(!o){this.rigs.splice(this.rigs.indexOf(rig),1);return;}rig.o=o;rig.actions=o.actions;o.root.visible=false;if(esi){this.w.uniform(o.root,'esi');rig.broom=this.broom(o.root);}this.group.add(o.root);}).catch(()=>{this.pending--;this.rigs.splice(this.rigs.indexOf(rig),1);});}
-    if(r){r.busy=a;a.rig=r;r.cur='';r.o.root.visible=true;if(r.broom)r.broom.visible=a.kind==='sweeper';}}}
+    if(r){r.busy=a;a.rig=r;for(const k in r.o.actions)r.o.actions[k].stop();r.cur='';r.o.root.visible=true;if(r.broom)r.broom.visible=a.kind==='sweeper';}}}
   // aggiorna i modelli assegnati
   for(const a of this.agents){const r=a.rig;if(!r||!r.o)continue;const o=r.o,root=o.root,d=Math.abs(a.x-px)+Math.abs(a.z-pz);
-   if(a.act&&r.cur!==a.act&&o.actions[a.act]){this.w.swapAct(r,a.act);const act=o.actions[a.act];if(act&&(a.act==='Walk'||a.act==='Stroll'||a.act==='Run')){const base=o.real?.meta?.velocita?.[a.act]||1.4;act.timeScale=Math.max(.6,Math.min(2.2,(a.kind==='jogger'?3.2:a.speed)/base));}}
+   if(a.act&&r.cur!==a.act&&o.actions[a.act]){this.w.swapAct(r,a.act);const act=o.actions[a.act];if(act&&(a.act==='Walk'||a.act==='Stroll'||a.act==='Run')){const base=o.real?.meta?.velocita?.[a.act]||1.4;act.timeScale=Math.max(.6,Math.min(2.2,(a.kind==='jogger'?3.2:a.speed)/base));}else if(act)act.timeScale=1;}
    root.position.set(a.x,this.w.lev(a.x,a.z)-(a.state==='sit'?.36:0),a.z);let dy=a.yaw-root.rotation.y;dy=Math.atan2(Math.sin(dy),Math.cos(dy));root.rotation.y+=dy*Math.min(1,10*dt);
    this.fc=(this.fc||0)+1;if(d<26||((a.id+this.fc)&1)===0){o.mixer.update(d<26?dt:dt*2);}
    if(a.state==='sit'&&o.legs)this.w.sitPose({legs:o.legs,body:o.root},'chair',1);}}

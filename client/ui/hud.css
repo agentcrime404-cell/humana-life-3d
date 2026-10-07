@@ -371,3 +371,10 @@ body.is3d #modal.atm-full .atm-title{font-size:14px}body.is3d #modal.atm-full .a
 .social{scrollbar-width:none}
 #iphone .ph-rot{position:fixed;right:calc(12px + env(safe-area-inset-right));top:calc(64px + env(safe-area-inset-top));width:44px;height:44px;z-index:20;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:22px;display:grid;place-items:center;padding:0;min-height:0}body:not(.is3d) #iphone .ph-rot{display:none}#iphone .status{z-index:30}
 #drive-hud .dh-horn{min-height:0;padding:6px 12px;border-radius:10px;border:1px solid #ffffff55;background:#7a4b00;color:#fff;font-size:13px;font-weight:700;pointer-events:auto;touch-action:none}#drive-hud .dh-horn[hidden]{display:none}
+/* Ruba: bottone tondo nella colonna a destra (telecamera, mappa), visibile anche in verticale */
+#cam3d #steal-btn{position:static;width:48px;height:48px;min-height:0;padding:0;border-radius:50%;border:0;background:rgba(17,24,39,.65);color:#fff;font-size:20px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;backdrop-filter:blur(4px)}#cam3d #steal-btn small{font-size:9px;font-weight:800}#cam3d #steal-btn.on{background:#b3261e}
+/* Benvenuto in Napoli life */
+#welcome-fx{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none;text-align:center;color:#fff;text-shadow:0 3px 18px #000c;background:radial-gradient(circle,rgba(8,24,40,.55),rgba(8,24,40,0) 70%);animation:welc 4.6s ease both}
+#welcome-fx small{font-size:16px;letter-spacing:3px;text-transform:uppercase;color:#f5d58a}#welcome-fx b{font-size:20px;font-weight:600}#welcome-fx strong{font-size:clamp(38px,11vw,76px);letter-spacing:6px;line-height:1}#welcome-fx i{font-style:normal;font-size:.45em;color:#f5b81c;letter-spacing:2px}
+@keyframes welc{0%{opacity:0;transform:scale(.92)}15%{opacity:1;transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:scale(1.04)}}
+.welcome-sub{margin:2px 0 6px;color:#cfe3ee;font-size:13px}

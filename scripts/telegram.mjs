@@ -4,7 +4,9 @@
 //      node --env-file-if-exists=.env scripts/telegram.mjs --qr            invia il QR di scarico + il link
 //      node --env-file-if-exists=.env scripts/telegram.mjs --apk           invia il file APK
 import fs from 'node:fs';
-const TOKEN=process.env.TELEGRAM_BOT_TOKEN,API='https://api.telegram.org/bot'+TOKEN+'/',FILE='data/telegram-chat.json',SITE=process.env.PUBLIC_URL||'https://humana-life-3d.onrender.com';
+// Il token si legge da .env (ha la precedenza su una variabile di sistema con lo stesso nome, che qui conteneva solo un segnaposto).
+const fromFile=(()=>{try{return (fs.readFileSync('.env','utf8').match(/^TELEGRAM_BOT_TOKEN=(.*)$/m)||[])[1]?.trim();}catch{return '';}})();
+const TOKEN=(fromFile||process.env.TELEGRAM_BOT_TOKEN||'').trim(),API='https://api.telegram.org/bot'+TOKEN+'/',FILE='data/telegram-chat.json',SITE=process.env.PUBLIC_URL||'https://humana-life-3d.onrender.com';
 if(!TOKEN){console.error('Manca TELEGRAM_BOT_TOKEN in .env');process.exit(2);}
 const call=async(m,body,form)=>{const r=await fetch(API+m,{method:'POST',headers:form?undefined:{'Content-Type':'application/json'},body:form||JSON.stringify(body)});return r.json();};
 async function chatId(){try{return JSON.parse(fs.readFileSync(FILE,'utf8')).id;}catch{}
