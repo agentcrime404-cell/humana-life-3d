@@ -144,3 +144,34 @@ export const ARENA={x0:150,y0:80,x1:182,y1:118,kiosk:{x:147.2,y:110.5},exit:{x:1
   [160,84,2,2,'#8338ec'],[170,84,2,2,'#8338ec'],[160,113,2,2,'#8338ec'],[170,113,2,2,'#8338ec'],[165,87.5,2,2,'#ff8a3d'],[165,109.5,2,2,'#ff8a3d']]};
 // Rettangoli [x0,y0,x1,y1] che bloccano chi cammina: recinto (spesso mezzo metro) e ostacoli. Registrati in EXTRA_BLOCKS di shared/world.js (solo 3D).
 export const arenaBlocks=()=>{const A=ARENA,t=.5;return [[A.x0-t,A.y0-t,A.x1+t,A.y0],[A.x0-t,A.y1,A.x1+t,A.y1+t],[A.x0-t,A.y0,A.x0,A.y1],[A.x1,A.y0,A.x1+t,A.y1],...A.obstacles.map(([x,y,w,h])=>[x,y,x+w,y+h])];};
+
+// ---- Benzina, distributori, polizia, servizio ai banconi (solo HUMANA life 3D; il 2D non li usa) ----
+// Benzina: serbatoio 100, si consuma col movimento dei mezzi a motore (non bici e monopattino); a zero il mezzo non va più.
+export const FUEL={motor:['auto','cabrio','furgone','scooter'],tank:100,perMeter:.05,price:.5,seconds:4,low:25,zone:7};
+// Distributori: lotto (x,y,w,h) accanto a una strada; face = lato della strada ('S' strada a sud, 'N' a nord).
+export const GAS=[{id:'g1',name:'Distributore Golfo Nord',x:108.5,y:36.5,w:11,h:8,face:'S'},{id:'g2',name:'Distributore Partenope',x:14,y:70,w:11,h:8,face:'S'}];
+export const gasGeom=g=>{const s=g.face==='S'?1:-1,cx=g.x+g.w/2,iy=s>0?g.y+g.h-3.3:g.y+3.3;return {cx,s,island:{x:cx,y:iy},pumps:[-3.8,0,3.8].map(d=>({x:cx+d,y:iy})),shop:[cx-4,s>0?g.y+.2:g.y+g.h-2.7,cx+4,s>0?g.y+2.7:g.y+g.h-.2],att:{x:cx+2.2,y:iy-s*1.3}};};
+// Caserme di polizia: edificio sul lato lontano dalla strada, due auto di servizio davanti, bandiera, due agenti al portone.
+export const POLICE=[{id:'p1',name:'Caserma di Polizia Centro',x:116.5,y:17.5,w:12,h:9,face:'S'},{id:'p2',name:'Caserma di Polizia Vomero',x:26,y:27.5,w:12,h:9,face:'S'}];
+export const policeGeom=c=>({door:{x:c.x+c.w/2,y:c.y+5.9},build:[c.x+1,c.y,c.x+c.w-1,c.y+5],cars:[[c.x+.8,c.y+6.4,c.x+5.2,c.y+8.4],[c.x+c.w-5.2,c.y+6.4,c.x+c.w-.8,c.y+8.4]],guards:[{x:c.x+c.w/2-1.3,y:c.y+6.1},{x:c.x+c.w/2+1.3,y:c.y+6.1}],flag:{x:c.x+c.w/2+3.2,y:c.y+6.4}});
+// Banconi dei locali: stesso punto in tutte le sale (16x14): il personale sta dietro, i clienti davanti.
+export const COUNTER={x:8,y:3},STAFF_SPOT={x:8,y:1.7};
+// Menu: kind drink|food; alc = quanto sale (o scende, se negativo) il livello di alcol 0-100. Dopo una bevanda alcolica si resta "brilli" 50 s (il livello scende a zero in 50 s).
+export const ALCOHOL_SECONDS=50;
+const D=(id,name,icon,price,alc=0)=>({id,name,icon,price,kind:'drink',alc}),Fd=(id,name,icon,price)=>({id,name,icon,price,kind:'food',alc:0});
+const BEER=D('birra','Birra alla spina','🍺',4,30),WINE=D('vino','Calice di vino','🍷',5,35),SPRITZ=D('spritz','Spritz','🍹',6,35),LIMON=D('limoncello','Limoncello','🍋',5,50),WATER=D('acqua','Acqua fresca','💧',1,-4),COLA=D('aranciata','Aranciata','🍊',2),COFFEE=D('caffe','Caffè','☕',2,-8);
+export const MENU={
+ bar:[COFFEE,Fd('cornetto','Cornetto','🥐',2),WATER,COLA,BEER,WINE,SPRITZ,LIMON],
+ pizzeria:[Fd('pizza','Pizza margherita','🍕',5),WATER,COLA,BEER,WINE],
+ osteria:[Fd('pasta','Pasta alla napoletana','🍝',8),WATER,WINE,BEER,LIMON],
+ vesuvio:[Fd('frittura','Frittura di paranza','🍤',9),WATER,COLA,WINE,SPRITZ],
+ trattoria:[Fd('genovese','Genovese','🍲',7),WATER,WINE,BEER,COFFEE],
+ panorama:[Fd('baba','Babà','🍰',4),COFFEE,WATER,SPRITZ,WINE],
+ burger:[Fd('burger','Hamburger','🍔',6),Fd('fries','Patatine','🍟',3),COLA,WATER,BEER],
+ club:[WATER,D('energia','Bibita energetica','⚡',3),BEER,SPRITZ,D('cocktail','Cocktail della casa','🍸',8,40),LIMON]};
+export const STAFF_ROLE={bar:'Barista',pizzeria:'Pizzaiolo',osteria:'Oste',vesuvio:'Cuoco',trattoria:'Cameriere',panorama:'Cameriera',burger:'Addetto al banco',club:'Barman'};
+// Rettangoli [x0,y0,x1,y1] che bloccano i passi: arena, distributori (negozio, pompe, pali) e caserme (edificio, auto, bandiera).
+export const solidBlocks=()=>{const out=[...arenaBlocks()];
+ for(const g of GAS){const G=gasGeom(g);out.push(G.shop);for(const p of G.pumps)out.push([p.x-.45,p.y-.6,p.x+.45,p.y+.6]);for(const dx of [-6,6])out.push([G.cx+dx-.2,G.island.y-1.9,G.cx+dx+.2,G.island.y-1.5]);}
+ for(const c of POLICE){const P=policeGeom(c);out.push(P.build,...P.cars,[P.flag.x-.2,P.flag.y-.2,P.flag.x+.2,P.flag.y+.2]);}
+ return out;};

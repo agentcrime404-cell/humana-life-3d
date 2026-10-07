@@ -1,4 +1,4 @@
-import {CATALOG as BASE_CATALOG,WEAR_ITEMS,WEAR,HAIR_STYLES,BEARD_STYLES,HAIR_COLORS,BARBER_PRICE,cleanSettings,SHOP_ROOMS,ATM_RATE,VILLA_PRICE,VILLA_RENT,VILLA_RENT_DAYS,DAILY_FICHES,SLOT_BETS,SLOT_SYMBOLS,VEHICLES,VEHICLE,DRINKS,JUKEBOX,JUKEBOX_PRICE,JUKEBOX_MINUTES,DEALERS,VEHICLES_3D,BOATS,FUNFAIR,ARENA,ridePlan,BOAT_PRICE,BOAT_SPEED} from '../shared/catalog.js';
+import {CATALOG as BASE_CATALOG,WEAR_ITEMS,WEAR,HAIR_STYLES,BEARD_STYLES,HAIR_COLORS,BARBER_PRICE,cleanSettings,SHOP_ROOMS,ATM_RATE,VILLA_PRICE,VILLA_RENT,VILLA_RENT_DAYS,DAILY_FICHES,SLOT_BETS,SLOT_SYMBOLS,VEHICLES,VEHICLE,DRINKS,JUKEBOX,JUKEBOX_PRICE,JUKEBOX_MINUTES,DEALERS,VEHICLES_3D,BOATS,FUNFAIR,ARENA,FUEL,ridePlan,BOAT_PRICE,BOAT_SPEED} from '../shared/catalog.js';
 import {randomInt} from 'node:crypto';
 import {MAPS,canStand,distance} from '../shared/world.js';
 import {state,ensureState,savePlayer} from './storage.js';
@@ -52,6 +52,10 @@ export class Living{
   // Bancomat: cambia gemme in monete solo vicino a uno sportello (strada o interno della banca).
   if(path==='/api/atm/exchange'&&method==='POST'){const gems=Number(b.gems);if(!Number.isInteger(gems)||gems<1||gems>20)fail('Scegli da 1 a 20 gemme');if(!p||!MAPS[p.room]?.props.some(q=>q.kind==='atm'&&distance(q,p)<2))fail('Avvicinati a un bancomat',403);
    const changed=db.prepare("UPDATE player_state SET progress=json_set(progress,'$.gems',coalesce(json_extract(progress,'$.gems'),0)-?),balance=balance+? WHERE user_id=? AND coalesce(json_extract(progress,'$.gems'),0)>=?").run(gems,gems*ATM_RATE,id,gems).changes;if(!changed)fail('Gemme insufficienti');return this.snapshot(id);}
+  // Benzina: il benzinaio fa il pieno (si paga solo quel che manca). Servizio ai banconi: ordinare da bere o da mangiare.
+  if(path==='/api/fuel/refill'&&method==='POST'){const fu=this.game.fuel;if(!fu)fail('Non disponibile');const q=fu.quote(p);this.pay(id,q.cost);fu.start(p,q);return {...this.snapshot(id),seconds:FUEL.seconds,cost:q.cost};}
+  if(path==='/api/service/order'&&method==='POST'){const sv=this.game.service;if(!sv)fail('Non disponibile');const it=sv.quote(p,String(b.item||''));this.pay(id,it.price);sv.serve(p,it);return {...this.snapshot(id),item:it.id,seconds:3.6};}
+  if(p&&(p.fueling||p.consuming)&&path.startsWith('/api/vehicle/'))fail('Aspetta un attimo');
   // Arena paintball (solo 3D): si noleggia l'arma al chiosco-armeria e il server ti porta dentro; `/api/arena/leave` ti riporta fuori.
   if(path==='/api/arena/join'&&method==='POST'){const ar=this.game.arena;if(!ar)fail('Arena non disponibile');const W=ARENA.weapons[b.weapon];if(!W)fail('Arma non valida');ar.checkJoin(p);this.pay(id,W.rent);ar.join(p,b.weapon);return {...this.snapshot(id),arena:ar.info()};}
   if(path==='/api/arena/leave'&&method==='POST'){this.game.arena?.leave(p,'Sei uscito dall’arena');return {...this.snapshot(id)};}

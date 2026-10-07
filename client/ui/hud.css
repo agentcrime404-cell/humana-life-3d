@@ -327,3 +327,21 @@ body.in-arena .actions #interact{opacity:.35}body.in-arena #cam3d{display:none}
 #iphone .status{position:relative}#iphone .ph-x{position:absolute;right:14px;top:50%;transform:translateY(-35%);width:34px;height:34px;min-height:0;padding:0;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;font-size:17px;line-height:1;display:grid;place-items:center;z-index:4}
 body:not(.is3d) #iphone .ph-x{display:none}
 #iphone .status .battery{margin-right:44px}
+
+/* Chat a pannello laterale (2026-10-07), solo 3D: chiusa di default per non coprire la visuale; il bottone «Chat» a sinistra la apre */
+body.is3d #chat{display:none;position:fixed;left:calc(64px + var(--safe-left));right:auto;top:auto;bottom:calc(214px + var(--safe-bottom));transform:none;width:min(330px,calc(100vw - 150px));height:min(34dvh,240px);flex-direction:column;border-radius:16px!important;padding:6px 6px 6px}
+body.is3d.chat-open #chat{display:flex}
+body.is3d #chat #messages{flex:1;max-height:none!important;overflow-y:auto;padding:2px 4px}
+body.is3d #chat .chat-x{align-self:flex-end;min-height:0;width:26px;height:26px;padding:0;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:13px;line-height:1;margin-bottom:2px}
+body:not(.is3d) #chat .chat-x{display:none}
+#chat-toggle{position:relative}#chat-toggle[data-n]:not([data-n="0"])::after{content:attr(data-n);position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#ef4444;color:#fff;font-size:11px;line-height:18px;text-align:center}
+@media (min-width:701px) and (min-height:501px){body.is3d #chat{bottom:calc(26px + var(--safe-bottom));left:calc(70px + var(--safe-left));width:min(380px,36vw);height:min(40dvh,320px)}}
+@media (max-height:500px) and (orientation:landscape){body.is3d #chat{bottom:calc(132px + var(--safe-bottom));left:calc(66px + var(--safe-left));right:auto;width:min(320px,42vw);height:min(150px,50dvh)}body.is3d #chat-form button{width:32px;height:32px;min-height:32px}}
+
+/* Benzina, scendi dal mezzo, alcol (2026-10-07) */
+#drive-hud{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(8px + var(--safe-bottom));z-index:6;display:flex;gap:8px;align-items:center;background:rgba(8,16,28,.72);border:1px solid #ffffff33;border-radius:14px;padding:6px 10px;color:#fff;font-size:13px}#drive-hud[hidden]{display:none}
+#drive-hud .dh-fuel{display:flex;align-items:center;gap:6px}#drive-hud .dh-fuel[hidden]{display:none}#drive-hud .dh-fuel.low b{color:#ff8a8a}#drive-hud .dh-fuel.low{animation:dhblink 1s infinite}@keyframes dhblink{50%{opacity:.55}}
+.dh-bar{width:84px;height:9px;border-radius:6px;background:#0008;overflow:hidden}.dh-bar i{display:block;height:100%;width:100%;background:#35d07f;transition:width .15s}.dh-bar.alc i{background:linear-gradient(90deg,#f5b83d,#c026d3)}
+#drive-hud .dh-off{min-height:0;padding:6px 12px;border-radius:10px;border:1px solid #ffffff55;background:#1d3550;color:#fff;font-size:13px;font-weight:700;pointer-events:auto;touch-action:none}#drive-hud .dh-off[hidden]{display:none}
+#alc-hud{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(58px + var(--safe-bottom));z-index:6;display:flex;gap:8px;align-items:center;background:rgba(40,10,60,.75);border:1px solid #c026d366;border-radius:14px;padding:5px 10px;color:#fff;font-size:12px}#alc-hud[hidden]{display:none}
+#drunk-veil{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .5s;background:radial-gradient(circle,transparent 38%,rgba(150,40,190,.4) 100%)}

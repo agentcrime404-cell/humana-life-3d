@@ -2,7 +2,7 @@
 // Posizione e direzione vengono dal percorso (punto e tangente), la velocità dal profilo delle curve;
 // ogni auto frena se davanti ha un'altra auto, l'autobus o una persona, e accosta per far passare l'autobus.
 import {makePath,laneLoop} from './lanes.js';
-const BLOCKS=[[57,50.6,80,81.5],[80,50.6,98.5,81.5],[98.5,50.6,132,81.5],[57,81.5,98.5,116.5],[98.5,81.5,132,116.5]];
+export const BLOCKS=[[57,50.6,80,81.5],[80,50.6,98.5,81.5],[98.5,50.6,132,81.5],[57,81.5,98.5,116.5],[98.5,81.5,132,116.5]];
 const MODELS=['auto','furgone','cabrio','auto','auto'];
 // Semafori (solo HUMANA life 3D: il 2D non li disegna e quindi non li fa rispettare): uno a ogni incrocio delle strade grandi.
 // Ciclo di 24 s: 9 s verde est-ovest, 2 giallo, 1 tutto rosso, 9 s verde nord-sud, 2 giallo, 1 tutto rosso. Ogni incrocio parte sfasato.

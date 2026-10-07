@@ -1,0 +1,15 @@
+// Guida e bevute (solo HUMANA life 3D): indicatore della benzina, bottone «Scendi» quando si è su un mezzo, barra dell'alcol e leggero velo quando si è brilli.
+import {VEHICLE,FUEL} from '/shared/catalog.js';
+const baseOf=id=>VEHICLE[id]?.base||id;
+// Ubriachi si cammina storti: un po' di oscillazione sul movimento scelto (l'avatar e la telecamera ondeggiano da soli nel mondo 3D).
+export function wobbleInput(input,me,t){const a=Math.min(1,(me.alcohol||0)/100);if(!input||!(input.x||input.y))return input;const w=.55*a;return {...input,x:input.x+Math.sin(t*1.9)*w,y:input.y+Math.cos(t*1.35)*w};}
+export function installDriveHud({api,net,notify}){
+ const root=document.createElement('div');root.innerHTML='<div id="drive-hud" hidden><div class="dh-fuel"><span>⛽</span><div class="dh-bar"><i></i></div><b>100%</b></div><button type="button" class="dh-off">⬇ Scendi</button></div><div id="alc-hud" hidden><span>🍺 Alcol</span><div class="dh-bar alc"><i></i></div><b>0%</b></div><div id="drunk-veil"></div>';
+ document.body.append(...root.children);
+ const $=s=>document.querySelector(s),dh=$('#drive-hud'),alc=$('#alc-hud'),veil=$('#drunk-veil'),off=$('.dh-off');let meNow=null,busy=false;
+ off.onclick=async()=>{if(busy)return;busy=true;try{if(meNow?.seat==='car')net.send({type:'interact'});else{await api('/vehicle/use','POST',{});}}catch(e){notify(e.message);}finally{setTimeout(()=>busy=false,500);}};
+ return {update(me){meNow=me||null;const v=me?.vehicle,motor=!!v&&FUEL.motor.includes(baseOf(v)),pass=me?.seat==='car';dh.hidden=!(v||pass);if(v||pass){
+   const f=$('.dh-fuel');f.hidden=!motor;if(motor){let lvl=me.fuel??FUEL.tank;if(me.fueling){const k=Math.min(1,(Date.now()-me.fueling.t0)/(me.fueling.until-me.fueling.t0));lvl=lvl+(FUEL.tank-lvl)*k;}const i=f.querySelector('i');i.style.width=Math.max(0,Math.min(100,lvl))+'%';i.style.background=lvl<=FUEL.low?'#ef4444':lvl<50?'#f5b83d':'#35d07f';f.querySelector('b').textContent=Math.round(lvl)+'%';f.classList.toggle('low',lvl<=FUEL.low);}
+   off.hidden=!!me.fueling;}
+  const a=me?.alcohol||0;alc.hidden=a<=.5;if(a>.5){alc.querySelector('i').style.width=Math.min(100,a)+'%';alc.querySelector('b').textContent=Math.round(a)+'%';}veil.style.opacity=a>6?String(Math.min(.8,a/100)):'0';}};
+}

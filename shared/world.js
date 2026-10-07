@@ -152,8 +152,9 @@ export function canStand(room,x,y,r=.25){if(room==='mergellina')return napoliSta
 export function step(p,input,dt){
  if(p.seat)return;
  let x=Number(input.x)||0,y=Number(input.y)||0;const length=Math.max(1,Math.hypot(x,y));x/=length;y/=length;
- const v=(p.room==='lungomare'||p.room==='mergellina')&&VEHICLE[p.vehicle],speed=v?2.5*v.speed:input.run?4.4:2.5;
- if(v)return drive(p,x,y,speed,dt,v,input.rev===true);
+ let v=(p.room==='lungomare'||p.room==='mergellina')&&VEHICLE[p.vehicle],speed=v?2.5*v.speed:input.run?4.4:2.5;
+ if(v){const b=v.base||v.id;if(p.fuel!==undefined&&p.fuel<=0&&(b==='auto'||b==='cabrio'||b==='furgone'||b==='scooter'))speed=0; // benzina finita (solo 3D: nel 2D p.fuel non esiste)
+  return drive(p,x,y,speed,dt,v,input.rev===true);}
 
  const dx=x*speed*dt,dy=y*speed*dt;const oldX=p.x,oldY=p.y;
  if(canStand(p.room,p.x+dx,p.y+dy)){p.x+=dx;p.y+=dy;}
