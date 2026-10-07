@@ -6,7 +6,7 @@ import {spawnSync} from 'node:child_process';import {cp,rm,mkdir,readFile,writeF
 const root=new URL('../',import.meta.url),dst=new URL('android-3d/',root);
 const lan=Object.values(networkInterfaces()).flat().find(a=>a.family==='IPv4'&&!a.internal&&/^192\.168\./.test(a.address))?.address||'192.168.1.36';
 const url=(process.argv[2]||`http://${lan}:${Number(process.env.PORT_3D)||3079}/`).replace(/\/?$/,'/'),ID='it.humana.life3d',NAME='Napoli life';
-{const t=fileURLToPath(new URL('../tools/',root));if(existsSync(t)){const j=readdirSync(t).find(d=>d.startsWith('jdk-21'));if(j)process.env.JAVA_HOME=t+j;}}
+{const t=fileURLToPath(new URL('tools/',root));if(existsSync(t)){const j=readdirSync(t).find(d=>d.startsWith('jdk-21'));if(j)process.env.JAVA_HOME=t+j;}}
 const edit=async(rel,fn)=>{const u=new URL(rel,dst);await writeFile(u,fn(await readFile(u,'utf8')));};
 await edit('app/build.gradle',s=>s.replace(/applicationId\s+"[^"]+"/,`applicationId "${ID}"`));
 await edit('app/src/main/res/values/strings.xml',s=>s.replace(/(<string name="app_name">)[^<]*/,`$1${NAME}`).replace(/(<string name="title_activity_main">)[^<]*/,`$1${NAME}`).replace(/(<string name="custom_url_scheme">)[^<]*/,`$1${ID}`));

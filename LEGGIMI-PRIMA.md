@@ -1,4 +1,4 @@
-# NAPOLI LIFE — LEGGI QUESTO FILE PER PRIMO (passaggio di consegne, aggiornato 2026-10-08, versione 238)
+# NAPOLI LIFE — LEGGI QUESTO FILE PER PRIMO (passaggio di consegne, aggiornato 2026-10-08, versione 239)
 
 Se sei un Claude nuovo che apre questa cartella: **qui c'è tutto quello che serve**. Non ricordi nulla delle sessioni precedenti, quindi leggi questo file, poi `CONTINUA.md` (storia dettagliata del lavoro), poi `docs/memoria-claude/` (appunti di lavoro e preferenze dell'utente).
 Le **password e le chiavi** NON sono in questo file: stanno in `SEGRETI-PRIVATI.md` e in `.env` (entrambi ignorati da git, non vanno mai pubblicati).
@@ -113,3 +113,8 @@ Avvertenza: nel gioco il test del browser è lentissimo su questo PC: dopo il vi
 - Ora del giorno per i test: `w.r2d.seconds=()=>10.5/24*2400;w.skyK=null;w.daylight(0,true)` (un giorno = 40 minuti di gioco).
 - Dopo ogni modifica lato server riavvia `npm start` (porta 3079: trova il processo con `netstat -ano | findstr :3079` e `taskkill /PID <n> /F`).
 - Commit: autore `HUMANA <humana@users.noreply.github.com>`; la riga finale `Co-Authored-By` va quella indicata dalla sessione.
+
+## Cartella e pulizia (2026-10-08)
+- Sul PC resta UNA sola cartella: `Desktop\Napoli life` (prima `gioco humana\humana-isometrica`; il rinomina parte da solo appena la sessione Claude si chiude). Cancellate le vecchie cartelle HUMANA (2D, 3D/real avvii rapidi, archivio 2D, Unreal, backup, asset sorgente Kenney, zip per Mac). Per avviare: `AVVIA-NAPOLI-LIFE.bat`.
+- Java per compilare l APK ora sta in `tools/jdk-21.0.12.1+1` dentro il progetto (`scripts/apk-3d.mjs` lo cerca li).
+- Schermata d ingresso con lo sfondo `client/assets/sfondo-napoli-life.webp`; il lungomare ha ringhiera nera e scogli (`napoliExtras`).

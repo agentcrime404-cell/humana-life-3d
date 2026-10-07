@@ -20,3 +20,5 @@ android-3d/
 # segreti e accessi privati
 SEGRETI-PRIVATI.md
 *.pem
+
+tools/jdk-*/
