@@ -1,3 +1,4 @@
+import './ui/install.js';
 import {installHUD} from './ui/hud.js';
 import {installLivingUI} from './ui/living.js';
 import {installCity} from './ui/city.js';import {installArena} from './ui/arena.js';import {openPhotoAvatar} from './ui/photo-avatar.js';import {installHudLayout} from './ui/hud-layout.js';import {installDriveHud,wobbleInput} from './ui/drive-hud.js';import {installJobs} from './ui/jobs.js';

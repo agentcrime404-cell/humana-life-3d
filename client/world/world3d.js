@@ -571,7 +571,7 @@ export class World3D{
  // Luoghi riconoscibili della mappa vera: piazze, spiagge, Fontana del Sebeto, cartelli con i nomi dei punti di riferimento.
  // Gallerie: pareti di pietra, luci, soffitto (si nasconde quando ci sei dentro) e portale con il nome all'imbocco.
  napoliTunnels(){const T=NAPOLI.tunnels;if(!T?.length)return;const H=5.6,Z=this.static,roof=new THREE.Group(),G=new THREE.Group(),
-  wallM=new THREE.MeshLambertMaterial({color:'#b3a487',side:THREE.DoubleSide}),roofM=new THREE.MeshLambertMaterial({color:'#7d7466',side:THREE.DoubleSide}),stoneM=new THREE.MeshLambertMaterial({color:'#a39478'}),lampM=new THREE.MeshBasicMaterial({color:'#ffd98a'});
+  wallM=new THREE.MeshLambertMaterial({color:'#b3a487',side:THREE.DoubleSide}),roofM=new THREE.MeshLambertMaterial({color:'#7d7466',side:THREE.DoubleSide,transparent:true}),stoneM=new THREE.MeshLambertMaterial({color:'#a39478'}),lampM=new THREE.MeshBasicMaterial({color:'#ffd98a'});
   const lamps=[],wallP=[],roofP=[],quad=(P,a,b,c,d)=>P.push(...a,...b,...c,...a,...c,...d);
   for(const t of T){const w2=t.w/2+.35;let acc=0;for(let i=1;i<t.p.length;i++){const a=t.p[i-1],b=t.p[i],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);if(L<.1)continue;const nx=-dy/L,ny=dx/L;
     for(const s of [1,-1])quad(wallP,[a[0]+nx*w2*s,0,a[1]+ny*w2*s],[b[0]+nx*w2*s,0,b[1]+ny*w2*s],[b[0]+nx*w2*s,H,b[1]+ny*w2*s],[a[0]+nx*w2*s,H,a[1]+ny*w2*s]);
@@ -587,7 +587,19 @@ export class World3D{
   G.add(mk(wallP,wallM));roof.add(mk(roofP,roofM));
   if(lamps.length){const im=new THREE.InstancedMesh(new THREE.BoxGeometry(.25,.35,1.4),lampM,lamps.length),o=new THREE.Object3D();lamps.forEach((l,i)=>{o.position.set(l[0],4.3,l[1]);o.rotation.y=l[2];o.updateMatrix();im.setMatrixAt(i,o.matrix);});im.frustumCulled=false;G.add(im);}
   for(const o of [G,roof])o.traverse(m=>{if(m.isMesh)m.userData.toon=false;});
-  Z.add(G,roof);this.tunnelRoof=roof;}
+  roof.userData.mat=roofM;Z.add(G,roof);this.tunnelRoof=roof;try{this.napoliExtras();}catch(e){console.warn('extra',e);}}
+ // Pista ciclabile rossa, muretto sul mare lungo il lungomare e il parco con le giostre davanti al mare (Villa Comunale, prima di Piazza Vittoria).
+ napoliExtras(){const D=NAPOLI.data,Z=this.static;
+  // pista ciclabile
+  {const P=[];for(const r of D.roads){if(r.k!=='cycleway'||r.tn)continue;for(let i=1;i<r.p.length;i++){const a=r.p[i-1],b=r.p[i],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);if(L<.05)continue;const nx=-dy/L*1.05,ny=dx/L*1.05,y=.15;P.push(a[0]+nx,y,a[1]+ny,b[0]+nx,y,b[1]+ny,b[0]-nx,y,b[1]-ny,a[0]+nx,y,a[1]+ny,b[0]-nx,y,b[1]-ny,a[0]-nx,y,a[1]-ny);}}
+   if(P.length){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:'#b94a3c',polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,side:THREE.DoubleSide}));m.frustumCulled=false;Z.add(m);}}
+  // muretto sul mare (solo dove da un lato c'è marciapiede e dall'altro acqua)
+  {const C=D.coast[0],cut=C.findIndex(q=>q[0]>3000),cs=cut>0?C.slice(0,cut):C,W=[];for(let i=1;i<cs.length;i++){const a=cs[i-1],b=cs[i],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);if(L<.5)continue;const tx=dx/L,ty=dy/L,nx=-ty,ny=tx;for(let d=1.3;d<L;d+=2.6){const x=a[0]+tx*d,y=a[1]+ty*d;const w1=napoliCell(x+nx*1.6,y+ny*1.6),w2=napoliCell(x-nx*1.6,y-ny*1.6);if(w1===w2)continue;const s=w1?1:-1;if(!napoliCell(x+nx*s*.9,y+ny*s*.9)||napoliCell(x-nx*s*.7,y-ny*s*.7))continue;W.push([x+nx*s*.35,y+ny*s*.35,Math.atan2(tx,ty)]);}}
+   if(W.length){const im=new THREE.InstancedMesh(new THREE.BoxGeometry(.4,.85,2.7),new THREE.MeshLambertMaterial({color:'#cfc3a8'}),W.length),o=new THREE.Object3D();W.forEach((w,i)=>{o.position.set(w[0],.12+.42,w[1]);o.rotation.y=w[2];o.updateMatrix();im.setMatrixAt(i,o.matrix);});im.frustumCulled=false;Z.add(im);}}
+  // luna park nel parco di fronte al mare
+  {const R=[['tazze',1768,-257],['calcinculo',1802,-257],['giostra-cavalli',1838,-257],['ruota-panoramica',1878,-257]];this.rides=(this.rides||[]).filter(q=>!String(q.art).startsWith('mg-'));
+   for(const [art,x,y] of R){const rd=this.funfair(art,Math.max(8,FUNFAIR.rides[art].w));if(!rd)continue;rd.position.set(x,this.lev(x,y),y);Z.add(rd);try{this.toonify(rd);}catch{}this.col.c.push([x,y,FUNFAIR.rides[art].w*.5+1]);if(rd.userData.ride)this.rides.push({...rd.userData.ride,art:'mg-'+art,cx:x,cz:y,idle:Math.random()*6});}}}
+
  napoliLandmarks(D,lap){const Z=this.static,SW=this.groundY||.12,flat=(poly,col,y)=>{if(poly.length<3)return;const sg=new THREE.ShapeGeometry(new THREE.Shape(poly.map(q=>new THREE.Vector2(q[0],q[1]))));sg.rotateX(Math.PI/2);const m=new THREE.Mesh(sg,new THREE.MeshToonMaterial({color:col,gradientMap:this.grad,side:THREE.DoubleSide}));m.position.y=y;m.userData.toon=true;m.material.userData.outlineParameters={visible:false};Z.add(m);};
   for(const q of D.squares||[])flat(q.p,'#d9ccb4',SW+.014);
   for(const q of D.beaches||[])flat(q.p,'#ecd9a6',SW+.012);

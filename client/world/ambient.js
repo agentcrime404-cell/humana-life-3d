@@ -18,7 +18,10 @@ class Sound{
  ok(){return this.ctx&&this.ctx.state!=='closed'&&this.on;}
  resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});}
  tone(freq,dur,vol=.05,type='square',when=0,to=null){if(!this.ok())return;const c=this.ctx,t=c.currentTime+when,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(to)o.frequency.linearRampToValueAtTime(to,t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+dur+.05);return g;}
- horn(vol=.05){this.tone(420,.28,vol);this.tone(520,.28,vol*.8);if(RNG()<.4){this.tone(420,.22,vol,'square',.38);this.tone(520,.22,vol*.8,'square',.38);}}
+ // clacson da auto: due note (circa 400 e 500 Hz) con onde dense filtrate, attacco secco e leggera stonatura; a volte doppio colpetto
+ horn(vol=.05){if(!this.ok())return;const c=this.ctx,t=c.currentTime+.02,len=.3+RNG()*.14,hits=RNG()<.4?2:1,det=1+(RNG()-.5)*.03;
+  for(let k=0;k<hits;k++){const t0=t+k*(len*.62+.1),dur=k?len*.6:len;for(const [f,m] of [[405,1],[505,.9],[810,.25]]){for(const [type,dt2] of [['sawtooth',1],['square',1.006]]){const o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();o.type=type;o.frequency.value=f*det*dt2;lp.type='lowpass';lp.frequency.value=2100;lp.Q.value=.9;
+    const a=vol*m*.42;g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(a,t0+.012);g.gain.setValueAtTime(a*.85,t0+dur-.06);g.gain.linearRampToValueAtTime(0,t0+dur);o.connect(lp);lp.connect(g);g.connect(this.master);o.start(t0);o.stop(t0+dur+.03);}}}}
  gull(vol=.03){for(let i=0;i<3;i++)this.tone(1500+i*180,.16,vol,'sine',i*.22,1000+i*100);}
  voices(vol=.035){if(!this.ok())return;const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise(1.5);const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=rnd(300,600);f.Q.value=2;const g=c.createGain();const t=c.currentTime;g.gain.setValueAtTime(0,t);for(let i=0;i<5;i++)g.gain.linearRampToValueAtTime(vol*rnd(.4,1),t+.2+i*.25);g.gain.linearRampToValueAtTime(0,t+1.6);src.connect(f);f.connect(g);g.connect(this.master);src.start(t);}
  // sirena con intensità legata alla distanza (0…1); ritorna un oggetto da aggiornare e fermare

@@ -6,9 +6,20 @@ export function setNapoli(data){const g=data.grid;Object.assign(NAPOLI,{data,gri
 // Gallerie vere (Galleria della Vittoria, delle Quattro Giornate, di Posillipo...): il corridoio si può percorrere a piedi e in auto,
 // gli edifici sopra il tracciato non si disegnano (la collina è il tubo) e ogni carreggiata larga al massimo 7 m.
 const NOT_CAR=new Set(['footway','steps','path','cycleway','pedestrian']);
-function carveTunnels(){const D=NAPOLI.data,T=NAPOLI.tunnels;
+function carveTunnels(){const D=NAPOLI.data,T=NAPOLI.tunnels,cand=[];
  for(const r of D.roads||[]){if(!r.tn||NOT_CAR.has(r.k)||(r.w||5)<5)continue;let len=0;for(let i=1;i<r.p.length;i++)len+=Math.hypot(r.p[i][0]-r.p[i-1][0],r.p[i][1]-r.p[i-1][1]);if(len<60)continue;
-  if(r.w>7)r.w=7;T.push({p:r.p,w:r.w,len,name:r.name||'Galleria',ow:r.ow});}
+  r.len=len;cand.push(r);}
+ // Coppie di carreggiate a senso unico con lo stesso nome (Galleria della Vittoria): diventano UNA galleria a due corsie, senza muro in mezzo.
+ const LANE=5,byName=new Map();for(const r of cand)(byName.get(r.name||'?')||byName.set(r.name||'?',[]).get(r.name||'?')).push(r);
+ for(const list of byName.values()){
+  if(list.length===2&&list[0].ow&&list[1].ow){const [A,B]=list;const near=(x,y,P)=>{let best=null,bd=1e9;for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i],dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l)),qx=a[0]+dx*t,qy=a[1]+dy*t,d=Math.hypot(x-qx,y-qy);if(d<bd){bd=d;best=[qx,qy];}}return best;};
+   const PA=[];let acc=0;PA.push(A.p[0]);for(let i=1;i<A.p.length;i++){const a=A.p[i-1],b=A.p[i],L=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let d=25-acc%25;d<L;d+=25)PA.push([a[0]+(b[0]-a[0])*d/L,a[1]+(b[1]-a[1])*d/L]);acc+=L;}PA.push(A.p.at(-1));
+   const M=PA.map(p=>{const q=near(p[0],p[1],B.p);return [(p[0]+q[0])/2,(p[1]+q[1])/2,p,q];});
+   const nA=[],nB=[];M.forEach((m,i)=>{const a=M[Math.max(0,i-1)],b=M[Math.min(M.length-1,i+1)];let tx=b[0]-a[0],ty=b[1]-a[1];const l=Math.hypot(tx,ty)||1;tx/=l;ty/=l;const nx=-ty,ny=tx;let sg=(m[2][0]-m[3][0])*nx+(m[2][1]-m[3][1])*ny>=0?1:-1;
+    nA.push([m[0]+nx*sg*LANE/2,m[1]+ny*sg*LANE/2]);nB.push([m[0]-nx*sg*LANE/2,m[1]-ny*sg*LANE/2]);});
+   nA[0]=A.p[0].slice();nA[nA.length-1]=A.p.at(-1).slice();nB.reverse();nB[0]=B.p[0].slice();nB[nB.length-1]=B.p.at(-1).slice();
+   A.p=nA;B.p=nB;A.w=B.w=LANE;T.push({p:M.map(m=>[m[0],m[1]]),w:LANE*2,len:A.len,name:A.name||'Galleria',ow:0});continue;}
+  for(const r of list){if(r.w>7)r.w=7;T.push({p:r.p,w:r.w,len:r.len,name:r.name||'Galleria',ow:r.ow});}}
  const set=(x,y)=>{const cx=Math.floor(x)-NAPOLI.x0,cy=Math.floor(y)-NAPOLI.y0;if(cx<0||cy<0||cx>=NAPOLI.w||cy>=NAPOLI.h)return;const i=cy*NAPOLI.w+cx;NAPOLI.grid[i>>3]|=1<<(i&7);};
  const segD=(x,y,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l));return Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t);};
  for(const t of T){const R=t.w/2+.4;for(let i=1;i<t.p.length;i++){const a=t.p[i-1],b=t.p[i],L=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let d=0;d<=L;d+=.75){const x=a[0]+(b[0]-a[0])*d/L,y=a[1]+(b[1]-a[1])*d/L;for(let ox=-Math.ceil(R);ox<=Math.ceil(R);ox++)for(let oy=-Math.ceil(R);oy<=Math.ceil(R);oy++)if(Math.hypot(ox,oy)<=R)set(x+ox,y+oy);}}}

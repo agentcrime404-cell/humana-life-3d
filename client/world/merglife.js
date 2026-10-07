@@ -10,7 +10,7 @@ const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.leng
 const between=(h,a,b)=>a<=b?h>=a&&h<b:h>=a||h<b;
 const hourNow=w=>((w.r2d.seconds()%2400)/2400*24);
 const CAR_ROADS=new Set(['primary','secondary','tertiary','residential','unclassified','living_street','service','trunk']);
-const SPEED={primary:9,trunk:10,secondary:8,tertiary:7,residential:5.5,unclassified:5.5,living_street:3,service:3};
+const SPEED={primary:15,trunk:17,secondary:13,tertiary:11,residential:8.5,unclassified:8.5,living_street:4.5,service:5};
 const PROM=/Caracciolo|Partenope|Mergellina|Riviera|Eldorado|Sannazaro|Posillipo/;
 const DENS={walker:h=>between(h,6.5,9.5)?1:between(h,16,19.5)?.9:between(h,9.5,16)?.5:between(h,19.5,23)?.5:.08,
  stroll:h=>between(h,15,20)?1:between(h,10,15)?.5:between(h,20,23)?.6:.08,jogger:h=>between(h,6,9)?1:between(h,17.5,20)?.7:0,
@@ -109,7 +109,7 @@ export class MergLife extends CityLife{
   this.group.visible=true;const h=hourNow(w),px=w.target.x,pz=w.target.z;
   this.ema=(this.ema??dt)*.96+Math.min(dt,.2)*.04;this.qt=(this.qt||0)+dt;if(this.qt>2.5){this.qt=0;if(this.ema>.046&&this.max>4){this.max--;this.radius=Math.max(34,this.radius-3);}else if(this.ema<.03&&this.max<this.cap){this.max++;this.radius=Math.min(this.rcap,this.radius+3);}}
   // abitanti: si accendono vicino al giocatore secondo l'ora, si spengono se lontani o fuori orario
-  const T=w.r2d.seconds();if(w.tunnelRoof)w.tunnelRoof.visible=!napoliInTunnel(px,pz,2.5);
+  const T=w.r2d.seconds();if(w.tunnelRoof?.userData.mat){const ins=napoliInTunnel(px,pz,3),m=w.tunnelRoof.userData.mat;m.opacity+=((ins?.16:1)-m.opacity)*Math.min(1,6*dt);m.depthWrite=m.opacity>.9;}
   for(const a of this.agents){if(a.manual)continue;if(a.kind==='crew'){const T=this.cars.find(c=>c.kind==='rifiuti'&&c.on);if(!T&&a.on){a.on=false;this.release(a);}if(T&&!a.on&&a.u<(DENS.crew(h))){Object.assign(a,{on:true,state:'crew',hide:true,truck:this.tc[Math.floor(a.k/2)]||null});if(!a.truck)a.on=false;}continue;}
    const want=a.u<(DENS[a.kind](h)*(this.weather??1));
    if(!want){if(a.on){a.on=false;this.release(a);}continue;}
