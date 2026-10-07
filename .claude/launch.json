@@ -5,8 +5,8 @@
       "name": "humana",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
-      "env": { "PORT": "3077" },
-      "port": 3077,
+      "env": { "PORT_3D": "3079" },
+      "port": 3079,
       "autoPort": false
     }
   ]
