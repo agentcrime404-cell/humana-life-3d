@@ -226,3 +226,4 @@ Cartelle sul Desktop: `HUMANA life`, `HUMANA life 3D`, `HUMANA life real` (avvii
 - client/world/ambient.js: gabbiani, barche lontane, alberi che ondeggiano, suoni sintetizzati (humana-ambient=off per spegnerli), eventi (ambulanza, pattuglia, incidente, traffico, musicista, fuochi, temporale).
 - ESI deposito in shared/catalog.js (ESI). Passeggero in auto visibile agli altri. Tasto Ruba nel menu di sinistra; X telefono torna alla Home; tasto ↻ orientamento. Test: tests/citylife.test.js.
 - Ospedale del Golfo (HOSPITAL in catalog.js, x68 y118) con ambulanze; evento Mercato rionale (MARKET, 8-14) in ambient.js.
+- Napoli life: bot Telegram (scripts/telegram-bot.mjs, /mappa), varietà città (altezze, tetti, residenze moderne MODERN, lido), benvenuto, correzioni del controllo bug.
