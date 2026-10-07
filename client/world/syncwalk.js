@@ -12,12 +12,13 @@ export class Chain{
  init(A){this.A=A;this.rng=prng(hash(this.id,this.salt,A));this.holdUntil=0;const x=this.rng()*this.total;let lo=0,hi=this.pref.length-1;while(lo<hi){const m=(lo+hi)>>1;if(this.pref[m]<x)lo=m+1;else hi=m;}
   const r=this.roads[lo];this.r=r;this.s=this.rng()*r.len;this.dir=r.ow||this.opt.oneWay&&r.ow?1:(this.rng()<.5?1:-1);this.t=A;this.j=this.target();}
  target(){const r=this.r;if(this.dir>0){let j=1;while(j<r.cum.length-1&&r.cum[j]<=this.s)j++;return j;}let j=r.cum.length-2;while(j>0&&r.cum[j]>=this.s)j--;return j;}
- arrive(){const r=this.r,j=this.j,last=r.p.length-1,end=j===0||j===last,rng=this.rng;
+ arrive(){const r=this.r,j=this.j;this.arrRoad=r;this.arrJ=j;const last=r.p.length-1,end=j===0||j===last,rng=this.rng;
   const nodes=(this.net.node.get(this.net.key(r.p[j]))||[]).filter(([o,jj])=>o!==r&&this.accept(o,jj));
   if(nodes.length&&(end||rng()<(this.opt.turn??.35))){const [o,jj]=nodes[Math.floor(rng()*nodes.length)];this.r=o;this.s=o.cum[jj];this.dir=jj===0?1:jj===o.p.length-1?-1:(o.ow?1:(rng()<.5?1:-1));this.j=this.dir>0?jj+1:jj-1;}
   else if(end){if(r.ow){this.s=0;this.dir=1;this.j=1;}else{this.dir=-this.dir;this.j=this.dir>0?1:last-1;}}
   else this.j=j+this.dir;
-  if(this.opt.work&&rng()<.14)this.holdUntil=this.t+6+rng()*4;}
+  if(this.opt.work&&rng()<.14)this.holdUntil=this.t+6+rng()*4;
+  if(this.opt.sig){const w=this.opt.sig(this.arrRoad,this.arrJ,this.t);if(w>0)this.holdUntil=Math.max(this.holdUntil,this.t+w);}}
  advance(te){const A=Math.floor(te/ANCHOR)*ANCHOR;if(A!==this.A)this.init(A);let g=0;
   while(this.t<te&&g++<6000){
    if(this.t<this.holdUntil){if(te<=this.holdUntil){this.t=te;this.park=true;return;}this.t=this.holdUntil;}

@@ -229,3 +229,6 @@ Cartelle sul Desktop: `HUMANA life`, `HUMANA life 3D`, `HUMANA life real` (avvii
 - ESI deposito in shared/catalog.js (ESI). Passeggero in auto visibile agli altri. Tasto Ruba nel menu di sinistra; X telefono torna alla Home; tasto ↻ orientamento. Test: tests/citylife.test.js.
 - Ospedale del Golfo (HOSPITAL in catalog.js, x68 y118) con ambulanze; evento Mercato rionale (MARKET, 8-14) in ambient.js.
 - Napoli life: bot Telegram (scripts/telegram-bot.mjs, /mappa), varietà città (altezze, tetti, residenze moderne MODERN, lido), benvenuto, correzioni del controllo bug.
+
+## 2026-10-08 (versioni 235-238)
+Vedi la sezione "Novità del 2026-10-07/08" in LEGGIMI-PRIMA.md: città sincronizzata fra giocatori, gallerie, luna park, semafori, servizi veri, ville, barche, iPhone, HUD.

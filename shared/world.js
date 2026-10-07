@@ -131,6 +131,7 @@ for(const b of BUILDINGS.filter(b=>b.enterable!==false)){
  }
  MAPS[b.id]={id:b.id,name:b.name,bounds:{x:0,y:0,w:16,h:14},spawn:{x:8,y:12},buildings:[],props};
 }
+MAPS['ospiti-villa']={id:'ospiti-villa',name:'Villa (ospiti)',bounds:{x:0,y:0,w:16,h:14},spawn:{x:8,y:12},buildings:[],props:[{id:'sofa',kind:'sofa',x:4,y:5,r:.8},{id:'bed',kind:'bed',x:12,y:4,r:.8},{id:'picture',kind:'picture',x:8,y:2,r:.3},{id:'table',kind:'table',x:8,y:8,r:.6},{id:'seat',kind:'seat',x:9.1,y:8,r:.2},{id:'seat2',kind:'seat',x:6.9,y:8,r:.2},{id:'plant',kind:'plant',x:2,y:10,r:.35},{id:'plant2',kind:'plant',x:14,y:10,r:.35},{id:'lamp',kind:'lamp',x:2,y:2,r:.2}]};
 // Primo piano del centro commerciale: esiste solo dove viene registrato (server e client del 3D). Si sale e si scende con la scala mobile.
 let mallUp=false;export function registerMallFloor(){if(mallUp)return;mallUp=true;MAPS.mall2={id:'mall2',name:'Centro Commerciale Golfo · primo piano',bounds:{x:0,y:0,w:16,h:14},spawn:{x:13,y:10},buildings:[],props:[{id:'c1',kind:'counter',x:8,y:3,r:1.4},{id:'c2',kind:'counter',x:3,y:7,r:1.4},{id:'c3',kind:'counter',x:13,y:6,r:1.4},{id:'p1',kind:'plant',x:2,y:11,r:.35},{id:'b1',kind:'bench',x:7,y:10,r:.65}]};}
 const STAIR={x:14,y:11.2};

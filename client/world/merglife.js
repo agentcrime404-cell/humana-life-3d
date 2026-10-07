@@ -5,7 +5,7 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import {CityLife} from './citylife.js';
 import {Chain,hash,prng} from './syncwalk.js';
-import {NAPOLI,napoliStand,napoliPlaces,napoliInTunnel} from '/shared/napoli.js';
+import {NAPOLI,napoliStand,napoliPlaces,napoliInTunnel,signalWait} from '/shared/napoli.js';
 const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
 const between=(h,a,b)=>a<=b?h>=a&&h<b:h>=a||h<b;
 const hourNow=w=>((w.r2d.seconds()%2400)/2400*24);
@@ -34,7 +34,7 @@ export class MergLife extends CityLife{
   for(const [kind,cnt0] of Object.entries(CNT)){const cnt=Math.max(1,Math.round(cnt0));for(let k=0;k<cnt;k++){const id=n++,rg=prng(hash(id,5)),list=(kind==='stroll'||kind==='jogger')&&promR.length?promR:walkR;
    this.agents.push({kind,k,id,u:(k+.5)/cnt,on:false,state:'walk',x:0,z:0,yaw:0,t:0,speed:kind==='jogger'?2.8+rg()*.8:kind==='stroll'?.8+rg()*.3:kind==='sweeper'?.55+rg()*.15:1.05+rg()*.4,dir:1,side:rg()<.5?1:-1,acc:0,rig:null,retry:0,hide:false,list});}}
   const nc=cl(cl2/170,16,90)*mul;for(let i=0;i<nc;i++)this.cars.push({kind:['auto','auto','furgone','scooter','cabrio','scooter'][i%6],on:false,v:0,u:(i+.5)/nc,road:null,s:0,dir:1,park:0,x:0,y:0,h:0,id:i,rate:1});
-  this.carR=carR;
+  this.carR=carR;this.sigMap=new Set((D.signals||[]).map(s=>this.net.key(s)));
   this.cars.push({kind:'rifiuti',on:false,v:0,u:0,road:null,s:0,dir:1,park:0,x:0,y:0,h:0,id:99,work:true,hours:[6,13],rate:1});
   for(let i=0;i<(this.w.mobile?1:2);i++)this.tc.push({path:{pointAt:()=>({x:this.truckPos?.x||0,y:this.truckPos?.y||0,direction:this.truckPos?.h||0})},s:0,side:1.4,off:true,park:null});
   this.built=true;this.ready=true;}
@@ -57,7 +57,7 @@ export class MergLife extends CityLife{
   if(!this.fsp){this.fsp=[];for(const p of (NAPOLI.data.piers||[]).filter(p=>p.k==='pier'||p.k==='quay'||p.k==='breakwater'))for(let i=1;i<p.p.length;i++){const A=p.p[i-1],B=p.p[i],L=Math.hypot(B[0]-A[0],B[1]-A[1])||1;for(let t=.15;t<1;t+=.35)for(const sg of [1,-1]){const x=A[0]+(B[0]-A[0])*t,y=A[1]+(B[1]-A[1])*t,nx=-(B[1]-A[1])/L*sg,ny=(B[0]-A[0])/L*sg,sx=x+nx*.9,sz=y+ny*.9;if(napoliStand(sx,sz,.3)&&!napoliStand(x+nx*5,y+ny*5,.3)){this.fsp.push({x:sx,z:sz,yaw:Math.atan2(nx,ny)});break;}}}}
   if(!this.fsp.length){a.fix=false;return;}const q=this.fsp[(a.k*13+Math.floor(rg()*this.fsp.length))%this.fsp.length];
   if(this.agents.some(o=>o!==a&&o.fix&&o.state==='fish'&&Math.hypot(o.x-q.x,o.z-q.z)<5)){a.fix=false;return;}Object.assign(a,{fix:true,state:'fish',x:q.x,z:q.z,yaw:q.yaw,act:'Idle'});}
- syncCar(c,T,dt,px,pz){const ch=c.chain||(c.chain=new Chain(this.net,this.carR,r=>(SPEED[r.k]||5)*(c.kind==='rifiuti'?.55:c.kind==='scooter'?1.15:1),(o,jj)=>this.carSet.has(o)&&!(o.ow&&jj===o.p.length-1),c.id,23,{work:c.kind==='rifiuti',turn:.3}));
+ syncCar(c,T,dt,px,pz){const ch=c.chain||(c.chain=new Chain(this.net,this.carR,r=>(SPEED[r.k]||5)*(c.kind==='rifiuti'?.55:c.kind==='scooter'?1.15:1),(o,jj)=>this.carSet.has(o)&&!(o.ow&&jj===o.p.length-1),c.id,23,{work:c.kind==='rifiuti'||c.kind==='furgone',turn:.3,sig:(r,j,t)=>{const m=this.sigMap;if(!m)return 0;const k=this.net.key(r.p[j]);if(!m.has(k))return 0;const a=r.p[j],b=r.p[Math.min(r.p.length-1,j+1)],a0=r.p[Math.max(0,j-1)],dx=b[0]-a0[0],dy=b[1]-a0[1];return signalWait(t,Math.abs(dx)>=Math.abs(dy)?'A':'B');}}));
   if(c.te===undefined||T-c.te>4||c.te>T+1)c.te=T;
   const dd=Math.hypot(c.x-px,c.y-pz);if(dd>this.radius+120&&c.x!==0){c.fa=(c.fa||0)-dt;if(c.fa>0)return;c.fa=.4+(c.id%5)*.1;c.te=T;c.rate=1;}
   else{let tg=c.te<T-.05?1.5:1;const dx=px-c.x,dy=pz-c.y;if(dd<10){const ah=Math.cos(c.h)*dx+Math.sin(c.h)*dy,lat=Math.abs(-Math.sin(c.h)*dx+Math.cos(c.h)*dy);if(ah>0&&ah<8&&lat<3)tg=0;}c.rate+=(tg-c.rate)*Math.min(1,4*dt);c.te=Math.min(T,c.te+dt*Math.max(0,c.rate));}
@@ -109,7 +109,7 @@ export class MergLife extends CityLife{
   this.group.visible=true;const h=hourNow(w),px=w.target.x,pz=w.target.z;
   this.ema=(this.ema??dt)*.96+Math.min(dt,.2)*.04;this.qt=(this.qt||0)+dt;if(this.qt>2.5){this.qt=0;if(this.ema>.046&&this.max>4){this.max--;this.radius=Math.max(34,this.radius-3);}else if(this.ema<.03&&this.max<this.cap){this.max++;this.radius=Math.min(this.rcap,this.radius+3);}}
   // abitanti: si accendono vicino al giocatore secondo l'ora, si spengono se lontani o fuori orario
-  const T=w.r2d.seconds();if(w.tunnelRoof?.userData.mat){const ins=napoliInTunnel(px,pz,3),m=w.tunnelRoof.userData.mat;m.opacity+=((ins?.16:1)-m.opacity)*Math.min(1,6*dt);m.depthWrite=m.opacity>.9;}
+  const T=w.r2d.seconds();w.mergExtra?.update(T,px,pz,dt);if(w.tunnelRoof?.userData.mat){const ins=napoliInTunnel(px,pz,3),m=w.tunnelRoof.userData.mat;m.opacity+=((ins?.16:1)-m.opacity)*Math.min(1,6*dt);m.depthWrite=m.opacity>.9;}
   for(const a of this.agents){if(a.manual)continue;if(a.kind==='crew'){const T=this.cars.find(c=>c.kind==='rifiuti'&&c.on);if(!T&&a.on){a.on=false;this.release(a);}if(T&&!a.on&&a.u<(DENS.crew(h))){Object.assign(a,{on:true,state:'crew',hide:true,truck:this.tc[Math.floor(a.k/2)]||null});if(!a.truck)a.on=false;}continue;}
    const want=a.u<(DENS[a.kind](h)*(this.weather??1));
    if(!want){if(a.on){a.on=false;this.release(a);}continue;}

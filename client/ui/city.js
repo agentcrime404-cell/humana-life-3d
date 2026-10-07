@@ -1,6 +1,6 @@
 import {MAPS,distance,doors} from '/shared/world.js';
 import {BUS_STOPS} from '/shared/district.js';
-import {GAS,POLICE,gasGeom,policeGeom,MENU,COUNTER,STAFF_ROLE,FUEL,ARENA,FUNFAIR,MALL_SHOPS,SIM_PRICE,BOATS,BOAT_PRICE,DEALERS,JUKEBOX,JUKEBOX_PRICE,DRINKS,PACKS,ATM_RATE,WEAR,WEAR_ITEMS,COLORS,HAIR_STYLES,BEARD_STYLES,HAIR_COLORS,BARBER_PRICE} from '/shared/catalog.js';
+import {napoliServices} from '/shared/napoli.js';import {GAS,POLICE,gasGeom,policeGeom,MENU,COUNTER,STAFF_ROLE,FUEL,ARENA,FUNFAIR,MALL_SHOPS,SIM_PRICE,BOATS,BOAT_PRICE,DEALERS,JUKEBOX,JUKEBOX_PRICE,DRINKS,PACKS,ATM_RATE,WEAR,WEAR_ITEMS,COLORS,HAIR_STYLES,BEARD_STYLES,HAIR_COLORS,BARBER_PRICE} from '/shared/catalog.js';
 // Bancomat e fermate dell'autobus: interazioni di quartiere.
 export function installCity({net,api,modal,button,el,notify,closeModal,getMe,getW3,renderer,getUser,onUser}){
  const euro=c=>(c/100).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
@@ -44,7 +44,7 @@ export function installCity({net,api,modal,button,el,notify,closeModal,getMe,get
   if(me.room==='casino'&&MAPS.casino.props.some(p=>p.kind==='slot'&&distance(p,me)<2))return {kind:'slot',label:'✋ Gioca alla slot'};
   const atm=MAPS[me.room]?.props.find(p=>p.kind==='atm'&&distance(p,me)<2);if(atm)return {kind:'atm',label:'✋ Bancomat'};
   if(window.HUMANA_3D&&MENU[me.room]&&!me.seat&&!me.consuming&&distance(COUNTER,me)<3.4)return {kind:'service',room:me.room,label:'✋ Ordina al bancone · '+STAFF_ROLE[me.room]};
-  if(window.HUMANA_3D&&me.room==='lungomare'&&!me.fueling&&GAS.some(g=>distance(gasGeom(g).island,me)<FUEL.zone-.5)&&(me.vehicle||me.fuelFor))return {kind:'fuel',label:'⛽ Distributore · fai il pieno'};
+  if(window.HUMANA_3D&&(me.room==='lungomare'||me.room==='mergellina')&&!me.fueling&&(me.room==='mergellina'?napoliServices().fuel.some(f=>distance(f,me)<FUEL.zone-.5):GAS.some(g=>distance(gasGeom(g).island,me)<FUEL.zone-.5))&&(me.vehicle||me.fuelFor))return {kind:'fuel',label:'⛽ Distributore · fai il pieno'};
   if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&POLICE.some(c=>distance(policeGeom(c).door,me)<3.8))return {kind:'police',label:'✋ Parla con l’agente'};
   if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&!me.arena&&distance(ARENA.kiosk,me)<3.8)return {kind:'arena',label:'✋ Arena paintball · Armeria'};
   if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&distance(FUNFAIR.booth,me)<3.8)return {kind:'giostre',label:'✋ Giostre del luna park'};

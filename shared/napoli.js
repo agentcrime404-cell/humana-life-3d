@@ -52,6 +52,24 @@ const polyArea=p=>{let a=0;for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length]
 function frontages(){const out=[];for(const b of NAPOLI.data.buildings||[]){if(b.part||b.tn||SKIP_KIND.has(b.kind))continue;const P=b.p,ar=polyArea(P),A=Math.abs(ar);if(A<45||A>4000)continue;const sg=ar>0?1:-1;let best=null;
   for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length],dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy);if(L<4)continue;const nx=dy/L*sg,ny=-dx/L*sg;for(const t of [.5,.35,.65]){const mx=p[0]+dx*t,my=p[1]+dy*t,x=mx+nx*1.3,y=my+ny*1.3;if(napoliStand(x,y,.4)&&(!best||L>best.L)){best={x,y,L,nx,ny};break;}}}
   if(best)out.push({x:best.x,y:best.y,b});}return out;}
+// Semafori: due gruppi (A = strade più est-ovest, B = nord-sud), ciclo 44 s; 'g' verde, 'y' giallo, 'r' rosso. Dipende solo dall'orologio: uguale per tutti.
+export function signalPhase(T,axis){const t=((T+(axis==='B'?22:0))%44+44)%44;return t<18?'g':t<21?'y':'r';}
+export function signalWait(T,axis){const t=((T+(axis==='B'?22:0))%44+44)%44;return t<21?0:44-t;}
+// Distributori, caserme/commissariati e ambulatori: quelli veri di OpenStreetMap (posizione e nome veri), con un punto calpestabile davanti e la direzione verso la strada.
+export function napoliServices(){if(NAPOLI.services)return NAPOLI.services;const out={fuel:[],police:[],hospital:[]};if(!NAPOLI.data)return out;const R=NAPOLI.data.roads.filter(r=>!['footway','steps','path','cycleway','pedestrian'].includes(r.k)&&!r.tn);
+ const road=(x,y)=>{let best=null,bd=40;for(const r of R)for(let i=1;i<r.p.length;i++){const a=r.p[i-1],b=r.p[i],dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l)),qx=a[0]+dx*t,qy=a[1]+dy*t,d=Math.hypot(x-qx,y-qy);if(d<bd){bd=d;best=[qx,qy];}}return best;};
+ NAPOLI.data.pois.forEach((p,i)=>{const a=p.amenity,k=a==='fuel'?'fuel':a==='police'?'police':(a==='hospital'||a==='clinic')?'hospital':null;if(!k)return;const q=near(p.x,p.y);if(!q)return;const r=road(q.x,q.y);
+  out[k].push({id:k[0]+i,name:p.name||({fuel:'Distributore',police:'Forze dell’ordine',hospital:'Ambulatorio'})[k],x:q.x,y:q.y,h:r?Math.atan2(r[0]-q.x,r[1]-q.y):0,real:true,osm:p.osm});});
+ return NAPOLI.services=out;}
+// Ville: palazzine isolate scelte sempre allo stesso modo (client e server); ognuna ha una porta che porta a una villa per gli ospiti.
+const VSK=new Set(['church','chapel','school','kindergarten','university','hospital','roof','garage','garages','shed','industrial','warehouse','service','carport','construction','ruins','public','hotel','retail','commercial']);
+const VN=['Esposito','Russo','Romano','Ferrara','Gallo','De Luca','Marino','Greco','Bianchi','Conte','Caruso','Rizzo','Lombardi','Moretti','Barone','Fontana'];
+export function napoliVillas(){if(NAPOLI.villas)return NAPOLI.villas;if(!NAPOLI.data)return [];const all=NAPOLI.data.buildings.filter(b=>!b.part&&!b.tn&&!VSK.has(b.kind)&&!b.historic),
+  C=all.map(b=>{let x=0,y=0,a=0;const P=b.p;for(let i=0;i<P.length;i++){const q=P[(i+1)%P.length];a+=P[i][0]*q[1]-q[0]*P[i][1];x+=P[i][0];y+=P[i][1];}return {b,x:x/P.length,y:y/P.length,A:Math.abs(a/2)};}),g=new Map(),key=(x,y)=>Math.floor(x/16)+','+Math.floor(y/16);
+ for(const c of C){const k=key(c.x,c.y);(g.get(k)||g.set(k,[]).get(k)).push(c);}
+ const cand=C.filter(c=>{if(c.A<90||c.A>420)return false;const cx=Math.floor(c.x/16),cy=Math.floor(c.y/16);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const o of g.get((cx+a)+','+(cy+b))||[])if(o!==c&&Math.hypot(o.x-c.x,o.y-c.y)<14+Math.sqrt(o.A)/2)return false;return napoliStand(c.x+2.5,c.y,.5)||napoliStand(c.x-2.5,c.y,.5)||napoliStand(c.x,c.y+2.5,.5)||napoliStand(c.x,c.y-2.5,.5);}).sort((p,q)=>H(p.x.toFixed(1)+','+p.y.toFixed(1))-H(q.x.toFixed(1)+','+q.y.toFixed(1))),out=[];
+ for(const c of cand){if(out.length>=40)break;if(out.some(o=>Math.hypot(o.x-c.x,o.y-c.y)<110))continue;const q=near(c.x,c.y);out.push({b:c.b,x:c.x,y:c.y,A:c.A,name:'Villa '+VN[H(c.b.p[0][0]+':'+c.b.p[0][1])%VN.length],door:q});}
+ return NAPOLI.villas=out;}
 export function napoliPlaces(){if(NAPOLI.places)return NAPOLI.places;const out={doors:[],props:[]};if(!NAPOLI.data)return out;
  const raw=[];
  NAPOLI.data.pois.forEach((p,i)=>{const t=p.amenity||p.shop;if(t==='atm'){const q=near(p.x,p.y);if(q)out.props.push({id:'matm'+i,kind:'atm',x:q.x,y:q.y,r:.35});return;}
@@ -74,4 +92,5 @@ export function napoliPlaces(){if(NAPOLI.places)return NAPOLI.places;const out={
  kept.sort((x,y)=>x.i-y.i).forEach((d,n)=>{const names=NAMES[d.to];const id=d.extra?'mx'+(d.i-100000):'m'+d.i,nm=d.real?d.p.name:names[H(id+':'+d.t)%names.length];
   out.doors.push({id,name:nm,x:d.x,y:d.y,exitX:d.x,exitY:d.y,to:d.to,kind:d.t,real:!!d.real,osm:d.real?d.p.osm:undefined,fantasy:!d.real});
   if(d.t==='bank'){const a=near(d.x+1.4,d.y);if(a)out.props.push({id:'matmb'+n,kind:'atm',x:a.x,y:a.y,r:.35});}});
+ {const vs=napoliVillas();vs.forEach((v,i)=>{if(v.door&&!out.doors.some(d=>Math.hypot(d.x-v.door.x,d.y-v.door.y)<MIN_GAP))out.doors.push({id:'mv'+i+'v',name:v.name,x:v.door.x,y:v.door.y,exitX:v.door.x,exitY:v.door.y,to:'ospiti-villa',kind:'villa',real:false,fantasy:true});});}
  return NAPOLI.places=out;}
