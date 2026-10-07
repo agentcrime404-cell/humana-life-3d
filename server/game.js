@@ -28,6 +28,7 @@ export class Game{
     const q=m.position;if(q&&!player.seat&&Number.isFinite(q.x)&&Number.isFinite(q.y)&&Math.hypot(q.x-player.x,q.y-player.y)<=.75&&canStand(player.room,q.x,q.y)){player.x=q.x;player.y=q.y;}}
    if(m.type==='shoot'||m.type==='reload')this.arena?.message(player,m);
    if(m.type==='interact')this.interact(player);
+   if(m.type==='horn'&&player.vehicle&&Date.now()-(player.hornAt||0)>450)player.hornAt=Date.now();
    if(m.type==='travel'&&!player.arena&&MAPS.mergellina&&['lungomare','mergellina'].includes(m.to)&&(player.room==='lungomare'||player.room==='mergellina')&&!player.seat){const v=player.vehicle;this.living?.move(player,m.to);player.vehicle=v;}
    // Autoradio: chi guida sceglie un video YouTube, lo sentono anche i passeggeri.
    if(m.type==='carMusic'&&player.vehicle){const id=typeof m.id==='string'&&/^[A-Za-z0-9_-]{11}$/.test(m.id)?m.id:null;player.music=id;player.musicAt=Date.now();player.musicTitle=id?String(m.title||'').slice(0,80):'';}

@@ -2,7 +2,7 @@
 // (mare, voci lontane, clacson, sirene) ed eventi occasionali: ambulanza, pattuglia, piccolo incidente, traffico, musicista di strada, fuochi sul mare, temporale.
 // Un solo evento alla volta, distanziati di qualche minuto; tutto è leggero (pochi oggetti, suoni sintetizzati senza file).
 import * as THREE from '../vendor/three/three.module.min.js';
-import {SHORE} from '/shared/world.js';import {MARKET} from '/shared/catalog.js';
+import {SHORE} from '/shared/world.js';import {MARKET,VEHICLE} from '/shared/catalog.js';
 const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
 const hourNow=w=>((w.r2d.seconds()%2400)/2400*24);
 // ---- suoni sintetizzati (nessun file): partono dopo il primo tocco, volume basso, spenti da localStorage humana-ambient=off ----
@@ -23,6 +23,14 @@ class Sound{
  siren(){if(!this.ok())return null;const c=this.ctx,o=c.createOscillator(),g=c.createGain(),l=c.createOscillator(),lg=c.createGain();o.type='sawtooth';o.frequency.value=850;l.frequency.value=.7;lg.gain.value=220;l.connect(lg);lg.connect(o.frequency);g.gain.value=0;o.connect(g);g.connect(this.master);o.start();l.start();return {set(v){g.gain.value=Math.max(0,Math.min(.06,v*.06));},stop(){try{g.gain.value=0;o.stop();l.stop();}catch{}}};}
  thunder(){if(!this.ok())return;const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise(3);const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=260;const g=c.createGain(),t=c.currentTime;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.25,t+.15);g.gain.exponentialRampToValueAtTime(.001,t+2.8);src.connect(f);f.connect(g);g.connect(this.master);src.start(t);}
  pop(vol=.05){if(!this.ok())return;const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise(.4);const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=900;const g=c.createGain(),t=c.currentTime;g.gain.setValueAtTime(vol*4,t);g.gain.exponentialRampToValueAtTime(.001,t+.35);src.connect(f);f.connect(g);g.connect(this.master);src.start(t);}
+ // motore: due onde filtrate, tono e volume seguono velocità e accelerazione (si spegne a piedi); scooter e moto più acuti
+ engine(speed,thr,kind){if(!this.ok())return;const c=this.ctx;if(!this.eng){const o1=c.createOscillator(),o2=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain();o1.type='sawtooth';o2.type='square';f.type='lowpass';f.frequency.value=380;g.gain.value=0;o1.connect(f);o2.connect(f);f.connect(g);g.connect(this.master);o1.start();o2.start();this.eng={o1,o2,f,g};}
+  const E=this.eng,t=c.currentTime,hi=kind==='moto',base=hi?78:52,fr=base+Math.min(1,speed)*(hi?190:130)+thr*14;E.o1.frequency.setTargetAtTime(fr,t,.08);E.o2.frequency.setTargetAtTime(fr*.5,t,.08);E.f.frequency.setTargetAtTime(300+speed*900+thr*500,t,.1);E.g.gain.setTargetAtTime(kind===null?0:.012+.03*Math.min(1,speed)+.03*thr,t,.12);}
+ engineOff(){if(this.eng)this.eng.g.gain.setTargetAtTime(0,this.ctx.currentTime,.15);}
+ // portiera che si chiude: colpo sordo breve
+ door(v=1){if(!this.ok()||v<=0)return;const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise(.3);const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=420;const g=c.createGain(),t=c.currentTime;g.gain.setValueAtTime(.5*v,t);g.gain.exponentialRampToValueAtTime(.001,t+.22);src.connect(f);f.connect(g);g.connect(this.master);src.start(t);this.tone(95,.14,.09*v,'sine');}
+ // rombo del traffico lontano, più forte quando ci sono tante auto vicine
+ rumble(level){if(!this.ok())return;const c=this.ctx;if(!this.rum){const src=c.createBufferSource();src.buffer=this.noise(4);src.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=220;const g=c.createGain();g.gain.value=0;src.connect(f);f.connect(g);g.connect(this.master);src.start();this.rum=g;}this.rum.gain.setTargetAtTime(Math.max(0,Math.min(1,level))*.07,c.currentTime,.8);}
  note(f,vol=.04){this.tone(f,.5,vol,'triangle');}
  rain(on){if(!this.ok())return;if(on&&!this.rainG){const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise(2);src.loop=true;const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=1500;const g=c.createGain();g.gain.value=0;g.gain.linearRampToValueAtTime(.05,c.currentTime+4);src.connect(f);f.connect(g);g.connect(this.master);src.start();this.rainG=g;this.rainS=src;}
   else if(!on&&this.rainG){const g=this.rainG,s=this.rainS;g.gain.linearRampToValueAtTime(0,this.ctx.currentTime+4);setTimeout(()=>{try{s.stop();}catch{}},4500);this.rainG=null;}}
@@ -42,16 +50,24 @@ export class Ambient{
   for(const q of this.gulls){q.ph+=q.sp*dt;const cx=px-q.w*.9,cz=pz-q.w*.9;q.g.position.set(cx+Math.cos(q.ph)*q.r,q.h+Math.sin(q.ph*2.3)*.8,cz+Math.sin(q.ph)*q.r);q.g.rotation.y=-q.ph+(q.sp>0?0:Math.PI);const f=Math.sin(w.clock*9+q.w)*.6;q.a.rotation.z=f;q.b.rotation.z=f;q.g.visible=h>5.5&&h<21;}
   for(const b of this.boats){b.t=(b.t+dt*.0035)%1;const c=SHORE-34-b.k*26,x=-20+b.t*210,y=c-x;b.o.position.set(x,0,y);b.o.rotation.y=Math.PI/4+(b.k%2?Math.PI:0)*0;b.o.visible=Math.abs(x-px)+Math.abs(y-pz)<190;b.o.rotation.z=Math.sin(w.clock*.8+b.k)*.03;}
   // rumori
+  window.humanaHorn=()=>this.snd.horn(.08);
   const c=this.cool;for(const k of Object.keys(c))c[k]-=dt;
   if(c.gull<=0){c.gull=rnd(12,30);if(h>5.5&&h<21)this.snd.gull();}
   if(c.voice<=0){c.voice=rnd(14,40);if(h>8&&h<24)this.snd.voices();}
   if(c.horn<=0){c.horn=rnd(18,50)*(h>7&&h<20?1:2.5);this.snd.horn();}
   if(this.snd.seaG)this.snd.seaG.gain.value=.05;
+  this.mix(dt,list,h);
   // eventi
   if(!this.ev){this.next-=dt;if(this.next<=0)this.start(h);}else{try{this.runEv(dt,h,list);}catch(e){console.warn('evento',e);this.stop();}}
   this.life(h);}
+ // suoni legati a ciò che succede: motore del giocatore, clacson degli altri, rombo del traffico
+ mix(dt,list,h){const w=this.w,sn=this.snd,me=w._me,tr=w.r2d.traffic;if(!sn.ok())return;
+  const v=me&&me.vehicle?me.vehicle:null,base=v?(VEHICLE[v]?.base||v):null,motor=base&&['auto','cabrio','furgone','scooter','moto'].includes(base);
+  if(motor&&!me.seat){const sp=Math.abs(me.vel||0)/14,acc=((me.vel||0)-(this.pv||0))/Math.max(dt,.001);this.pv=me.vel||0;sn.engine(sp,Math.max(0,Math.min(1,acc/4))*(me.fuel===0?0:1),base==='scooter'||base==='moto'?'moto':'auto');if(me.fuel===0)sn.engineOff();}else{sn.engineOff();this.pv=0;}
+  let n=0;if(tr)for(const c of tr.cars){if(c.off)continue;const q=c.path.pointAt(c.s);if(Math.abs(q.x-w.target.x)+Math.abs(q.y-w.target.z)<45)n++;}sn.rumble(Math.min(1,n/5)*(h>6&&h<24?1:.5)*(this.weather<1?1.2:1));
+  this.seenH??={};for(const p of list){if(!p.hornAt||this.seenH[p.id]===p.hornAt)continue;this.seenH[p.id]=p.hornAt;if(me&&p.id===me.id)continue;const d=Math.hypot(p.x-w.target.x,p.y-w.target.z);if(d<70&&Date.now()-p.hornAt<1500)sn.horn(.07*Math.max(0,1-d/70));}}
  life(h){const L=this.w.life;if(L)L.weather=this.weather;}
- hide(){this.fx.visible=false;}
+ hide(){this.fx.visible=false;try{this.snd.engineOff();this.snd.rumble(0);if(this.snd.seaG)this.snd.seaG.gain.value=.012;}catch{}}
  // ---- eventi ----
  start(h){const kinds=['ambulanza','pattuglia','incidente','traffico','musicista','temporale'];if(h>=8&&h<14)kinds.push('mercato','mercato');if(h>=21||h<1)kinds.push('fuochi','fuochi');if(h>=9&&h<20)kinds.push('musicista');const k=pick(kinds);this.ev={k,t:0,dur:{ambulanza:22,pattuglia:20,incidente:40,traffico:35,musicista:70,temporale:80,fuochi:28,mercato:120}[k]};this.begin(this.ev);this.next=rnd(75,210);}
  stop(){const e=this.ev;if(!e)return;try{this.end(e);}catch{}this.ev=null;}

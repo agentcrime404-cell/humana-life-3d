@@ -43,7 +43,7 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
     // Ingresso da ospite, solo su HUMANA life 3D: si sceglie un personaggio e si entra, senza nome né password.
     // Viene creato un profilo con un nome automatico (es. Ciro_4821); il browser lo ricorda e la volta dopo si rientra con lo stesso.
     if(url.pathname==='/api/auth/guest'&&req.method==='POST'){
-     if(edition!=='3d')return json(403,{error:'Ingresso da ospite disponibile solo su HUMANA life 3D'});
+     if(edition!=='3d')return json(403,{error:'Ingresso da ospite disponibile solo su Napoli life'});
      // Chi ha già un profilo ospite in questo browser lo riprende: "GIOCA SUBITO" non ne crea un altro.
      {const old=req.headers.authorization?.replace(/^Bearer /,''),prev=resolve(db,old);if(prev){let a={};try{a=JSON.parse(prev.avatar);}catch{}if(a.guest)return json(200,{token:old,user:publicUser(prev),created:false});}}
      if(!rate(req.socket.remoteAddress+'guest',8))return json(429,{error:'Troppi ingressi da ospite. Riprova fra un minuto.'});
@@ -101,7 +101,7 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
    if(process.env.EXPERIMENTAL!=='1'){const p=url.pathname,onPc=['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
     if((edition==='3d'?['/index.html','/3d','/3d.html']:['/3d','/3d.html']).includes(p)||!onPc&&['/real','/real.html'].includes(p)){res.writeHead(302,{Location:'/'});res.end();return;}}
    const prefix=url.pathname.startsWith('/shared/')?'shared':'client';
-   const rel=decodeURIComponent(url.pathname==='/'?(edition==='3d'?'3d.html':'index.html'):url.pathname==='/admin'?'admin.html':url.pathname==='/3d'?'3d.html':url.pathname==='/real'?'real.html':url.pathname==='/scarica'?(edition==='3d'?'scarica-3d.html':'scarica.html'):url.pathname.replace(/^\/(?:shared\/)?/,''));
+   const rel=decodeURIComponent(url.pathname==='/'?(edition==='3d'?'3d.html':'index.html'):url.pathname==='/admin'?'admin.html':url.pathname==='/3d'?'3d.html':url.pathname==='/real'?'real.html':url.pathname==='/manifest.webmanifest'&&edition==='3d'?'manifest-3d.webmanifest':url.pathname==='/scarica'?(edition==='3d'?'scarica-3d.html':'scarica.html'):url.pathname.replace(/^\/(?:shared\/)?/,''));
    const base=pathResolve(root,prefix),path=pathResolve(base,rel);if(!path.startsWith(base+sep)||rel.split('/').some(p=>p.startsWith('.')))return json(403,{error:'Accesso negato'});
    const file=await readFile(path),head={'Content-Type':({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.json':'application/json'})[extname(path)]||'application/octet-stream','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Permissions-Policy':'camera=(), microphone=(self)','Cache-Control':'no-cache'};
    // Solo HUMANA life 3D: ETag per non riscaricare ciò che non è cambiato, immagini e modelli tenuti in memoria dal telefono per 3 giorni
