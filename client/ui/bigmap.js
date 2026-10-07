@@ -2,7 +2,7 @@
 // destinazione (il personaggio ci va da solo e nel mondo compare un segnale luminoso). "← Indietro" o il tasto Indietro la chiudono.
 import {MAPS,MODE,doors,cityEdge,SHORE,BEACH} from '/shared/world.js';
 import {surface} from '/shared/district.js';
-import {NAPOLI} from '/shared/napoli.js';import {DEALERS,BOATS} from '/shared/catalog.js';
+import {NAPOLI} from '/shared/napoli.js';import {DEALERS,BOATS,GAS,POLICE,gasGeom,policeGeom,VEHICLE} from '/shared/catalog.js';
 const ICON={bar:'☕',pizzeria:'🍕',shop:'🛒',club:'🎵',bank:'🏦',burger:'🍔',osteria:'🍝',vesuvio:'🍷',trattoria:'🍝',panorama:'🍽',mall:'🛍',fashion:'👗',barber:'✂',casino:'🎰'};
 const COL={water:'#3484c9',sand:'#ecd9a6',grass:'#86c060',garden:'#7cb35a',road:'#5d6170',roadline:'#5d6170',parking:'#6b6e78',crosswalk:'#e6e6e6',tiles:'#e8e0d2',marble:'#f0ece4',cobble:'#b9b1a5',stone:'#d6cdbd',sidewalk:'#d8cfbf',curb:'#cfc7b8',pool:'#4fc3e0',track:'#c0573f',playground:'#e58a4e',dirt:'#a7845c',wood:'#a8774f'};
 const images=new Map();
@@ -27,7 +27,7 @@ export function openBigMap({me:getMe,players:getPlayers,pointer,w3,notify}){
  let cx=h0.x,cy=h0.y,k=room==='mergellina'?2:4,raf=0,drag=null,moved=false;const pinch=new Map();
  const places=doors(room).filter(d=>ICON[d.to]).map(d=>({x:d.exitX??d.x,y:d.exitY??d.y,name:d.name,icon:ICON[d.to]}));
  const streets=[];if(room==='mergellina'&&NAPOLI.data){const best=new Map();for(const r of NAPOLI.data.roads){if(!r.name||r.w<6)continue;let L=0;for(let i=1;i<r.p.length;i++)L+=Math.hypot(r.p[i][0]-r.p[i-1][0],r.p[i][1]-r.p[i-1][1]);if(L>(best.get(r.name)?.L||60))best.set(r.name,{L,r});}for(const [name,{r}] of best){const i=Math.max(1,r.p.length>>1),a=r.p[i-1],b=r.p[i];let an=Math.atan2(b[1]-a[1],b[0]-a[0]);if(an>Math.PI/2)an-=Math.PI;if(an<-Math.PI/2)an+=Math.PI;streets.push({name,x:(a[0]+b[0])/2,y:(a[1]+b[1])/2,a:an});}}
- const atms=(MAPS[room].props||[]).filter(p=>p.kind==='atm'||p.kind==='vending').map(p=>p.kind==='atm'?{x:p.x,y:p.y,name:'Bancomat',icon:'🏧'}:{x:p.x,y:p.y,name:'Distributore',icon:'🥤'}).concat(room==='lungomare'?DEALERS.map(d=>({x:d.x+d.w/2,y:d.y+d.h+1.2,name:d.name,icon:d.icon})):[]).concat(BOATS[room]?[{x:BOATS[room].dock.x,y:BOATS[room].dock.y,name:BOATS[room].name,icon:'⛵'}]:[]);
+ const atms=(MAPS[room].props||[]).filter(p=>p.kind==='atm'||p.kind==='vending').map(p=>p.kind==='atm'?{x:p.x,y:p.y,name:'Bancomat',icon:'🏧'}:{x:p.x,y:p.y,name:'Distributore',icon:'🥤'}).concat(room==='lungomare'?DEALERS.map(d=>({x:d.x+d.w/2,y:d.y+d.h+1.2,name:d.name,icon:d.icon})):[]).concat(room==='lungomare'&&window.HUMANA_3D?[...GAS.map(g=>({x:gasGeom(g).cx,y:gasGeom(g).island.y+gasGeom(g).s*2.6,name:g.name,icon:'⛽'})),...POLICE.map(c=>({x:policeGeom(c).door.x,y:policeGeom(c).door.y+1.4,name:c.name,icon:'🚓'})),...(me0.myCars||[]).map(c=>({x:c.x,y:c.y,name:'La tua '+(VEHICLE[c.v]?.name||'auto')+' (parcheggiata qui)',icon:'🚗'}))]:[]).concat(BOATS[room]?[{x:BOATS[room].dock.x,y:BOATS[room].dock.y,name:BOATS[room].name,icon:'⛵'}]:[]);
  const toScreen=(x,y)=>[cv.width/2+(x-cx)*k,cv.height/2+(y-cy)*k],toWorld=(X,Y)=>({x:cx+(X-cv.width/2)/k,y:cy+(Y-cv.height/2)/k});
  let kMin=.4,ready=false;const clamp=()=>{k=Math.max(kMin,Math.min(14,k));cx=Math.max(Z.x0,Math.min(Z.x0+Z.w,cx));cy=Math.max(Z.y0,Math.min(Z.y0+Z.h,cy));};
  function draw(){const dpr=Math.min(2,devicePixelRatio||1);if(cv.width!==innerWidth*dpr){cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;ready=false;}

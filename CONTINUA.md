@@ -213,3 +213,8 @@ Cartelle sul Desktop: `HUMANA life`, `HUMANA life 3D`, `HUMANA life real` (avvii
 
 ## Aspetto sulle persone realistiche (2026-10-07)
 - `dressPerson()` in client/world/world3d.js: capelli (colore o forma), barba, maniche/maglia/pantaloni colorati, scarpe, cappelli, occhiali, collane, orologio, borsa, fiore scelti da barbiere/negozio/profilo si vedono sulle persone Rocketbox (anche per gli altri giocatori). Limite: abiti a "guscio" semplice, non stoffa vera.
+
+## Furti, prigione, auto di proprietà (2026-10-07)
+- Tasto "🤫 Ruba" (in basso a sinistra, spostabile): le richieste di acquisto (negozi, barbiere, bevande, benzina, mezzi) non scalano monete (`Living.take`, `STEAL_PATHS`) e avvisano `server/police.js`: 80% di essere visti → ricercato 5-9 s (agente che insegue sul client) → cella 60 s nella caserma più vicina → liberato alla porta.
+- Auto comprate (auto/cabrio/furgone): `progress.parked`, restano dove lasciate (visibili a tutti nel mondo, 🚗 sulla mappa grande); per risalire serve essere entro 9 m. Comprandole compaiono davanti al concessionario.
+- Mappa grande: ⛽ distributori e 🚓 caserme. Test: tests/police.test.js.

@@ -1,3 +1,4 @@
+import {STEAL_PATHS,JAIL_BLOCK} from '../shared/catalog.js';import {isCar} from './police.js';
 import {CATALOG as BASE_CATALOG,WEAR_ITEMS,WEAR,HAIR_STYLES,BEARD_STYLES,HAIR_COLORS,BARBER_PRICE,cleanSettings,SHOP_ROOMS,ATM_RATE,VILLA_PRICE,VILLA_RENT,VILLA_RENT_DAYS,DAILY_FICHES,SLOT_BETS,SLOT_SYMBOLS,VEHICLES,VEHICLE,DRINKS,JUKEBOX,JUKEBOX_PRICE,JUKEBOX_MINUTES,DEALERS,VEHICLES_3D,BOATS,FUNFAIR,ARENA,FUEL,ridePlan,BOAT_PRICE,BOAT_SPEED} from '../shared/catalog.js';
 import {randomInt} from 'node:crypto';
 import {MAPS,canStand,distance} from '../shared/world.js';
@@ -20,28 +21,39 @@ export class Living{
    if(item.currency==='gems'){
     const changed=this.db.prepare("UPDATE player_state SET progress=json_set(progress,'$.gems',coalesce(json_extract(progress,'$.gems'),0)-?) WHERE user_id=? AND coalesce(json_extract(progress,'$.gems'),0)>=?").run(item.price,id,item.price).changes;
     if(!changed)fail('Gemme insufficienti');
-   }else if(!this.db.prepare('UPDATE player_state SET balance=balance-? WHERE user_id=? AND balance>=?').run(item.price,id,item.price).changes)fail('Monete insufficienti');
+   }else if(!this.take(id,item.price))fail('Monete insufficienti');
    if(item.type!=='food')this.db.prepare('INSERT INTO inventory VALUES(?,?,1) ON CONFLICT(user_id,item) DO UPDATE SET quantity=quantity+1').run(id,item.id);
    else{const row=state(this.db,id);row.progress.orders=(row.progress.orders||0)+1;this.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(row.progress),id);}
    const result={ok:true,item:item.id,balance:this.db.prepare('SELECT balance FROM player_state WHERE user_id=?').get(id).balance};this.db.prepare('INSERT INTO purchases VALUES(?,?,?)').run(id,body.requestId,JSON.stringify(result));this.db.exec('COMMIT');return result;
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
  // Mobilità: pagamento atomico in monete, mezzi posseduti e noleggi a scadenza.
- pay(id,amount){if(!this.db.prepare('UPDATE player_state SET balance=balance-? WHERE user_id=? AND balance>=?').run(amount,id,amount).changes)fail('Monete insufficienti');}
+ // Paga (o, se il giocatore ruba, prende senza pagare e la polizia viene avvisata a fine richiesta).
+ take(id,amount){if(this.theft&&this.theft.id===id){this.theft.amount+=amount;return true;}return this.db.prepare('UPDATE player_state SET balance=balance-? WHERE user_id=? AND balance>=?').run(amount,id,amount).changes>0;}
+ pay(id,amount){if(!this.take(id,amount))fail('Monete insufficienti');}
+ // Auto di proprietà: restano dove le lasci (anche sulla mappa) finché non ci risali; da lontano non si chiamano.
+ carList(g){return Object.entries(g.parked||{}).map(([k,c])=>({v:k,x:c.x,y:c.y,h:c.h}));}
+ parkCar(p,x,y,h,v){const was=v||p?.vehicle;if(!p||!was||this.edition!=='3d'||!isCar(was))return;if(this.edition!=='3d'||!was||!isCar(was))return;const g=state(this.db,p.id).progress;if(!(g.vehicles||[]).includes(was))return;g.parked={...(g.parked||{})};g.parked[was]={x:x??p.x,y:y??p.y,h:h??(Number.isFinite(p.heading)?p.heading:p.direction||0)};this.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(g),p.id);p.myCars=this.carList(g);}
+ unparkCar(p,v){const g=state(this.db,p.id).progress;if(!g.parked?.[v])return;delete g.parked[v];this.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(g),p.id);p.myCars=this.carList(g);}
+ route(path,method,user,b){const p=this.game.players.get(user.id),three=this.edition==='3d';
+  if(three&&p?.jail&&method==='POST'&&JAIL_BLOCK.some(q=>path.startsWith(q)))fail('Sei in prigione: aspetta che ti liberino',403);
+  this.theft=three&&b&&b.steal===true&&method==='POST'&&p&&STEAL_PATHS.some(q=>path.startsWith(q))?{id:user.id,amount:0}:null;
+  try{return this.routeInner(path,method,user,b);}finally{const t=this.theft;this.theft=null;if(t&&t.amount>0)this.game.police?.crime(p,t.amount);}}
+
  canUse(id,vid){const g=state(this.db,id).progress;return (g.vehicles||[]).includes(vid)||(g.rentals?.[vid]||0)>Date.now();}
  // Al rientro si riprende il mezzo usato per ultimo, se ancora valido.
  lastVehicle(id){const v=state(this.db,id).progress.activeVehicle;return v&&this.canUse(id,v)?v:null;}
  garage(id){const g=state(this.db,id).progress,p=this.game.players.get(id);return {balance:this.db.prepare('SELECT balance FROM player_state WHERE user_id=?').get(id).balance,active:p?.vehicle||null,vehicles:[...VEHICLES,...VEHICLES_3D.filter(v=>(g.vehicles||[]).includes(v.id))].map(v=>({...v,owned:(g.vehicles||[]).includes(v.id),until:(g.rentals?.[v.id]||0)>Date.now()?g.rentals[v.id]:0}))};}
- route(path,method,user,b){
+ routeInner(path,method,user,b){
   const id=user.id,db=this.db,p=this.game.players.get(id);ensureState(db,id);if(p?.arena&&method==='POST'&&['/api/vehicle/','/api/boat','/api/giostra'].some(q=>path.startsWith(q)))fail('Esci prima dall’arena');
   if(path==='/api/state'&&method==='GET')return this.snapshot(id);
   if(path==='/api/vehicles'&&method==='GET')return this.garage(id);
   if(path==='/api/dealer'&&method==='POST'){const d=DEALERS.find(q=>q.id===b.shop);if(!d)fail('Negozio sconosciuto');const g=state(db,id).progress;return {shop:d.id,balance:db.prepare('SELECT balance FROM player_state WHERE user_id=?').get(id).balance,active:p?.vehicle||null,vehicles:VEHICLES_3D.filter(v=>v.shop===d.id).map(v=>({...v,owned:(g.vehicles||[]).includes(v.id),until:0}))};}
-  if(path==='/api/vehicle/buy'&&method==='POST'){const v=VEHICLE[b.id];if(!v?.buy)fail('Mezzo non acquistabile');if(v.shop){const d=DEALERS.find(q=>q.id===v.shop);if(!p||p.room!=='lungomare'||distance({x:d.x+d.w/2,y:d.y+d.h+1.2},p)>9)fail('Vai al negozio: '+d.name,403);}const s=state(db,id);const own=s.progress.vehicles||[];if(own.includes(v.id))fail('Lo possiedi già');this.pay(id,v.buy);const fresh=state(db,id).progress;fresh.vehicles=[...own,v.id];db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(fresh),id);return this.garage(id);}
+  if(path==='/api/vehicle/buy'&&method==='POST'){const v=VEHICLE[b.id];if(!v?.buy)fail('Mezzo non acquistabile');if(v.shop){const d=DEALERS.find(q=>q.id===v.shop);if(!p||p.room!=='lungomare'||distance({x:d.x+d.w/2,y:d.y+d.h+1.2},p)>9)fail('Vai al negozio: '+d.name,403);}const s=state(db,id);const own=s.progress.vehicles||[];if(own.includes(v.id))fail('Lo possiedi già');this.pay(id,v.buy);const fresh=state(db,id).progress;fresh.vehicles=[...own,v.id];db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(fresh),id);if(this.edition==='3d'&&v.shop&&isCar(v.id)){const d=DEALERS.find(q=>q.id===v.shop);this.parkCar(p,d.x+d.w/2+(Math.random()-.5)*3,d.y+d.h+2.6,Math.PI/2,v.id);}return this.garage(id);}
   if(path==='/api/vehicle/rent'&&method==='POST'){const v=VEHICLE[b.id];if(!v?.rent)fail('Mezzo non noleggiabile');this.pay(id,v.rent);const fresh=state(db,id).progress;fresh.rentals={...(fresh.rentals||{})};fresh.rentals[v.id]=Math.max(Date.now(),fresh.rentals[v.id]||0)+v.minutes*60000;fresh.activeVehicle=v.id;db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(fresh),id);if(p)p.vehicle=v.id;return this.garage(id);}
   if(path==='/api/vehicle/use'&&method==='POST'){const remember=v=>{const g=state(db,id).progress;g.activeVehicle=v;db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(g),id);};if(!b.id){if(p){const was=p.vehicle;p.vehicle=null;p.vel=0;p.music=null;
    // Scende dal lato del guidatore (a sinistra del muso), o dall'altro lato se lì c'è un ostacolo.
-   if(was){const h=Number.isFinite(p.heading)?p.heading:p.direction||0;for(const side of [-1,1]){const x=p.x+Math.cos(h+side*Math.PI/2)*1.5,y=p.y+Math.sin(h+side*Math.PI/2)*1.5;if(canStand(p.room,x,y)){p.x=x;p.y=y;p.parkedAt={v:was,x:p.x-Math.cos(h+side*Math.PI/2)*1.5,y:p.y-Math.sin(h+side*Math.PI/2)*1.5,h,t:Date.now()};break;}}}}remember(null);return this.garage(id);}remember(b.id);if(!this.canUse(id,b.id))fail('Prima sblocca o noleggia questo mezzo',403);if(p?.room!=='lungomare'&&p?.room!=='mergellina')fail('Esci all’aperto per salire');if(p&&this.edition==='3d'&&['auto','furgone','cabrio'].includes(VEHICLE[b.id]?.base||b.id)&&!canStand(p.room,p.x,p.y,1.3)){let best=null;for(let r=.5;r<=7&&!best;r+=.5)for(let a=0;a<20;a++){const x=p.x+Math.cos(a/20*Math.PI*2)*r,y=p.y+Math.sin(a/20*Math.PI*2)*r;if(canStand(p.room,x,y,1.3)){best={x,y};break;}}if(best){p.x=best.x;p.y=best.y;}}if(p)p.vehicle=b.id;return this.garage(id);}
+   if(was){const h=Number.isFinite(p.heading)?p.heading:p.direction||0;for(const side of [-1,1]){const x=p.x+Math.cos(h+side*Math.PI/2)*1.5,y=p.y+Math.sin(h+side*Math.PI/2)*1.5;if(canStand(p.room,x,y)){p.x=x;p.y=y;p.parkedAt={v:was,x:p.x-Math.cos(h+side*Math.PI/2)*1.5,y:p.y-Math.sin(h+side*Math.PI/2)*1.5,h,t:Date.now()};this.parkCar(p,p.parkedAt.x,p.parkedAt.y,h,was);break;}}}}remember(null);return this.garage(id);}if(!this.canUse(id,b.id))fail('Prima sblocca o noleggia questo mezzo',403);{const pk=this.edition==='3d'&&p?state(db,id).progress.parked?.[b.id]:null;if(pk){if(p.room!=='lungomare'||distance(pk,p)>9)fail('La tua auto è parcheggiata lontano: guarda la mappa 🚗',403);this.unparkCar(p,b.id);}}remember(b.id);if(p?.room!=='lungomare'&&p?.room!=='mergellina')fail('Esci all’aperto per salire');if(p&&this.edition==='3d'&&['auto','furgone','cabrio'].includes(VEHICLE[b.id]?.base||b.id)&&!canStand(p.room,p.x,p.y,1.3)){let best=null;for(let r=.5;r<=7&&!best;r+=.5)for(let a=0;a<20;a++){const x=p.x+Math.cos(a/20*Math.PI*2)*r,y=p.y+Math.sin(a/20*Math.PI*2)*r;if(canStand(p.room,x,y,1.3)){best={x,y};break;}}if(best){p.x=best.x;p.y=best.y;}}if(p)p.vehicle=b.id;return this.garage(id);}
 
   if(path==='/api/settings'&&method==='PATCH'){const settings=cleanSettings(b);db.prepare('UPDATE player_state SET settings=? WHERE user_id=?').run(JSON.stringify(settings),id);return settings;}
   if(path==='/api/purchase'&&method==='POST')return this.purchase(id,b);
@@ -70,7 +82,7 @@ export class Living{
    db.prepare('UPDATE users SET avatar=? WHERE id=?').run(JSON.stringify(avatar),id);if(p)p.avatar=avatar;return avatar;}
   if(path==='/api/barber'&&method==='POST'){const hair=Number(b.hair),beard=Number(b.beard),color=Number(b.color);if(!p||p.room!=='barber')fail('Siediti dal Barbiere Totò',403);
    if(!(hair>=0&&hair<HAIR_STYLES.length&&beard>=0&&beard<BEARD_STYLES.length&&color>=0&&color<HAIR_COLORS.length)||![hair,beard,color].every(Number.isInteger))fail('Taglio non valido');
-   if(!db.prepare('UPDATE player_state SET balance=balance-? WHERE user_id=? AND balance>=?').run(BARBER_PRICE,id,BARBER_PRICE).changes)fail('Servono '+BARBER_PRICE+' monete');
+   if(!this.take(id,BARBER_PRICE))fail('Servono '+BARBER_PRICE+' monete');
    const avatar={...JSON.parse(db.prepare('SELECT avatar FROM users WHERE id=?').get(id).avatar),hair:{style:hair,color:HAIR_COLORS[color][1]},beard};db.prepare('UPDATE users SET avatar=? WHERE id=?').run(JSON.stringify(avatar),id);if(p)p.avatar=avatar;return {avatar,balance:state(db,id).balance};}
   if(path==='/api/equip'&&method==='POST'){const item=CATALOG.find(i=>i.id===b.item&&i.type==='cosmetic');if(!item||!db.prepare('SELECT 1 FROM inventory WHERE user_id=? AND item=? AND quantity>0').get(id,item.id))fail('Oggetto non posseduto',403);const avatar={...JSON.parse(user.avatar),[item.slot]:item.value};if(item.color)avatar.color=item.color;db.prepare('UPDATE users SET avatar=? WHERE id=?').run(JSON.stringify(avatar),id);if(p)p.avatar=avatar;return avatar;}
   if(path==='/api/dm'&&method==='GET'){const peer=String(b.peer||'');if(this.game.blocked(id,peer))fail('Utente non disponibile',403);return db.prepare('SELECT d.*,u.username FROM direct_messages d JOIN users u ON u.id=d.sender WHERE (sender=? AND recipient=?) OR (sender=? AND recipient=?) ORDER BY d.id DESC LIMIT 50').all(id,peer,peer,id).reverse();}
@@ -98,7 +110,7 @@ export class Living{
    const current=this.db.prepare('SELECT * FROM villas WHERE id=? AND until>?').get(id,Date.now());
    if(current&&current.owner!==user)fail('Villa già occupata');if(current&&current.mode==='buy')fail('La villa è già tua');
    if(this.db.prepare('SELECT count(*) n FROM villas WHERE owner=? AND until>? AND id<>?').get(user,Date.now(),id).n>=2)fail('Puoi avere al massimo due ville');
-   if(!this.db.prepare('UPDATE player_state SET balance=balance-? WHERE user_id=? AND balance>=?').run(price,user,price).changes)fail(`Servono ${price} monete`);
+   if(!this.take(user,price))fail(`Servono ${price} monete`);
    const newUntil=mode==='rent'&&current?current.until+VILLA_RENT_DAYS*86400000:until;
    this.db.prepare('INSERT INTO villas VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET owner=excluded.owner,mode=excluded.mode,until=excluded.until').run(id,user,mode,newUntil);this.db.exec('COMMIT');
   }catch(e){this.db.exec('ROLLBACK');throw e;}return {...this.villaInfo(id,user),balance:state(this.db,user).balance};}

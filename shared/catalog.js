@@ -175,3 +175,9 @@ export const solidBlocks=()=>{const out=[...arenaBlocks()];
  for(const g of GAS){const G=gasGeom(g);out.push(G.shop);for(const p of G.pumps)out.push([p.x-.45,p.y-.6,p.x+.45,p.y+.6]);for(const dx of [-6,6])out.push([G.cx+dx-.2,G.island.y-1.9,G.cx+dx+.2,G.island.y-1.5]);}
  for(const c of POLICE){const P=policeGeom(c);out.push(P.build,...P.cars,[P.flag.x-.2,P.flag.y-.2,P.flag.x+.2,P.flag.y+.2]);}
  return out;};
+// Furti e prigione (solo HUMANA life 3D): si può prendere tutto senza pagare, ma se un agente ti vede finisci in cella per un minuto, poi ti liberano.
+export const PRISON={seconds:60,catch:.8,delay:[5,9]};
+export const prisonCell=c=>{const P=policeGeom(c);return {x:(P.build[0]+P.build[2])/2,y:(P.build[1]+P.build[3])/2};};
+export const STEAL_PATHS=['/api/purchase','/api/barber','/api/vending','/api/service/order','/api/fuel/refill','/api/vehicle/buy','/api/vehicle/rent'];
+export const JAIL_BLOCK=[...STEAL_PATHS,'/api/vehicle','/api/arena','/api/giostra','/api/boat','/api/home/enter'];
+export const CAR_BASES=['auto','cabrio','furgone'];
