@@ -9,7 +9,7 @@ export function napoliStand(x,y,r=.25){return napoliCell(x,y)&&napoliCell(x+r,y)
 // Punto di partenza: Piazza Sannazaro (o la cella libera più vicina).
 export function napoliSpawn(){const want={x:253,y:306};if(!NAPOLI.grid)return want;for(let d=0;d<200;d++)for(let a=0;a<16;a++){const x=want.x+Math.cos(a/16*Math.PI*2)*d,y=want.y+Math.sin(a/16*Math.PI*2)*d;if(napoliStand(x,y,.4))return {x:Math.round(x*10)/10,y:Math.round(y*10)/10};}return want;}
 // Locali di Mergellina: ogni bar, ristorante, banca… della mappa vera porta all'interno corrispondente del gioco
-// (stessi interni del Lungomare). Nomi inventati: niente marchi reali.
+// (stessi interni del Lungomare). Se il locale esiste su OpenStreetMap ne tiene il nome (real:true), altrimenti ha un nome di fantasia (real:false).
 const KIND={bar:'bar',cafe:'bar',ice_cream:'bar',pastry:'bar',restaurant:['trattoria','osteria','vesuvio','panorama'],fast_food:['pizzeria','pizzeria','burger'],pub:'club',bank:'bank',
  supermarket:'shop',convenience:'shop',greengrocer:'shop',deli:'shop',dairy:'shop',bakery:'shop',seafood:'shop',butcher:'shop',clothes:'fashion',tailor:'fashion',hairdresser:'barber',beauty:'barber',bookmaker:'casino'};
 const NAMES={bar:['Bar Sirena','Caffè del Molo','Bar Partenope','Bar Posillipo','Caffè Sannazaro','Bar Marechiaro','Caffè Mergellina','Gelateria del Porto'],trattoria:['Trattoria Mergellina','Trattoria Sannazaro','Da Gennaro'],osteria:['Osteria del Porto','Osteria Lucia'],vesuvio:['Ristorante Vesuvio','Ristorante Lucia'],panorama:['Ristorante Panorama','Terrazza sul Golfo'],
@@ -21,6 +21,7 @@ export function napoliPlaces(){if(NAPOLI.places)return NAPOLI.places;const out={
  NAPOLI.data.pois.forEach((p,i)=>{const t=p.amenity||p.shop;if(t==='atm'){const q=near(p.x,p.y);if(q)out.props.push({id:'matm'+i,kind:'atm',x:q.x,y:q.y,r:.35});return;}
   if(t==='bench'){const q=near(p.x,p.y);if(q)out.props.push({id:'mbench'+i,kind:'bench',x:q.x,y:q.y,r:.5});return;}
   let to=KIND[t];if(!to)return;if(Array.isArray(to))to=to[H(p.x+','+p.y)%to.length];const q=near(p.x,p.y);if(!q)return;const names=NAMES[to];
-  out.doors.push({id:'m'+i,name:names[H(i+':'+t)%names.length],x:q.x,y:q.y,exitX:q.x,exitY:q.y,to,kind:t});
+  // Attività presente su OpenStreetMap (nome e posizione veri, non verificati sul posto) oppure inventata dal gioco (nome di fantasia).
+  const real=!!(p.real&&p.name);out.doors.push({id:'m'+i,name:real?p.name:names[H(i+':'+t)%names.length],x:q.x,y:q.y,exitX:q.x,exitY:q.y,to,kind:t,real,osm:real?p.osm:undefined});
   if(t==='bank'){const a=near(q.x+1.4,q.y);if(a)out.props.push({id:'matmb'+i,kind:'atm',x:a.x,y:a.y,r:.35});}});
  return NAPOLI.places=out;}
