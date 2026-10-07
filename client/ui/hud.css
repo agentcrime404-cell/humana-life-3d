@@ -380,5 +380,27 @@ body.is3d #modal.atm-full .atm-title{font-size:14px}body.is3d #modal.atm-full .a
 .welcome-sub{margin:2px 0 6px;color:#cfe3ee;font-size:13px}
 
 /* sfondo della schermata d ingresso: il lungomare di Napoli al tramonto con gli scogli e la ringhiera */
-#auth.veil{background:linear-gradient(rgba(4,10,22,.28),rgba(4,10,22,.5)),url(/assets/sfondo-napoli-life.webp) center/cover no-repeat !important}
+#auth.veil{background:linear-gradient(rgba(4,10,22,.28),rgba(4,10,22,.5)),url(/assets/sfondo-napoli-life.webp) 72% 100%/auto 138% no-repeat !important}
 #auth .card{background:rgba(9,24,40,.78)!important;backdrop-filter:blur(6px)}
+
+/* ---- Accesso e menu "Prima di giocare" (stile Napoli life) ---- */
+#auth .card.welcome{width:min(360px,92vw);padding:22px 22px 18px;border-radius:22px;background:rgba(14,26,44,.82)!important;border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.logo{margin:0 0 14px;text-align:center;line-height:.82;display:flex;flex-direction:column;align-items:center}
+.logo-n{font:900 54px/0.9 Impact,'Arial Narrow Bold','Franklin Gothic Heavy',sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.logo-l{font:900 italic 40px/1 Impact,'Arial Narrow Bold',sans-serif;letter-spacing:.14em;color:#2f90ff;margin-top:-2px;text-shadow:0 0 14px rgba(47,144,255,.5);-webkit-text-stroke:1px #fff}
+#auth .fi{position:relative;display:block;margin:10px 0}#auth .fi>span{position:absolute;left:-9999px}
+#auth .fi input{width:100%;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#fff;padding:0 14px 0 42px;font-size:15px}
+#auth .fi::before{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;opacity:.8;z-index:1}
+#auth .fi-user::before{content:'👤'}#auth .fi-pass::before{content:'🔒'}
+#auth button.primary[type=submit]{width:100%;height:46px;border-radius:14px;border:0;background:linear-gradient(180deg,#3b8cff,#1f6feb);color:#fff;font:800 16px system-ui;letter-spacing:.06em;margin-top:6px}
+#auth .or{display:flex;align-items:center;gap:8px;color:#9fb4c8;font-size:12px;margin:10px 0 4px}#auth .or::before,#auth .or::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.16)}
+#auth button.link{display:block;margin:2px auto;background:transparent;border:0;color:#fff;text-decoration:underline;font-weight:700;font-size:15px;min-height:0}
+#auth button.guest{display:block;width:100%;margin-top:8px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#dbe8f6;font-weight:600}
+#pregame{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 max(18px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) 18px;background:linear-gradient(90deg,rgba(6,14,28,0) 45%,rgba(6,14,28,.72))}
+#pregame[hidden]{display:none}
+#pregame .pg-menu{width:min(300px,86vw);display:flex;flex-direction:column;gap:12px;margin-bottom:6vh}
+#pregame .pg-title{text-align:right;margin-bottom:6px}#pregame .pg-title .logo{align-items:flex-end;margin:0}#pregame .logo-n{font-size:40px}#pregame .logo-l{font-size:30px}
+#pregame button{height:54px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(20,34,54,.88);color:#fff;font:700 17px system-ui;display:flex;align-items:center;gap:12px;padding:0 18px;text-align:left}
+#pregame button.go{background:linear-gradient(180deg,#3b8cff,#1f6feb);border-color:#7db2ff;font-weight:800;letter-spacing:.05em}
+#pregame button i{font-style:normal;width:26px;text-align:center}
+@media(max-width:700px) and (orientation:portrait){#pregame{align-items:flex-end;justify-content:center;padding:0 14px 24px;background:linear-gradient(0deg,rgba(6,14,28,.78),rgba(6,14,28,0) 60%)}#pregame .pg-menu{width:100%;margin-bottom:0}#pregame .pg-title{text-align:center}#pregame .pg-title .logo{align-items:center}}

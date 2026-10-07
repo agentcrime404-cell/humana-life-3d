@@ -32,7 +32,7 @@ export function napoliCell(x,y){if(!NAPOLI.grid)return false;const cx=Math.floor
 // Un giocatore (raggio r) sta in piedi se il centro e i quattro lati sono calpestabili.
 export function napoliStand(x,y,r=.25){return napoliCell(x,y)&&napoliCell(x+r,y)&&napoliCell(x-r,y)&&napoliCell(x,y+r)&&napoliCell(x,y-r);}
 // Punto di partenza: Piazza Sannazaro (o la cella libera più vicina).
-export function napoliSpawn(){const want={x:253,y:306};if(!NAPOLI.grid)return want;for(let d=0;d<200;d++)for(let a=0;a<16;a++){const x=want.x+Math.cos(a/16*Math.PI*2)*d,y=want.y+Math.sin(a/16*Math.PI*2)*d;if(napoliStand(x,y,.4))return {x:Math.round(x*10)/10,y:Math.round(y*10)/10};}return want;}
+export function napoliSpawn(){const want={x:230.2,y:399};if(!NAPOLI.grid)return want;for(let d=0;d<200;d++)for(let a=0;a<16;a++){const x=want.x+Math.cos(a/16*Math.PI*2)*d,y=want.y+Math.sin(a/16*Math.PI*2)*d;if(napoliStand(x,y,.4))return {x:Math.round(x*10)/10,y:Math.round(y*10)/10};}return want;}
 // Locali di Mergellina: ogni bar, ristorante, banca… della mappa vera porta all'interno corrispondente del gioco
 // (stessi interni del Lungomare). Se il locale esiste su OpenStreetMap ne tiene il nome (real:true), altrimenti ha un nome di fantasia (real:false).
 const KIND={bar:'bar',cafe:'bar',ice_cream:'bar',pastry:'bar',restaurant:['trattoria','osteria','vesuvio','panorama'],fast_food:['pizzeria','pizzeria','burger'],pub:'club',bank:'bank',

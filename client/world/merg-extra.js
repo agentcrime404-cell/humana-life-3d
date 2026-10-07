@@ -34,7 +34,31 @@ export class MergExtra{
       for(let k=-Math.floor(rw/2)+.5;k<rw/2;k+=1.1)stripes.push([s[0]+dx*5.2+nx*k,s[1]+dy*5.2+ny*k,Math.atan2(dx,dy)]);}}}
    w.static.add(heads);
    if(stripes.length){const im=new THREE.InstancedMesh(new THREE.BoxGeometry(.55,.02,3.2),new THREE.MeshLambertMaterial({color:'#f4f2ea',polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),stripes.length),o=new THREE.Object3D();stripes.forEach((s,i)=>{o.position.set(s[0],.045,s[1]);o.rotation.y=s[2];o.updateMatrix();im.setMatrixAt(i,o.matrix);});im.frustumCulled=false;w.static.add(im);}}
+  try{this.buildCiro();}catch(e){console.warn('Ciro',e);}
   this.built=true;}
+ // Chalet Ciro (Via Caracciolo, Mergellina): padiglione basso crema con vetrate, tende a strisce blu e bianche, siepi sul tetto, insegna, tavolini; scooter in fila sul marciapiede e platani lungo la strada.
+ buildCiro(){const w=this.w,D=NAPOLI.data,b=D.buildings.find(q=>q.name==='Chalet Ciro');if(!b)return;const xs=b.p.map(q=>q[0]),ys=b.p.map(q=>q[1]),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2,Wd=Math.max(...ys)-Math.min(...ys)+.6,Dp=Math.max(...xs)-Math.min(...xs)+.4,gy=w.groundY||.12,g=new THREE.Group();
+  g.position.set(cx,gy,cy);g.rotation.y=Math.PI/2;const L=(c)=>lam(c),cream=L('#f0e8d6'),white=L('#faf7f0'),navy=L('#1c2a4a'),green=L('#2e6a34'),glass=new THREE.MeshLambertMaterial({color:'#27394d',transparent:true,opacity:.7});
+  const H=3.7;box(g,Wd,H,Dp,0,H/2,0,cream);box(g,Wd+.5,.3,Dp+.5,0,H+.15,0,white);
+  // vetrate e montanti
+  box(g,Wd-1.2,2.4,.12,0,1.75,Dp/2+.02,glass);for(let x=-Wd/2+1.2;x<=Wd/2-1.2;x+=2.4)box(g,.1,2.5,.16,x,1.75,Dp/2+.05,white);box(g,Wd-.8,.12,.2,0,2.98,Dp/2+.06,white);
+  // siepi sul tetto
+  for(const z of [-1,1])box(g,Wd+.5,.75,.55,0,H+.3+.37,z*(Dp/2+.0),green);for(const x of [-1,1])box(g,.55,.75,Dp+.5,x*(Wd/2+.0),H+.3+.37,0,green);
+  for(let i=0;i<7;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(.55,8,6),green);s.position.set(-Wd/2+1.5+i*2.6,H+1.1,Dp/2+.05);g.add(s);}
+  // tende a strisce
+  const c=document.createElement('canvas');c.width=128;c.height=64;{const q=c.getContext('2d');for(let i=0;i<8;i++){q.fillStyle=i%2?'#ffffff':'#1c2a4a';q.fillRect(i*16,0,16,64);}}const st=new THREE.CanvasTexture(c);st.colorSpace=THREE.SRGBColorSpace;const am=new THREE.MeshLambertMaterial({map:st});
+  const n=Math.max(3,Math.round((Wd-1)/3.4)),aw=(Wd-1)/n;for(let i=0;i<n;i++){const a=box(g,aw-.1,.07,2.1,-Wd/2+.5+aw*(i+.5),3.15,Dp/2+1.0,am);a.rotation.x=.26;box(g,aw-.1,.28,.06,-Wd/2+.5+aw*(i+.5),2.62,Dp/2+2.0,am);}
+  // insegna Chalet Ciro (blu corsivo su fondo bianco) sulla facciata e sul lato
+  const sc=document.createElement('canvas');sc.width=512;sc.height=128;{const q=sc.getContext('2d');q.fillStyle='#ffffff';q.fillRect(0,0,512,128);q.fillStyle='#1d5fb0';q.font='italic bold 66px "Brush Script MT","Segoe Script",cursive,serif';q.textAlign='center';q.textBaseline='middle';q.fillText('Chalet Ciro',256,56);q.font='italic 26px serif';q.fillText('dal 1936 · Mergellina',256,108);}const sx=new THREE.CanvasTexture(sc);sx.colorSpace=THREE.SRGBColorSpace;
+  for(const [px,pz,ry,sw] of [[0,Dp/2+.35,0,4.8],[-Wd/2-.3,0,-Math.PI/2,4.2],[Wd/2+.3,0,Math.PI/2,4.2]]){const pl=new THREE.Mesh(new THREE.PlaneGeometry(sw,sw/4),new THREE.MeshBasicMaterial({map:sx,side:THREE.DoubleSide}));pl.position.set(px,H+2.0,pz);pl.rotation.y=ry;g.add(pl);box(g,sw+.2,sw/4+.2,.1,px,H+2.0,pz-.08*(ry?0:1),white).rotation.y=ry;}
+  // tavolini sotto le tende
+  const chair=L('#2a3a5c'),top=white;for(let i=0;i<Math.floor(Wd/3);i++){const x=-Wd/2+1.8+i*3;const t=new THREE.Mesh(new THREE.CylinderGeometry(.46,.46,.05,10),top);t.position.set(x,.76,Dp/2+1.4);g.add(t);box(g,.07,.74,.07,x,.38,Dp/2+1.4,L('#555'));for(const sd of [-1,1])box(g,.42,.5,.42,x+sd*.75,.27,Dp/2+1.4,chair);}
+  w.static.add(g);
+  // scooter in fila lungo il marciapiede davanti allo chalet, platani lungo la strada
+  const cols=['#1b1b1f','#c7ccd4','#b3261e','#1d4e89'],byc=cols.map(()=>[]);let k=0;for(let y=cy-Wd/2+1;y<cy+Wd/2-.5;y+=1.15){const x=cx+Dp/2+4.4;if(napoliCell(x,y)){byc[k%4].push([x,y,Math.PI+ (k%3-1)*.06]);w.col.c.push([x,y,.45]);}k++;}
+  byc.forEach((l,i)=>{if(l.length)w.instanced(w.scooter(cols[i]),l);});
+  const T=[[],[],[]];let kk=0;for(const x of [cx+Dp/2+5.4,cx+Dp/2+23.5])for(let y=cy-70;y<=cy+70;y+=12.5){if(Math.abs(y-cy)<Wd/2+1&&x<cx+10)continue;if(napoliCell(x,y)&&napoliCell(x+.8,y)&&napoliCell(x-.8,y)&&!w.onRoad?.(x,y)){T[kk%3].push([x,y,0]);w.col.c.push([x,y,.4]);kk++;}}
+  for(let v=0;v<3;v++)w.instanced(w.tree(1,v),T[v]);}
  // barche ormeggiate ai pontili e tre barche che navigano al largo
  buildBoats(){const w=this.w,D=NAPOLI.data,Z=w.static,mob=w.mobile,cand=[];
   for(const p of D.piers||[]){if(p.k!=='pier')continue;for(let i=1;i<p.p.length;i++){const a=p.p[i-1],b=p.p[i],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<8)continue;const tx=(b[0]-a[0])/L,ty=(b[1]-a[1])/L,nx=-ty,ny=tx;
