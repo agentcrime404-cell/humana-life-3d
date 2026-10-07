@@ -1,23 +1,22 @@
 {
-  "name": "humana-isometrica",
-  "version": "2.1.1-mvp.1",
+  "name": "napoli-life",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "start": "node --env-file-if-exists=.env scripts/play.mjs",
-    "start:3d": "node --env-file-if-exists=.env scripts/play-3d.mjs",
+    "start": "node --env-file-if-exists=.env scripts/play-3d.mjs",
     "test": "node --test tests/*.test.js",
-    "preview:render": "node scripts/render-fixture.mjs --save",
-    "dev": "node --env-file-if-exists=.env --watch server/index.js",
+    "dev": "node --env-file-if-exists=.env --watch scripts/play-3d.mjs",
+    "bot": "node --env-file-if-exists=.env scripts/telegram-bot.mjs",
+    "apk": "node scripts/apk-3d.mjs",
+    "qr": "node --env-file-if-exists=.env scripts/qr-3d.mjs",
+    "osm:scarica": "node scripts/osm-scarica.mjs",
+    "osm:importa": "node scripts/osm-napoli.mjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
-    "start:production": "node --env-file-if-exists=.env server/index.js",
-    "mobile:build": "node scripts/build-mobile.mjs && cap sync android",
-    "apk3d": "node scripts/apk-3d.mjs",
-    "apk": "node scripts/apk.mjs && node scripts/qr.mjs",
-    "qr3d": "node --env-file-if-exists=.env scripts/qr-3d.mjs"
+    "start:production": "node --env-file-if-exists=.env scripts/play-3d.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

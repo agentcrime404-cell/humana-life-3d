@@ -1,3 +1,5 @@
+> ⚠️ **2026-10-07: il progetto ora è solo Napoli life (3D). Leggi prima `LEGGIMI-PRIMA.md`** (stato aggiornato, Render, Telegram, APK, dati OSM, segreti). Questo file è la STORIA dettagliata del lavoro: le parti sul 2D, su HUMANA life 2D, sul Mac e sui file .cmd del Desktop sono storiche e il 2D è archiviato (tag git `archivio-2D-prima-della-pulizia`).
+
 # HUMANA life — passaggio di consegne (aggiornato 2026-10-05)
 
 ## ⚠️ Passaggio al Mac (2026-10-05)

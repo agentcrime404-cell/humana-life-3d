@@ -1,0 +1,3 @@
+- [Procedi senza chiedere](procedi-senza-chiedere.md) — HUMANA: andare avanti da soli fino a gioco finito, niente richieste di via libera
+- [HUMANA 3D online su Render](humana-3d-online-render.md) — indirizzo, archivio privato, come aggiornare e cosa serve dall'utente
+- [Aggiornamenti su Telegram](telegram-aggiornamenti.md) — bot @Napolilife_bot, script scripts/telegram.mjs (messaggi, QR, APK)

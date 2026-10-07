@@ -16,3 +16,7 @@ android-3d/
 *.sqlite
 *.sqlite-*
 !dist/HUMANA-3D.apk
+
+# segreti e accessi privati
+SEGRETI-PRIVATI.md
+*.pem
