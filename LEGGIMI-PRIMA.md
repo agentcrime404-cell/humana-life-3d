@@ -20,7 +20,7 @@ Le **password e le chiavi** NON sono in questo file: stanno in `SEGRETI-PRIVATI.
 1. Node.js 24 (nodejs.org). Nella cartella: `npm ci` (la prima volta).
 2. `npm start` oppure doppio clic su `AVVIA-NAPOLI-LIFE.bat` → gioco su **http://localhost:3079/** (archivio giocatori `data/humana-3d.sqlite`). Mac: `AVVIA-NAPOLI-LIFE-MAC.command`.
 3. Ingresso: pulsante **GIOCA SUBITO** (ospite, sceglie un personaggio) oppure account.
-4. Test: `npm test` (65 test; se un test fallisce solo quando si lancia tutto insieme ed esce da solo, è la lentezza del PC: rilanciarlo da solo).
+4. Test: `npm test` (68 test; se un test fallisce solo quando si lancia tutto insieme ed esce da solo, è la lentezza del PC: rilanciarlo da solo).
 5. Variabili in `.env` (modello in `.env.example`): `PORT_3D`, `DATABASE_PATH_3D`, `ICE_SERVERS_JSON` (server TURN per la voce), `TELEGRAM_BOT_TOKEN`, ecc. Nota: una variabile di sistema con lo stesso nome vince su `.env` (è successo con `TELEGRAM_BOT_TOKEN`: lo script legge `.env` apposta).
 
 ## Online (Render) — per far provare il gioco da fuori casa
@@ -59,7 +59,9 @@ FATTO:
 - Terreno a **piastrelle da 512 m** caricate solo vicino al giocatore (`groundTiles` in `client/world/world3d.js`): la zona è quasi 4 km.
 - Castel dell'Ovo: il modello 3D (`castel()`) è adattato alla **pianta vera** (posizione, orientamento, lunghezza).
 - Fontana del Sebeto sulla posizione vera (forma STILIZZATA, orientamento stimato) con vasca non attraversabile (anche sul server); cartelli con i nomi dei luoghi; piazze e spiagge dalle forme vere; ombrelloni nelle spiagge; barche solo sui pontili veri (max 60 telefono / 150 PC).
-- Attività della mappa vera: nome vero da OSM con `real:true`, altrimenti nome di fantasia `real:false` (`shared/napoli.js`, `napoliPlaces()`).
+- Attività: nome vero da OSM con `real:true`, altrimenti nome di fantasia `real:false` (`shared/napoli.js`, `napoliPlaces()`). **Locali separati**: distanza minima 20 m fra le porte; i locali troppo vicini vengono rimessi nelle zone vuote (nuovi ingressi di fantasia sui palazzi isolati, circa 150) così ogni zona calpestabile ha locali (test `tests/mergellina.test.js`). 295 porte in totale, nessuna a meno di 12 m dall'altra.
+- Ville: ~48 palazzi piccoli e isolati scelti in tutta la mappa diventano "ville" (bassi, colori chiari) con cartello "Villa <cognome>" (`pickVillas` in world3d.js). Non si entra (solo scenografia).
+- Solo la regione calpestabile principale resta calpestabile (cortili chiusi rimossi dalla griglia nel convertitore).
 DA FARE (in ordine consigliato):
 1. **Vita nelle strade di Mergellina** (oggi la "città viva" funziona solo nel Lungomare di fantasia: `client/world/citylife.js`, `ambient.js`, traffico in `shared/traffic.js`). Serve una rete stradale da OSM: pedoni sui marciapiedi (offset dalla strada), attraversamenti, pescatori sui pontili, tavolini occupati, consegne, camion ESI, traffico e scooter su corsie, comparsa/sparizione in base alla distanza e agli orari. Idea: sottoclasse di `CityLife` che riusa il pooling dei modelli.
 2. **Le 31 attività della legenda** (le 31 voci che l'utente vede con `/mappa`: locali, benzina, polizia, ospedale, ESI, giostre, concessionari…) da rimappare nella nuova geografia: bar/ristoranti/negozi su spazi compatibili; distinguere reali (OSM) da inventate; le strutture senza corrispondenza reale in interni compatibili o in un'area di fantasia (il Lungomare "Napoli Centro" può diventare l'area di fantasia). Risolvere la sovrapposizione fra **Sala Slot Vesuvio** e **Moto e Scooter Vesuvio** (in Napoli Centro: casinò a (108,76) e concessionario moto a (102,68), `DEALERS` in `shared/catalog.js`).
@@ -74,7 +76,8 @@ Avvertenza: nel gioco il test del browser è lentissimo su questo PC: dopo il vi
 - `shared/` — `world.js` (mappe, collisioni `canStand`, `step`), `catalog.js` (tutto il catalogo: veicoli, locali, distributori, caserme, ESI, ospedale, residenze moderne, giostre, prigione…), `traffic.js` (traffico), `napoli.js` (Mergellina vera, locali), `lanes.js`, `district.js`, `looks.js`, `avatar.js`.
 - `client/` — `3d.html` (pagina del gioco, servita come `/`), `app.js` (avvio, HUD, ciclo), `world/world3d.js` (**tutto il 3D**: righe lunghissime, si modifica con script Node di sostituzione esatta), `world/citylife.js`, `world/ambient.js` (suoni sintetizzati, eventi, meteo), `world/avatar3d.js`, `ui/*` (mappa `bigmap.js`, telefono, città, HUD, drive-hud), `sw.js` (service worker: alza `CACHE` a ogni modifica e aggiungi i nuovi moduli a `SHELL`).
 - `scripts/` — avvio (`play-3d.mjs`), OSM (`osm-scarica.mjs`, `osm-napoli.mjs`), Telegram, APK (`apk-3d.mjs`), QR (`qr-3d.mjs`), strumenti per asset/modelli.
-- `tests/` — 65 test (`npm test`). `tools/` — Java portatile e strumenti modelli. `docs/` — analisi e appunti tecnici. `docs/memoria-claude/` — appunti salvati dal Claude precedente.
+- `scripts/audit-mergellina.mjs` (`npm run audit:mergellina`: raggiungibilità, locali vicini, distribuzione) e `scripts/controlla-sito.mjs` (`npm run controlla-sito [indirizzo]`: controlla che tutti i file del gioco si carichino, anche su Render).
+- `tests/` — 68 test (`npm test`). `tools/` — Java portatile e strumenti modelli. `docs/` — analisi e appunti tecnici. `docs/memoria-claude/` — appunti salvati dal Claude precedente.
 - Gli asset 3D stanno in `client/assets/world/napoli/<categoria>/` (Kenney, Poly Haven, Quaternius CC0; personaggi Rocketbox con licenza propria: `characters/persone-vere/LICENSE-Rocketbox.txt`; mappa © OpenStreetMap ODbL).
 
 ## Trucchi tecnici che fanno risparmiare ore

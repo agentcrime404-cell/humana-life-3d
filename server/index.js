@@ -101,7 +101,7 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
    if(process.env.EXPERIMENTAL!=='1'){const p=url.pathname,onPc=['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
     if((edition==='3d'?['/index.html','/3d','/3d.html']:['/3d','/3d.html']).includes(p)||!onPc&&['/real','/real.html'].includes(p)){res.writeHead(302,{Location:'/'});res.end();return;}}
    const prefix=url.pathname.startsWith('/shared/')?'shared':'client';
-   const rel=decodeURIComponent(url.pathname==='/'?'3d.html':url.pathname==='/admin'?'admin.html':url.pathname==='/3d'?'3d.html':url.pathname==='/real'?'real.html':url.pathname==='/manifest.webmanifest'&&edition==='3d'?'manifest-3d.webmanifest':url.pathname==='/scarica'?(edition==='3d'?'scarica-3d.html':'scarica.html'):url.pathname.replace(/^\/(?:shared\/)?/,''));
+   const rel=decodeURIComponent(url.pathname==='/'?'3d.html':url.pathname==='/admin'?'admin.html':url.pathname==='/3d'?'3d.html':url.pathname==='/real'?'real.html':url.pathname==='/manifest.webmanifest'&&edition==='3d'?'manifest-3d.webmanifest':(url.pathname==='/scarica'||url.pathname==='/scarica-3d')?'scarica-3d.html':url.pathname.replace(/^\/(?:shared\/)?/,''));
    const base=pathResolve(root,prefix),path=pathResolve(base,rel);if(!path.startsWith(base+sep)||rel.split('/').some(p=>p.startsWith('.')))return json(403,{error:'Accesso negato'});
    const file=await readFile(path),head={'Content-Type':({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.json':'application/json'})[extname(path)]||'application/octet-stream','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Permissions-Policy':'camera=(), microphone=(self)','Cache-Control':'no-cache'};
    // Solo HUMANA life 3D: ETag per non riscaricare ciò che non è cambiato, immagini e modelli tenuti in memoria dal telefono per 3 giorni
@@ -110,7 +110,7 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
     if(req.headers['if-none-match']===etag){res.writeHead(304,{ETag:etag,'Cache-Control':head['Cache-Control']});res.end();return;}
     if(/gzip/.test(req.headers['accept-encoding']||'')&&['.html','.js','.css','.json','.svg','.gltf','.webmanifest'].includes(extname(path))&&file.length>1024){const key=path+etag,z=(zipped.get(key)||zipped.set(key,gzipSync(file)).get(key));if(zipped.size>300)zipped.delete(zipped.keys().next().value);head['Content-Encoding']='gzip';head.Vary='Accept-Encoding';head['Content-Length']=z.length;res.writeHead(200,head);res.end(req.method==='HEAD'?undefined:z);return;}}
    res.writeHead(200,head);res.end(req.method==='HEAD'?undefined:file);
-  }catch(e){if(!res.headersSent)json(e.status||(e.code==='ENOENT'?404:500),{error:e.status?e.message:e.code==='ENOENT'?'Risorsa non trovata':'Errore del server'});else res.end();}
+  }catch(e){if(!res.headersSent)json(e.status||((e.code==='ENOENT'||e.code==='EISDIR')?404:500),{error:e.status?e.message:(e.code==='ENOENT'||e.code==='EISDIR')?'Risorsa non trovata':'Errore del server'});else res.end();}
  };
  const server=process.env.TLS_CERT&&process.env.TLS_KEY?https.createServer({cert:readFileSync(process.env.TLS_CERT),key:readFileSync(process.env.TLS_KEY)},handler):http.createServer(handler);
  const wss=new WebSocketServer({noServer:true,maxPayload:20000});

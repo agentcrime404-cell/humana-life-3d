@@ -17,11 +17,36 @@ const NAMES={bar:['Bar Sirena','Caffè del Molo','Bar Partenope','Bar Posillipo'
 const H=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h);};
 // Porta = cella libera più vicina al punto del locale (davanti all'ingresso).
 const near=(x,y)=>{for(let d=0;d<12;d+=.5)for(let a=0;a<12;a++){const px=x+Math.cos(a/12*Math.PI*2)*d,py=y+Math.sin(a/12*Math.PI*2)*d;if(napoliStand(px,py,.35))return {x:px,y:py};}return null;};
+// Distanza minima fra due porte: i locali troppo vicini si separano (restano solo i più importanti vicino al posto vero, gli altri vanno nelle zone vuote).
+const MIN_GAP=20;
+// Mix dei locali di fantasia aggiunti nelle zone senza attività: nome inventato (real:false), mai spacciati per veri.
+const EXTRA_MIX=['bar','trattoria','shop','pizzeria','bar','fashion','osteria','shop','barber','vesuvio','bar','burger','panorama','trattoria','bank'];
+const SKIP_KIND=new Set(['church','chapel','school','kindergarten','university','hospital','roof','garage','garages','shed','industrial','warehouse','service','carport','construction','ruins','public','government','civic','train_station','transportation']);
+const polyArea=p=>{let a=0;for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length];a+=p[i][0]*q[1]-q[0]*p[i][1];}return a/2;};
+// Un possibile ingresso per ogni palazzo: sul lato più lungo, un metro e venti fuori dal muro, dove si può camminare.
+function frontages(){const out=[];for(const b of NAPOLI.data.buildings||[]){if(b.part||SKIP_KIND.has(b.kind))continue;const P=b.p,ar=polyArea(P),A=Math.abs(ar);if(A<45||A>4000)continue;const sg=ar>0?1:-1;let best=null;
+  for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length],dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy);if(L<4)continue;const nx=dy/L*sg,ny=-dx/L*sg;for(const t of [.5,.35,.65]){const mx=p[0]+dx*t,my=p[1]+dy*t,x=mx+nx*1.3,y=my+ny*1.3;if(napoliStand(x,y,.4)&&(!best||L>best.L)){best={x,y,L,nx,ny};break;}}}
+  if(best)out.push({x:best.x,y:best.y,b});}return out;}
 export function napoliPlaces(){if(NAPOLI.places)return NAPOLI.places;const out={doors:[],props:[]};if(!NAPOLI.data)return out;
+ const raw=[];
  NAPOLI.data.pois.forEach((p,i)=>{const t=p.amenity||p.shop;if(t==='atm'){const q=near(p.x,p.y);if(q)out.props.push({id:'matm'+i,kind:'atm',x:q.x,y:q.y,r:.35});return;}
   if(t==='bench'){const q=near(p.x,p.y);if(q)out.props.push({id:'mbench'+i,kind:'bench',x:q.x,y:q.y,r:.5});return;}
-  let to=KIND[t];if(!to)return;if(Array.isArray(to))to=to[H(p.x+','+p.y)%to.length];const q=near(p.x,p.y);if(!q)return;const names=NAMES[to];
+  let to=KIND[t];if(!to)return;if(Array.isArray(to))to=to[H(p.x+','+p.y)%to.length];const q=near(p.x,p.y);if(!q)return;
   // Attività presente su OpenStreetMap (nome e posizione veri, non verificati sul posto) oppure inventata dal gioco (nome di fantasia).
-  const real=!!(p.real&&p.name);out.doors.push({id:'m'+i,name:real?p.name:names[H(i+':'+t)%names.length],x:q.x,y:q.y,exitX:q.x,exitY:q.y,to,kind:t,real,osm:real?p.osm:undefined});
-  if(t==='bank'){const a=near(q.x+1.4,q.y);if(a)out.props.push({id:'matmb'+i,kind:'atm',x:a.x,y:a.y,r:.35});}});
+  raw.push({i,p,q,to,t,real:!!(p.real&&p.name)});});
+ // 1) separazione: prima le attività vere con nome, poi le altre; chi è troppo vicino a una già scelta va nel mucchio da rimettere altrove
+ raw.sort((x,y)=>(y.real-x.real)||(x.i-y.i));const kept=[],pool=[],cell=new Map(),key=(x,y)=>Math.floor(x/MIN_GAP)+','+Math.floor(y/MIN_GAP);
+ const tooClose=(x,y,gap)=>{const cx=Math.floor(x/MIN_GAP),cy=Math.floor(y/MIN_GAP),r=Math.ceil(gap/MIN_GAP);for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++)for(const d of cell.get((cx+a)+','+(cy+b))||[])if(Math.hypot(d.x-x,d.y-y)<gap)return true;return false;};
+ const put=d=>{kept.push(d);const k=key(d.x,d.y);(cell.get(k)||cell.set(k,[]).get(k)).push(d);};
+ for(const r of raw){if(tooClose(r.q.x,r.q.y,MIN_GAP))pool.push(r);else put({x:r.q.x,y:r.q.y,to:r.to,t:r.t,real:r.real,p:r.p,i:r.i});}
+ // 2) zone vuote: nuovi ingressi sui palazzi lontani da ogni locale (scelta del punto più isolato, ripetuta), con i locali messi da parte e poi un mix di fantasia
+ const cand=frontages().filter(c=>!tooClose(c.x,c.y,MIN_GAP*1.5)),MAX_EXTRA=150,GAP_STOP=75,extras=[];
+ const nearest=(x,y)=>{let best=1e9;const cx=Math.floor(x/MIN_GAP),cy=Math.floor(y/MIN_GAP);for(let r=0;r<=6;r++){for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++){if(Math.max(Math.abs(a),Math.abs(b))!==r)continue;for(const d of cell.get((cx+a)+','+(cy+b))||[])best=Math.min(best,Math.hypot(d.x-x,d.y-y));}if(best<r*MIN_GAP)break;}return best;};
+ const dist=cand.map(c=>nearest(c.x,c.y));
+ while(extras.length<MAX_EXTRA){let bi=-1,bd=GAP_STOP;for(let i=0;i<cand.length;i++)if(dist[i]>bd){bd=dist[i];bi=i;}if(bi<0)break;const c=cand[bi];const k=extras.length,fromPool=pool[k];const to=fromPool?fromPool.to:EXTRA_MIX[H('extra'+k)%EXTRA_MIX.length];const d={x:c.x,y:c.y,to,t:fromPool?.t||to,real:false,i:100000+k,extra:true};extras.push(d);put(d);
+  for(let i=0;i<cand.length;i++){const dd=Math.hypot(cand[i].x-c.x,cand[i].y-c.y);if(dd<dist[i])dist[i]=dd;}dist[bi]=-1;}
+ // 3) porte definitive (id stabili: gli stessi sul server e sul client)
+ kept.sort((x,y)=>x.i-y.i).forEach((d,n)=>{const names=NAMES[d.to];const id=d.extra?'mx'+(d.i-100000):'m'+d.i,nm=d.real?d.p.name:names[H(id+':'+d.t)%names.length];
+  out.doors.push({id,name:nm,x:d.x,y:d.y,exitX:d.x,exitY:d.y,to:d.to,kind:d.t,real:!!d.real,osm:d.real?d.p.osm:undefined,fantasy:!d.real});
+  if(d.t==='bank'){const a=near(d.x+1.4,d.y);if(a)out.props.push({id:'matmb'+n,kind:'atm',x:a.x,y:a.y,r:.35});}});
  return NAPOLI.places=out;}

@@ -17,7 +17,9 @@
     "osm:importa": "node scripts/osm-napoli.mjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
     "start:production": "node --env-file-if-exists=.env scripts/play-3d.mjs",
-    "confronto": "node scripts/confronto-mappa.mjs"
+    "confronto": "node scripts/confronto-mappa.mjs",
+    "audit:mergellina": "node scripts/audit-mergellina.mjs",
+    "controlla-sito": "node scripts/controlla-sito.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
