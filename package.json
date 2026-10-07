@@ -16,7 +16,8 @@
     "osm:scarica": "node scripts/osm-scarica.mjs",
     "osm:importa": "node scripts/osm-napoli.mjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
-    "start:production": "node --env-file-if-exists=.env scripts/play-3d.mjs"
+    "start:production": "node --env-file-if-exists=.env scripts/play-3d.mjs",
+    "confronto": "node scripts/confronto-mappa.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

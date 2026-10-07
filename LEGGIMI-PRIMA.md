@@ -53,6 +53,8 @@ Le **password e le chiavi** NON sono in questo file: stanno in `SEGRETI-PRIVATI.
 
 ## Stato della ricostruzione di Mergellina (primo tratto fatto, il resto da fare)
 FATTO:
+- Vista di confronto `docs/confronto-mappa.html` (distanze verificate: differenza ≤ 4 m su 2,5 km).
+- APK ricompilato col nome Napoli life, apre https://humana-life-3d.onrender.com/ (`dist/HUMANA-3D.apk`).
 - Dati OSM scaricati e importati su tutta l'area estesa; griglia, edifici, strade, moli, costa.
 - Terreno a **piastrelle da 512 m** caricate solo vicino al giocatore (`groundTiles` in `client/world/world3d.js`): la zona è quasi 4 km.
 - Castel dell'Ovo: il modello 3D (`castel()`) è adattato alla **pianta vera** (posizione, orientamento, lunghezza).
@@ -61,7 +63,7 @@ FATTO:
 DA FARE (in ordine consigliato):
 1. **Vita nelle strade di Mergellina** (oggi la "città viva" funziona solo nel Lungomare di fantasia: `client/world/citylife.js`, `ambient.js`, traffico in `shared/traffic.js`). Serve una rete stradale da OSM: pedoni sui marciapiedi (offset dalla strada), attraversamenti, pescatori sui pontili, tavolini occupati, consegne, camion ESI, traffico e scooter su corsie, comparsa/sparizione in base alla distanza e agli orari. Idea: sottoclasse di `CityLife` che riusa il pooling dei modelli.
 2. **Le 31 attività della legenda** (le 31 voci che l'utente vede con `/mappa`: locali, benzina, polizia, ospedale, ESI, giostre, concessionari…) da rimappare nella nuova geografia: bar/ristoranti/negozi su spazi compatibili; distinguere reali (OSM) da inventate; le strutture senza corrispondenza reale in interni compatibili o in un'area di fantasia (il Lungomare "Napoli Centro" può diventare l'area di fantasia). Risolvere la sovrapposizione fra **Sala Slot Vesuvio** e **Moto e Scooter Vesuvio** (in Napoli Centro: casinò a (108,76) e concessionario moto a (102,68), `DEALERS` in `shared/catalog.js`).
-3. **Vista di confronto** mappa vera ↔ mappa del gioco (pagina HTML o immagine) con fonti, dati importati, elementi ricostruiti e parti approssimate.
+3. (FATTO) **Vista di confronto** mappa vera ↔ mappa del gioco: `docs/confronto-mappa.html` (si rigenera con `npm run confronto`; le tessere della mappa vera richiedono internet). Contiene fonti, dati importati, parti ricostruite e parti approssimate: aggiornala quando cambia la ricostruzione.
 4. Ricostruire con più fedeltà: porto di Mergellina (moli, barche), Largo Sermoneta (piazza), Via Caracciolo e Via Partenope (alberi, lampioni), Borgo Marinari. Palazzi: usare piani/altezze quando OSM li ha, **stimare** il resto e dirlo; cercare foto di riferimento (facciate, balconi, colori) senza dichiarare "verificato" ciò che non lo è.
 5. **Prestazioni su telefono**: la costruzione di Mergellina oggi impiega ~10 s su questo PC (misura `[napoli]` nella console del browser): per i telefoni servono caricamento per zone anche di palazzi/strade, livelli di dettaglio e meno elementi.
 6. Schermata Crediti con l'attribuzione OSM e le licenze degli asset.
