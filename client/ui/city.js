@@ -54,7 +54,7 @@ export function installCity({net,api,modal,button,el,notify,closeModal,getMe,get
   if(window.HUMANA_3D&&JUKEBOX[me.room]&&distance(JUKEBOX[me.room],me)<2.6)return {kind:'jukebox',label:'✋ Jukebox'};
   if(MAPS[me.room]?.props.some(p=>p.kind==='vending'&&distance(p,me)<2.2))return {kind:'vending',label:'✋ Distributore di bevande'};
   if(me.room==='lungomare'&&!MAPS.lungomare.front){const stop=BUS_STOPS.find(s=>distance(s,me)<2.4);if(stop)return {kind:'bus',stop,label:'✋ Fermata · '+stop.name};}
-  if(window.HUMANA_3D&&me.room==='lungomare'&&!me.seat&&!me.vehicle&&!me.arena&&!me.jail){const a=getW3?.()?.life?.nearest(me.x,me.y);if(a)return {kind:'npc',a,label:'💬 Parla con '+npcName(a)};}
+  if(window.HUMANA_3D&&(me.room==='lungomare'||me.room==='mergellina')&&!me.seat&&!me.vehicle&&!me.arena&&!me.jail){const a=getW3?.()?.activeLife?.()?.nearest(me.x,me.y);if(a)return {kind:'npc',a,label:'💬 Parla con '+npcName(a)};}
   return null;}
  // Bancomat realistico: carta, PIN (simulato, nessun dato reale), menu con tasti laterali, scontrino.
  const beep=(f=880)=>{try{const a=beep.ctx||(beep.ctx=new AudioContext()),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+.07);}catch{}};
@@ -135,9 +135,9 @@ export function installCity({net,api,modal,button,el,notify,closeModal,getMe,get
   box.append(el('small','Gli agenti pattugliano le strade a piedi e le caserme sono a nord della piazza e a ovest.','muted'));}
  // Persone della città: ognuna ha un nome fisso (dal suo numero) e risponde secondo l'ora e quello che succede in strada.
  const NAMES=['Gennaro','Assunta','Ciro','Carmela','Salvatore','Anna','Pasquale','Rosa','Vincenzo','Lucia','Raffaele','Giuseppina','Antonio','Marisa','Luigi','Concetta'];
- const ROLE={walker:'Passante',shopper:'Cliente',diner:'Buongustaio',stroll:'Turista',jogger:'Podista',sitter:'Signore sulla panchina',chat:'Passante',wait:'In attesa dell’autobus',movida:'Ragazzo della movida',sweeper:'Operatore ESI',crew:'Operatore ESI',busker:'Musicista'};
+ const ROLE={walker:'Passante',shopper:'Cliente',diner:'Buongustaio',stroll:'Turista',jogger:'Podista',sitter:'Signore sulla panchina',chat:'Passante',wait:'In attesa dell’autobus',movida:'Ragazzo della movida',sweeper:'Operatore ESI',crew:'Operatore ESI',busker:'Musicista',fisher:'Pescatore',courier:'Fattorino'};
  const npcName=a=>NAMES[(a.id*7+3)%NAMES.length]+' · '+(ROLE[a.kind]||'Passante');
- function npcMenu(a){const me=getMe(),w3=getW3?.(),L=w3?.life,hr=w3?((w3.r2d.seconds()%2400)/2400*24):12,hh=Math.floor(hr),mm=Math.floor((hr-hh)*60),name=NAMES[(a.id*7+3)%NAMES.length];L?.talk(a,me.x,me.y);
+ function npcMenu(a){const me=getMe(),w3=getW3?.(),L=w3?.activeLife?.(),hr=w3?((w3.r2d.seconds()%2400)/2400*24):12,hh=Math.floor(hr),mm=Math.floor((hr-hh)*60),name=NAMES[(a.id*7+3)%NAMES.length];L?.talk(a,me.x,me.y);
   const box=modal('💬 '+npcName(a));const say=t=>{box.querySelector('.npc-say')?.remove();const p=el('p',t);p.className='npc-say';box.prepend(p);};
   const greet=hr<12?'Buongiorno!':hr<18?'Buon pomeriggio!':'Buonasera!';box.append(el('p','«'+greet+' Sono '+name+'. Dimmi pure!»'));
   const ev=w3?.amb?.ev?.k,news={ambulanza:'Hai sentito la sirena? Un’ambulanza passava di qui di corsa.',pattuglia:'C’è una pattuglia che gira per le strade, state tranquilli.',incidente:'Attento, c’è stato un piccolo incidente più avanti: il traffico è lento.',traffico:'Oggi c’è un traffico terribile, non si muove nessuno!',musicista:'Senti? Un musicista suona poco lontano, andate a sentirlo!',temporale:'Che brutto tempo! Prendi un ombrello.',fuochi:'Guarda in alto sul mare: i fuochi d’artificio!'}[ev];

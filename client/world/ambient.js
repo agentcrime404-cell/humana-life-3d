@@ -48,7 +48,7 @@ export class Ambient{
   this.fx.visible=true;const px=w.target.x,pz=w.target.z,h=hourNow(w);this.t+=dt;this.sway(dt);this.snd.resume();
   // gabbiani: girano sopra il lungomare vicino a chi guarda; barche: scorrono piano al largo
   for(const q of this.gulls){q.ph+=q.sp*dt;const cx=px-q.w*.9,cz=pz-q.w*.9;q.g.position.set(cx+Math.cos(q.ph)*q.r,q.h+Math.sin(q.ph*2.3)*.8,cz+Math.sin(q.ph)*q.r);q.g.rotation.y=-q.ph+(q.sp>0?0:Math.PI);const f=Math.sin(w.clock*9+q.w)*.6;q.a.rotation.z=f;q.b.rotation.z=f;q.g.visible=h>5.5&&h<21;}
-  for(const b of this.boats){b.t=(b.t+dt*.0035)%1;const c=SHORE-34-b.k*26,x=-20+b.t*210,y=c-x;b.o.position.set(x,0,y);b.o.rotation.y=Math.PI/4+(b.k%2?Math.PI:0)*0;b.o.visible=Math.abs(x-px)+Math.abs(y-pz)<190;b.o.rotation.z=Math.sin(w.clock*.8+b.k)*.03;}
+  for(const b of this.boats){if(w.room!=='lungomare'){b.o.visible=false;continue;}b.t=(b.t+dt*.0035)%1;const c=SHORE-34-b.k*26,x=-20+b.t*210,y=c-x;b.o.position.set(x,0,y);b.o.rotation.y=Math.PI/4+(b.k%2?Math.PI:0)*0;b.o.visible=Math.abs(x-px)+Math.abs(y-pz)<190;b.o.rotation.z=Math.sin(w.clock*.8+b.k)*.03;}
   // rumori
   window.humanaHorn=()=>this.snd.horn(.08);
   const c=this.cool;for(const k of Object.keys(c))c[k]-=dt;
@@ -64,12 +64,12 @@ export class Ambient{
  mix(dt,list,h){const w=this.w,sn=this.snd,me=w._me,tr=w.r2d.traffic;if(!sn.ok())return;
   const v=me&&me.vehicle?me.vehicle:null,base=v?(VEHICLE[v]?.base||v):null,motor=base&&['auto','cabrio','furgone','scooter','moto'].includes(base);
   if(motor&&!me.seat){const sp=Math.abs(me.vel||0)/14,acc=((me.vel||0)-(this.pv||0))/Math.max(dt,.001);this.pv=me.vel||0;sn.engine(sp,Math.max(0,Math.min(1,acc/4))*(me.fuel===0?0:1),base==='scooter'||base==='moto'?'moto':'auto');if(me.fuel===0)sn.engineOff();}else{sn.engineOff();this.pv=0;}
-  let n=0;if(tr)for(const c of tr.cars){if(c.off)continue;const q=c.path.pointAt(c.s);if(Math.abs(q.x-w.target.x)+Math.abs(q.y-w.target.z)<45)n++;}sn.rumble(Math.min(1,n/5)*(h>6&&h<24?1:.5)*(this.weather<1?1.2:1));
+  let n=0;if(w.room==='mergellina'&&w.mlife){for(const c of w.mlife.cars)if(c.on&&Math.abs(c.x-w.target.x)+Math.abs(c.y-w.target.z)<45)n++;}else if(tr)for(const c of tr.cars){if(c.off)continue;const q=c.path.pointAt(c.s);if(Math.abs(q.x-w.target.x)+Math.abs(q.y-w.target.z)<45)n++;}sn.rumble(Math.min(1,n/5)*(h>6&&h<24?1:.5)*(this.weather<1?1.2:1));
   this.seenH??={};for(const p of list){if(!p.hornAt||this.seenH[p.id]===p.hornAt)continue;this.seenH[p.id]=p.hornAt;if(me&&p.id===me.id)continue;const d=Math.hypot(p.x-w.target.x,p.y-w.target.z);if(d<70&&Date.now()-p.hornAt<1500)sn.horn(.07*Math.max(0,1-d/70));}}
- life(h){const L=this.w.life;if(L)L.weather=this.weather;}
+ life(h){for(const L of [this.w.life,this.w.mlife])if(L)L.weather=this.weather;}
  hide(){this.fx.visible=false;if(this.ev){this.stop();this.next=Math.max(this.next,60);}try{this.snd.engineOff();this.snd.rumble(0);if(this.snd.seaG)this.snd.seaG.gain.value=.012;}catch{}}
  // ---- eventi ----
- start(h){const kinds=['ambulanza','pattuglia','incidente','traffico','musicista','temporale'];if(h>=8&&h<14)kinds.push('mercato','mercato');if(h>=21||h<1)kinds.push('fuochi','fuochi');if(h>=9&&h<20)kinds.push('musicista');const k=pick(kinds);this.ev={k,t:0,dur:{ambulanza:22,pattuglia:20,incidente:40,traffico:35,musicista:70,temporale:80,fuochi:28,mercato:120}[k]};this.begin(this.ev);this.next=rnd(75,210);}
+ start(h){const kinds=['ambulanza','pattuglia','incidente','traffico','musicista','temporale'];if(h>=8&&h<14)kinds.push('mercato','mercato');if(h>=21||h<1)kinds.push('fuochi','fuochi');if(h>=9&&h<20)kinds.push('musicista');const k=this.w.room==='mergellina'?pick(['temporale','temporale','fuochi','traffico'].filter(x=>x!=='traffico'&&(x!=='fuochi'||h>=21||h<1))):pick(kinds);this.ev={k,t:0,dur:{ambulanza:22,pattuglia:20,incidente:40,traffico:35,musicista:70,temporale:80,fuochi:28,mercato:120}[k]};this.begin(this.ev);this.next=rnd(75,210);}
  stop(){const e=this.ev;if(!e)return;try{this.end(e);}catch{}this.ev=null;}
  runEv(dt,h,list){const e=this.ev;e.t+=dt;if(e.t>=e.dur){this.stop();return;}const f=this['f_'+e.k];if(f)f.call(this,e,dt);}
  begin(e){const w=this.w,tr=w.r2d.traffic;switch(e.k){

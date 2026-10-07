@@ -78,7 +78,7 @@ export const JUKEBOX={bar:JB,pizzeria:JB,osteria:JB,vesuvio:JB,trattoria:JB,pano
 // "base" è il mezzo di partenza per guida e regole (auto, cabrio, scooter, bici); "model" è la forma disegnata nel 3D.
 export const DEALERS=[
  {id:'auto',name:'Autosalone del Golfo',icon:'🚘',x:136,y:96,w:11,h:8,color:'#b3261e'},
- {id:'moto',name:'Moto e Scooter Vesuvio',icon:'🏍️',x:102,y:68,w:11,h:8,color:'#1d4e89'},
+ {id:'moto',name:'Moto e Scooter Vesuvio',icon:'🏍️',x:96,y:40,w:11,h:8,color:'#1d4e89'},
  {id:'bici',name:'Ciclofficina Partenope',icon:'🚲',x:36,y:104,w:11,h:8,color:'#1f6f50'}];
 export const VEHICLES_3D=[
  {id:'a-city',shop:'auto',base:'auto',model:'city',name:'Citycar tre porte',emoji:'🚗',buy:900,speed:2.7,color:'#f4f4ef'},
