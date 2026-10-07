@@ -5,7 +5,7 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import {CityLife} from './citylife.js';
 import {Chain,hash,prng} from './syncwalk.js';
-import {NAPOLI,napoliStand,napoliPlaces} from '/shared/napoli.js';
+import {NAPOLI,napoliStand,napoliPlaces,napoliInTunnel} from '/shared/napoli.js';
 const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
 const between=(h,a,b)=>a<=b?h>=a&&h<b:h>=a||h<b;
 const hourNow=w=>((w.r2d.seconds()%2400)/2400*24);
@@ -19,7 +19,7 @@ const DENS={walker:h=>between(h,6.5,9.5)?1:between(h,16,19.5)?.9:between(h,9.5,1
 const COUNT={walker:[8,14],stroll:[4,6],jogger:[2,3],fisher:[3,4],sitter:[5,8],courier:[2,3],sweeper:[2,3],crew:[2,4]};
 const carDensity=h=>between(h,7,9.5)||between(h,17,20)?1:between(h,9.5,17)?.72:between(h,20,23)?.55:.28;
 // ---- rete stradale dalle strade vere ----
-class Net{constructor(D){this.roads=[];for(const r of D.roads){const p=r.p,cum=[0];for(let k=1;k<p.length;k++)cum.push(cum[k-1]+Math.hypot(p[k][0]-p[k-1][0],p[k][1]-p[k-1][1]));if(cum.at(-1)<4)continue;this.roads.push({p,cum,len:cum.at(-1),k:r.k,w:r.w||5,ow:r.ow,name:r.name||'',car:CAR_ROADS.has(r.k)&&!r.tn&&(r.w||5)>=3,walk:r.k!=='motorway'&&r.k!=='trunk',prom:PROM.test(r.name||'')});}
+class Net{constructor(D){this.roads=[];for(const r of D.roads){const p=r.p,cum=[0];for(let k=1;k<p.length;k++)cum.push(cum[k-1]+Math.hypot(p[k][0]-p[k-1][0],p[k][1]-p[k-1][1]));if(cum.at(-1)<4)continue;this.roads.push({p,cum,len:cum.at(-1),k:r.k,w:r.w||5,ow:r.ow,name:r.name||'',car:CAR_ROADS.has(r.k)&&(!r.tn||cum.at(-1)>150)&&(r.w||5)>=3,walk:r.k!=='motorway'&&r.k!=='trunk',prom:PROM.test(r.name||'')});}
   this.node=new Map();const nk=q=>Math.round(q[0]*2)+','+Math.round(q[1]*2);this.key=nk;for(const r of this.roads)r.p.forEach((q,j)=>{const k=nk(q);(this.node.get(k)||this.node.set(k,[]).get(k)).push([r,j]);});
   this.grid=new Map();for(const r of this.roads){const seen=new Set();for(let j=1;j<r.p.length;j++){const a=r.p[j-1],b=r.p[j],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/40));for(let t=0;t<=n;t++){const k=Math.floor((a[0]+(b[0]-a[0])*t/n)/100)+','+Math.floor((a[1]+(b[1]-a[1])*t/n)/100);if(!seen.has(k)){seen.add(k);(this.grid.get(k)||this.grid.set(k,[]).get(k)).push(r);}}}}}
  near(x,y,R){const out=new Set(),c=Math.ceil(R/100),cx=Math.floor(x/100),cy=Math.floor(y/100);for(let a=-c;a<=c;a++)for(let b=-c;b<=c;b++)for(const r of this.grid.get((cx+a)+','+(cy+b))||[])out.add(r);return [...out];}
@@ -109,7 +109,7 @@ export class MergLife extends CityLife{
   this.group.visible=true;const h=hourNow(w),px=w.target.x,pz=w.target.z;
   this.ema=(this.ema??dt)*.96+Math.min(dt,.2)*.04;this.qt=(this.qt||0)+dt;if(this.qt>2.5){this.qt=0;if(this.ema>.046&&this.max>4){this.max--;this.radius=Math.max(34,this.radius-3);}else if(this.ema<.03&&this.max<this.cap){this.max++;this.radius=Math.min(this.rcap,this.radius+3);}}
   // abitanti: si accendono vicino al giocatore secondo l'ora, si spengono se lontani o fuori orario
-  const T=w.r2d.seconds();
+  const T=w.r2d.seconds();if(w.tunnelRoof)w.tunnelRoof.visible=!napoliInTunnel(px,pz,2.5);
   for(const a of this.agents){if(a.manual)continue;if(a.kind==='crew'){const T=this.cars.find(c=>c.kind==='rifiuti'&&c.on);if(!T&&a.on){a.on=false;this.release(a);}if(T&&!a.on&&a.u<(DENS.crew(h))){Object.assign(a,{on:true,state:'crew',hide:true,truck:this.tc[Math.floor(a.k/2)]||null});if(!a.truck)a.on=false;}continue;}
    const want=a.u<(DENS[a.kind](h)*(this.weather??1));
    if(!want){if(a.on){a.on=false;this.release(a);}continue;}

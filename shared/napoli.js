@@ -2,7 +2,21 @@
 // La griglia (1 cella = 1 m) dice dove si cammina: niente palazzi né mare; i pontili sono calpestabili.
 export const NAPOLI={data:null,grid:null,x0:0,y0:0,w:0,h:0};
 const decode=b64=>typeof Buffer!=='undefined'?new Uint8Array(Buffer.from(b64,'base64')):Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
-export function setNapoli(data){const g=data.grid;Object.assign(NAPOLI,{data,grid:decode(g.bits),x0:g.x0,y0:g.y0,w:g.w,h:g.h});}
+export function setNapoli(data){const g=data.grid;Object.assign(NAPOLI,{data,grid:decode(g.bits),x0:g.x0,y0:g.y0,w:g.w,h:g.h,tunnels:[]});carveTunnels();}
+// Gallerie vere (Galleria della Vittoria, delle Quattro Giornate, di Posillipo...): il corridoio si può percorrere a piedi e in auto,
+// gli edifici sopra il tracciato non si disegnano (la collina è il tubo) e ogni carreggiata larga al massimo 7 m.
+const NOT_CAR=new Set(['footway','steps','path','cycleway','pedestrian']);
+function carveTunnels(){const D=NAPOLI.data,T=NAPOLI.tunnels;
+ for(const r of D.roads||[]){if(!r.tn||NOT_CAR.has(r.k)||(r.w||5)<5)continue;let len=0;for(let i=1;i<r.p.length;i++)len+=Math.hypot(r.p[i][0]-r.p[i-1][0],r.p[i][1]-r.p[i-1][1]);if(len<60)continue;
+  if(r.w>7)r.w=7;T.push({p:r.p,w:r.w,len,name:r.name||'Galleria',ow:r.ow});}
+ const set=(x,y)=>{const cx=Math.floor(x)-NAPOLI.x0,cy=Math.floor(y)-NAPOLI.y0;if(cx<0||cy<0||cx>=NAPOLI.w||cy>=NAPOLI.h)return;const i=cy*NAPOLI.w+cx;NAPOLI.grid[i>>3]|=1<<(i&7);};
+ const segD=(x,y,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l));return Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t);};
+ for(const t of T){const R=t.w/2+.4;for(let i=1;i<t.p.length;i++){const a=t.p[i-1],b=t.p[i],L=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let d=0;d<=L;d+=.75){const x=a[0]+(b[0]-a[0])*d/L,y=a[1]+(b[1]-a[1])*d/L;for(let ox=-Math.ceil(R);ox<=Math.ceil(R);ox++)for(let oy=-Math.ceil(R);oy<=Math.ceil(R);oy++)if(Math.hypot(ox,oy)<=R)set(x+ox,y+oy);}}}
+ const inPoly=(x,y,P)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++)if((P[i][1]>y)!==(P[j][1]>y)&&x<(P[j][0]-P[i][0])*(y-P[i][1])/(P[j][1]-P[i][1])+P[i][0])c=!c;return c;};
+ for(const b of D.buildings||[]){const P=b.p;if(!P||P.length<3)continue;let hit=false;
+  for(const t of T){const R=t.w/2+1.8;for(let i=1;i<t.p.length&&!hit;i++){const a=t.p[i-1],c=t.p[i];if(P.some(q=>segD(q[0],q[1],a,c)<R))hit=true;else{const L=Math.hypot(c[0]-a[0],c[1]-a[1]);for(let d=0;d<=L&&!hit;d+=3)if(inPoly(a[0]+(c[0]-a[0])*d/L,a[1]+(c[1]-a[1])*d/L,P))hit=true;}}if(hit)break;}
+  if(hit)b.tn=1;}}
+export function napoliInTunnel(x,y,pad=.5){for(const t of NAPOLI.tunnels||[])for(let i=1;i<t.p.length;i++){const a=t.p[i-1],b=t.p[i],dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy||1,k=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l));if(Math.hypot(x-a[0]-dx*k,y-a[1]-dy*k)<t.w/2+pad)return true;}return false;}
 export function napoliCell(x,y){if(!NAPOLI.grid)return false;const cx=Math.floor(x)-NAPOLI.x0,cy=Math.floor(y)-NAPOLI.y0;if(cx<0||cy<0||cx>=NAPOLI.w||cy>=NAPOLI.h)return false;const i=cy*NAPOLI.w+cx;return !!(NAPOLI.grid[i>>3]&(1<<(i&7)));}
 // Un giocatore (raggio r) sta in piedi se il centro e i quattro lati sono calpestabili.
 export function napoliStand(x,y,r=.25){return napoliCell(x,y)&&napoliCell(x+r,y)&&napoliCell(x-r,y)&&napoliCell(x,y+r)&&napoliCell(x,y-r);}
@@ -24,7 +38,7 @@ const EXTRA_MIX=['bar','trattoria','shop','pizzeria','bar','fashion','osteria','
 const SKIP_KIND=new Set(['church','chapel','school','kindergarten','university','hospital','roof','garage','garages','shed','industrial','warehouse','service','carport','construction','ruins','public','government','civic','train_station','transportation']);
 const polyArea=p=>{let a=0;for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length];a+=p[i][0]*q[1]-q[0]*p[i][1];}return a/2;};
 // Un possibile ingresso per ogni palazzo: sul lato più lungo, un metro e venti fuori dal muro, dove si può camminare.
-function frontages(){const out=[];for(const b of NAPOLI.data.buildings||[]){if(b.part||SKIP_KIND.has(b.kind))continue;const P=b.p,ar=polyArea(P),A=Math.abs(ar);if(A<45||A>4000)continue;const sg=ar>0?1:-1;let best=null;
+function frontages(){const out=[];for(const b of NAPOLI.data.buildings||[]){if(b.part||b.tn||SKIP_KIND.has(b.kind))continue;const P=b.p,ar=polyArea(P),A=Math.abs(ar);if(A<45||A>4000)continue;const sg=ar>0?1:-1;let best=null;
   for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length],dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy);if(L<4)continue;const nx=dy/L*sg,ny=-dx/L*sg;for(const t of [.5,.35,.65]){const mx=p[0]+dx*t,my=p[1]+dy*t,x=mx+nx*1.3,y=my+ny*1.3;if(napoliStand(x,y,.4)&&(!best||L>best.L)){best={x,y,L,nx,ny};break;}}}
   if(best)out.push({x:best.x,y:best.y,b});}return out;}
 export function napoliPlaces(){if(NAPOLI.places)return NAPOLI.places;const out={doors:[],props:[]};if(!NAPOLI.data)return out;

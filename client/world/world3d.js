@@ -569,6 +569,25 @@ export class World3D{
   return this._villas=out;}
  villaName(b){const N=['Esposito','Russo','Romano','Ferrara','Gallo','De Luca','Marino','Greco','Bianchi','Conte','Caruso','Rizzo','Lombardi','Moretti','Barone','Fontana'];return 'Villa '+N[hash(b.p[0][0]+':'+b.p[0][1])%N.length];}
  // Luoghi riconoscibili della mappa vera: piazze, spiagge, Fontana del Sebeto, cartelli con i nomi dei punti di riferimento.
+ // Gallerie: pareti di pietra, luci, soffitto (si nasconde quando ci sei dentro) e portale con il nome all'imbocco.
+ napoliTunnels(){const T=NAPOLI.tunnels;if(!T?.length)return;const H=5.6,Z=this.static,roof=new THREE.Group(),G=new THREE.Group(),
+  wallM=new THREE.MeshLambertMaterial({color:'#b3a487',side:THREE.DoubleSide}),roofM=new THREE.MeshLambertMaterial({color:'#7d7466',side:THREE.DoubleSide}),stoneM=new THREE.MeshLambertMaterial({color:'#a39478'}),lampM=new THREE.MeshBasicMaterial({color:'#ffd98a'});
+  const lamps=[],wallP=[],roofP=[],quad=(P,a,b,c,d)=>P.push(...a,...b,...c,...a,...c,...d);
+  for(const t of T){const w2=t.w/2+.35;let acc=0;for(let i=1;i<t.p.length;i++){const a=t.p[i-1],b=t.p[i],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);if(L<.1)continue;const nx=-dy/L,ny=dx/L;
+    for(const s of [1,-1])quad(wallP,[a[0]+nx*w2*s,0,a[1]+ny*w2*s],[b[0]+nx*w2*s,0,b[1]+ny*w2*s],[b[0]+nx*w2*s,H,b[1]+ny*w2*s],[a[0]+nx*w2*s,H,a[1]+ny*w2*s]);
+    const r2=w2+.6;quad(roofP,[a[0]+nx*r2,H,a[1]+ny*r2],[b[0]+nx*r2,H,b[1]+ny*r2],[b[0]-nx*r2,H,b[1]-ny*r2],[a[0]-nx*r2,H,a[1]-ny*r2]);
+    for(let d=((9-acc%9)%9)+2;d<L;d+=9)for(const s of [1,-1])lamps.push([a[0]+dx/L*d+nx*(w2-.12)*s,a[1]+dy/L*d+ny*(w2-.12)*s,Math.atan2(dx,dy)]);acc+=L;}
+   for(const end of [0,1]){const n=t.p.length,A=end?t.p[n-1]:t.p[0],B=end?t.p[n-2]:t.p[1];if(!end&&false)continue;const L=Math.hypot(A[0]-B[0],A[1]-B[1])||1,ux=(A[0]-B[0])/L,uy=(A[1]-B[1])/L,yaw=Math.atan2(ux,uy),px=-uy,py=ux,P=new THREE.Group();
+    const box=(sx,sy,sz,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),stoneM);m.position.set(x,y,z);P.add(m);};
+    box(1.5,H+1.6,1.4,(w2+.75),(H+1.6)/2,0);box(1.5,H+1.6,1.4,-(w2+.75),(H+1.6)/2,0);box(2*w2+3,1.6,1.4,0,H+.8,0);
+    const c=document.createElement('canvas');c.width=512;c.height=64;const g=c.getContext('2d');g.fillStyle='#14532d';g.fillRect(0,0,512,64);g.strokeStyle='#fff';g.lineWidth=3;g.strokeRect(4,4,504,56);g.fillStyle='#fff';g.font='bold 30px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText((t.name||'Galleria').toUpperCase(),256,34);
+    const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;const pl=new THREE.Mesh(new THREE.PlaneGeometry(Math.min(2*w2+2.5,9),1.1),new THREE.MeshBasicMaterial({map:tx}));pl.position.set(0,H+.8,.72);P.add(pl);
+    P.position.set(A[0]+ux*.2,0,A[1]+uy*.2);P.rotation.y=yaw;G.add(P);}}
+  const mk=(arr,mat)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));g.computeVertexNormals();const m=new THREE.Mesh(g,mat);m.frustumCulled=false;return m;};
+  G.add(mk(wallP,wallM));roof.add(mk(roofP,roofM));
+  if(lamps.length){const im=new THREE.InstancedMesh(new THREE.BoxGeometry(.25,.35,1.4),lampM,lamps.length),o=new THREE.Object3D();lamps.forEach((l,i)=>{o.position.set(l[0],4.3,l[1]);o.rotation.y=l[2];o.updateMatrix();im.setMatrixAt(i,o.matrix);});im.frustumCulled=false;G.add(im);}
+  for(const o of [G,roof])o.traverse(m=>{if(m.isMesh)m.userData.toon=false;});
+  Z.add(G,roof);this.tunnelRoof=roof;}
  napoliLandmarks(D,lap){const Z=this.static,SW=this.groundY||.12,flat=(poly,col,y)=>{if(poly.length<3)return;const sg=new THREE.ShapeGeometry(new THREE.Shape(poly.map(q=>new THREE.Vector2(q[0],q[1]))));sg.rotateX(Math.PI/2);const m=new THREE.Mesh(sg,new THREE.MeshToonMaterial({color:col,gradientMap:this.grad,side:THREE.DoubleSide}));m.position.y=y;m.userData.toon=true;m.material.userData.outlineParameters={visible:false};Z.add(m);};
   for(const q of D.squares||[])flat(q.p,'#d9ccb4',SW+.014);
   for(const q of D.beaches||[])flat(q.p,'#ecd9a6',SW+.012);
@@ -971,7 +990,7 @@ export class World3D{
   const BL=[],FM={},spos=[];
   const pos=[],uv=[],col=[],rpos=[],rcol=[],gpos=[],guv=[],ppos=[],pcol=[],FV=this.fac?this.fac.map(()=>({pos:[],uv:[]})):null;
   const villaSet=new Set(this.pickVillas(D).map(c=>c.b)),VCOL=['#f6efe2','#f1e3c8','#e9d8bd','#f3eadb','#e4efe6'].map(hx=>new THREE.Color(hx));
-  for(const b of D.buildings){const pts=b.p;if(pts.length<3)continue;if(b.historic==='castle'&&/Ovo/.test(b.name||''))continue;const area=Math.abs(pts.reduce((a,q,i)=>{const n=pts[(i+1)%pts.length];return a+q[0]*n[1]-n[0]*q[1];},0)/2);if(area<12)continue;
+  for(const b of D.buildings){const pts=b.p;if(pts.length<3||b.tn)continue;if(b.historic==='castle'&&/Ovo/.test(b.name||''))continue;const area=Math.abs(pts.reduce((a,q,i)=>{const n=pts[(i+1)%pts.length];return a+q[0]*n[1]-n[0]*q[1];},0)/2);if(area<12)continue;
    const sd=hash(pts[0][0]+','+pts[0][1]),lv=villaSet.has(b)?2+(hash(pts[0][0]+','+pts[0][1])%2):b.lv||((()=>{if(!this.landFn)return false;const cx=pts.reduce((q,p)=>q+p[0],0)/pts.length,cy=pts.reduce((q,p)=>q+p[1],0)/pts.length;let n=0;for(let a=0;a<8;a++)if(!this.landFn(cx+Math.cos(a*.785)*30,cy+Math.sin(a*.785)*30))n++;return n>=4;})()?1:area<60?1+sd%3:area<160?3+sd%4:sd%13===0?10+sd%4:4+sd%6+(area>400?2:0)),h=lv*3.3+.8,cl=villaSet.has(b)?VCOL[sd%VCOL.length]:COL[sd%COL.length],fn0=(sd>>3)%8,fv0=FV&&FV[fn0];
    const rec={pts,lv,sd,wc:[cl.r*1.25,cl.g*1.25,cl.b*1.25],cx:pts.reduce((q,p)=>q+p[0],0)/pts.length,cy:pts.reduce((q,p)=>q+p[1],0)/pts.length},w0=(fv0?fv0.pos.length:pos.length)/3,g0=gpos.length/3;rec.rad=Math.max(...pts.map(p=>Math.hypot(p[0]-rec.cx,p[1]-rec.cy)));BL.push(rec);
    for(let i=0;i<pts.length;i++){const a=pts[i],n=pts[(i+1)%pts.length],L=Math.hypot(n[0]-a[0],n[1]-a[1]);if(L<.3)continue;const u1=Math.max(1,Math.round(L/2.6)),v1=h/3.3;
@@ -1079,7 +1098,7 @@ export class World3D{
      // Castel dell'Ovo sulla sua pianta vera di OpenStreetMap: stessa posizione, orientamento e lunghezza (il modello si adatta all'asse principale della pianta).
    {const cb=D.buildings.find(b=>b.historic==='castle'&&/Ovo/.test(b.name||''));if(cb){const cx=cb.p.reduce((q,p)=>q+p[0],0)/cb.p.length,cz=cb.p.reduce((q,p)=>q+p[1],0)/cb.p.length;let sxx=0,sxz=0,szz=0;for(const p of cb.p){const dx=p[0]-cx,dz=p[1]-cz;sxx+=dx*dx;sxz+=dx*dz;szz+=dz*dz;}const ang=.5*Math.atan2(2*sxz,sxx-szz),ca=Math.cos(ang),sa=Math.sin(ang);let L=0,Wd=0;for(const p of cb.p){const dx=p[0]-cx,dz=p[1]-cz;L=Math.max(L,Math.abs(dx*ca+dz*sa));Wd=Math.max(Wd,Math.abs(-dx*sa+dz*ca));}const bb=new THREE.Box3().setFromObject(castle),sz=bb.getSize(new THREE.Vector3()),mLong=Math.max(sz.x,sz.z),k=(2*L)/Math.max(1,mLong);castle.userData.fit={cx,cz,ang,L:2*L,W:2*Wd};castle.scale.setScalar(Math.max(.5,Math.min(2.5,k)));castle.rotation.y=sz.x>=sz.z?-ang:-ang+Math.PI/2;castle.position.set(cx,0,cz);}else{castle.position.set(2546,0,220);castle.rotation.y=-Math.PI/2+.22;}this.static.add(castle);}
   {const dir=new THREE.Vector2(17580,1028).normalize(),geo=this.vesuvio(2100,540,110,{sx:14,sz:86,sh:1.27,haze:.74});const v=new THREE.Mesh(geo,new THREE.MeshToonMaterial({vertexColors:true,gradientMap:this.grad,fog:false}));v.position.set(dir.x*5600,0,dir.y*5600);v.userData.toon=true;v.userData.keep=true;v.material.transparent=true;v.renderOrder=12;this.static.add(v);}
-  try{this.napoliLandmarks(D,lap);}catch(e){console.warn('luoghi',e);}lap("auto e castello");this.bake(this.static);this.toonify(this.static);lap("fine");}
+  try{this.napoliLandmarks(D,lap);}catch(e){console.warn('luoghi',e);}lap("auto e castello");this.bake(this.static);this.toonify(this.static);try{this.napoliTunnels();}catch(e){console.warn("gallerie",e);}lap("fine");}
  // Materiali delle facciate vere: intonaco e bugnato PBR (foto + rilievo + ruvidità, piastrella da 2,4 m), vetri con riflesso moderato,
  // persiane a stecche, ringhiera di ferro traforata, portone di legno. Sui telefoni: stesse foto ma luce semplice (niente rilievo).
  facadeMats(merge){if(merge){if(!this.fcMM){const M=this.facadeMats();this.fcMM={};for(const k of Object.keys(M)){const m=M[k].clone();m.userData={...M[k].userData,merge:true};if(M[k].userData.glow)this.glow.add(m);this.fcMM[k]=m;}}return this.fcMM;}if(this.fcM)return this.fcM;const PB=!this.mobile&&!this.toon,cv=(w,h,fn)=>{const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'));const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;};
