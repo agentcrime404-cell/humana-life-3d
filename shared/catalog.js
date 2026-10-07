@@ -174,6 +174,7 @@ export const STAFF_ROLE={bar:'Barista',pizzeria:'Pizzaiolo',osteria:'Oste',vesuv
 export const solidBlocks=()=>{const out=[...arenaBlocks()];
  for(const g of GAS){const G=gasGeom(g);out.push(G.shop);for(const p of G.pumps)out.push([p.x-.45,p.y-.6,p.x+.45,p.y+.6]);for(const dx of [-6,6])out.push([G.cx+dx-.2,G.island.y-1.9,G.cx+dx+.2,G.island.y-1.5]);}
  for(const c of POLICE){const P=policeGeom(c);out.push(P.build,...P.cars,[P.flag.x-.2,P.flag.y-.2,P.flag.x+.2,P.flag.y+.2]);}
+ out.push(esiGeom(ESI).build);
  return out;};
 // Furti e prigione (solo HUMANA life 3D): si può prendere tutto senza pagare, ma se un agente ti vede finisci in cella per un minuto, poi ti liberano.
 export const PRISON={seconds:60,catch:.8,delay:[5,9]};
@@ -181,3 +182,6 @@ export const prisonCell=c=>{const P=policeGeom(c);return {x:(P.build[0]+P.build[
 export const STEAL_PATHS=['/api/purchase','/api/barber','/api/vending','/api/service/order','/api/fuel/refill','/api/vehicle/buy','/api/vehicle/rent'];
 export const JAIL_BLOCK=[...STEAL_PATHS,'/api/vehicle','/api/arena','/api/giostra','/api/boat','/api/home/enter'];
 export const CAR_BASES=['auto','cabrio','furgone'];
+// ESI · Raccolta rifiuti (solo HUMANA life 3D): il deposito a ovest e i camion che passano per le strade di mattina; gli operatori svuotano i bidoni e spazzano.
+export const ESI={id:'esi',name:'ESI · Raccolta rifiuti',x:26,y:76,w:12,h:8};
+export const esiGeom=e=>({build:[e.x+1,e.y,e.x+e.w-1,e.y+4.5],door:{x:e.x+e.w/2,y:e.y+5.6},yard:[e.x+.6,e.y+5,e.x+e.w-.6,e.y+e.h-.2]});

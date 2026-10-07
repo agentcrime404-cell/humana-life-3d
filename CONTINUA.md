@@ -218,3 +218,10 @@ Cartelle sul Desktop: `HUMANA life`, `HUMANA life 3D`, `HUMANA life real` (avvii
 - Tasto "🤫 Ruba" (in basso a sinistra, spostabile): le richieste di acquisto (negozi, barbiere, bevande, benzina, mezzi) non scalano monete (`Living.take`, `STEAL_PATHS`) e avvisano `server/police.js`: 80% di essere visti → ricercato 5-9 s (agente che insegue sul client) → cella 60 s nella caserma più vicina → liberato alla porta.
 - Auto comprate (auto/cabrio/furgone): `progress.parked`, restano dove lasciate (visibili a tutti nel mondo, 🚗 sulla mappa grande); per risalire serve essere entro 9 m. Comprandole compaiono davanti al concessionario.
 - Mappa grande: ⛽ distributori e 🚓 caserme. Test: tests/police.test.js.
+
+## Mappa GPS, città viva, ESI (2026-10-07)
+- Mappa grande (client/ui/bigmap.js): POI per categoria con filtri, cluster con numero (tocco = zoom), scheda con nome/categoria/distanza e VAI, percorso GPS tratteggiato (pointer.path), giocatore con alone "TU". Punti extra: window.__mapExtra.
+- client/world/citylife.js: abitanti simulati (passanti, clienti, jogging, panchine, chiacchiere, fermata, movida, spazzini/operatori ESI) con routine per ora (DENS), anelli di marciapiede, attraversamenti ai semafori, pooling di modelli 3D (max 8 mobile / 14 desktop, qualità dinamica). Si parla con loro (city.js npcMenu).
+- shared/traffic.js enrich(): scooter, furgoni, camion ESI (6-13), densità per ora, parcheggio e ripartenza, speedK (traffico).
+- client/world/ambient.js: gabbiani, barche lontane, alberi che ondeggiano, suoni sintetizzati (humana-ambient=off per spegnerli), eventi (ambulanza, pattuglia, incidente, traffico, musicista, fuochi, temporale).
+- ESI deposito in shared/catalog.js (ESI). Passeggero in auto visibile agli altri. Tasto Ruba nel menu di sinistra; X telefono torna alla Home; tasto ↻ orientamento. Test: tests/citylife.test.js.

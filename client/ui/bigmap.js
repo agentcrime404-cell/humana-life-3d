@@ -2,7 +2,7 @@
 // destinazione (il personaggio ci va da solo e nel mondo compare un segnale luminoso). "← Indietro" o il tasto Indietro la chiudono.
 import {MAPS,MODE,doors,cityEdge,SHORE,BEACH} from '/shared/world.js';
 import {surface} from '/shared/district.js';
-import {NAPOLI} from '/shared/napoli.js';import {DEALERS,BOATS,GAS,POLICE,gasGeom,policeGeom,VEHICLE,FUNFAIR,ARENA} from '/shared/catalog.js';
+import {NAPOLI} from '/shared/napoli.js';import {DEALERS,BOATS,GAS,POLICE,gasGeom,policeGeom,VEHICLE,FUNFAIR,ARENA,ESI,esiGeom} from '/shared/catalog.js';
 const ICON={bar:'☕',pizzeria:'🍕',shop:'🛒',club:'🎵',bank:'🏦',burger:'🍔',osteria:'🍝',vesuvio:'🍷',trattoria:'🍝',panorama:'🍽',mall:'🛍',fashion:'👗',barber:'✂',casino:'🎰'};
 // Categorie dei punti di interesse (POI): icona e nome; i POI vicini si raggruppano in cluster con il numero.
 const CATS={casa:['🏠','Case'],cibo:['🍽','Ristoranti'],bar:['☕','Bar'],negozi:['🛍','Negozi'],banca:['🏦','Banca / ATM'],benzina:['⛽','Benzinaio'],polizia:['🚓','Polizia'],ospedale:['🏥','Ospedale'],lavoro:['💼','Lavoro'],svago:['🎡','Divertimento'],veicoli:['🚗','Veicoli']};
@@ -36,7 +36,7 @@ export function openBigMap({me:getMe,players:getPlayers,pointer,w3,notify}){
  if(room==='lungomare'){for(const d of DEALERS)addPoi(d.x+d.w/2,d.y+d.h+1.2,d.name,'veicoli',d.icon);
   if(window.HUMANA_3D){for(const g of GAS)addPoi(gasGeom(g).cx,gasGeom(g).island.y+gasGeom(g).s*2.6,g.name,'benzina');for(const c of POLICE)addPoi(policeGeom(c).door.x,policeGeom(c).door.y+1.4,c.name,'polizia');
    for(const c of me0.myCars||[])addPoi(c.x,c.y,'La tua '+(VEHICLE[c.v]?.name||'auto'),'veicoli','🚗');
-   for(const [id,r] of Object.entries(FUNFAIR.rides||{}))addPoi(r.x,r.y+4,r.name,'svago',r.emoji);addPoi(ARENA.kiosk.x,ARENA.kiosk.y,'Arena paintball','svago','🎯');
+   for(const [id,r] of Object.entries(FUNFAIR.rides||{}))addPoi(r.x,r.y+4,r.name,'svago',r.emoji);addPoi(ARENA.kiosk.x,ARENA.kiosk.y,'Arena paintball','svago','🎯');addPoi(esiGeom(ESI).door.x,esiGeom(ESI).door.y+1,ESI.name,'lavoro','🚛');
    for(const e of window.__mapExtra||[])addPoi(e.x,e.y,e.name,e.cat,e.icon);}}
  if(BOATS[room])addPoi(BOATS[room].dock.x,BOATS[room].dock.y,BOATS[room].name,'svago','⛵');
  const off=new Set(),dist=(p,m)=>Math.round(Math.hypot(p.x-m.x,p.y-m.y));let sel=null,tween=null,hits=[];
