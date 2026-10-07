@@ -2,7 +2,7 @@
 // menu di sinistra e bottoni dell'arena dove si vuole. Le posizioni (spostamenti dal punto di partenza) restano sul telefono, una serie per schermo
 // verticale e una per orizzontale, e si possono azzerare.
 const KEY='humana-hud-v1';
-const ITEMS=[['#joystick','Joystick'],['.actions','Azioni e telefono'],['#cam3d','Telecamera / mappa / grafica'],['.social','Menu di sinistra'],['#ar-fire','Spara (arena)'],['#ar-reload','Ricarica (arena)'],['#chat','Chat'],['#drive-hud','Benzina e Scendi'],['#alc-hud','Livello di alcol'],['#steal-btn','Tasto Ruba']];
+const ITEMS=[['#joystick','Joystick'],['.actions','Azioni e telefono'],['#cam3d','Telecamera / mappa / grafica'],['.social','Menu di sinistra'],['#ar-fire','Spara (arena)'],['#ar-reload','Ricarica (arena)'],['#chat','Chat'],['#drive-hud','Benzina e Scendi'],['#alc-hud','Livello di alcol']];
 const mode=()=>innerWidth>innerHeight?'land':'port';
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}');}catch{return {};}};
 const save=d=>{try{localStorage.setItem(KEY,JSON.stringify(d));}catch{}};
