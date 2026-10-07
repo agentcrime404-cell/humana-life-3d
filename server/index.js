@@ -1,6 +1,7 @@
 import {cleanAvatar,cleanPhoto} from '../shared/avatar.js';
 import {LOOKS} from '../shared/looks.js';import {setNapoli} from '../shared/napoli.js';import {registerMergellina,registerMallFloor,EXTRA_BLOCKS} from '../shared/world.js';import {solidBlocks} from '../shared/catalog.js';import {Arena} from './arena.js';import {Fuel} from './fuel.js';import {Police} from './police.js';import {Service} from './service.js';
 // Zona Mergellina di HUMANA life 3D (mappa vera OpenStreetMap), se il file della mappa esiste.
+const BUILD=(()=>{try{return (readFileSync(new URL('../client/sw.js',import.meta.url),'utf8').match(/humana-life-(\d+)/)||[])[1]||'0';}catch{return '0';}})();
 let napoliLoaded=false;function loadMergellina(){if(napoliLoaded)return;napoliLoaded=true;try{setNapoli(JSON.parse(readFileSync(new URL('../client/assets/world/napoli/map/mergellina.json',import.meta.url),'utf8')));registerMergellina();}catch(e){console.warn('Mergellina non caricata:',e.message);}}
 import http from 'node:http';import https from 'node:https';import {readFileSync,createReadStream} from 'node:fs';import {readFile,stat} from 'node:fs/promises';import {gzipSync} from 'node:zlib';import {fileURLToPath} from 'node:url';import {resolve as pathResolve,extname,sep,dirname as pathDirname,join as pathJoin} from 'node:path';import {randomUUID} from 'node:crypto';import {WebSocketServer} from 'ws';
 import {database} from './database.js';import {hashPassword,verify,token,resolve,publicUser,digest} from './auth.js';import {Game} from './game.js';import {payments} from './payments.js';import {Living} from './living.js';import {saveReport,logError} from './reports.js';import {MapEditor} from './editor.js';import {Jobs} from './jobs.js';import {Phone} from './phone.js';import {verifyGoogle,googleUser,googleClientId,randomSecret} from './google.js';
@@ -19,6 +20,7 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
   try{
    const url=new URL(req.url,'http://localhost');
    if(url.pathname==='/health'&&req.method==='GET')return json(200,{status:'ok'});
+   if(url.pathname==='/version.json'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({build:BUILD,gioco:'Napoli life'}));return;}
    // Immagini scaricate dall'app sul telefono (oggetti aggiunti dopo l'installazione).
    if(!url.pathname.startsWith('/api/')&&APP_ORIGINS.has(req.headers.origin)){res.setHeader('Access-Control-Allow-Origin',req.headers.origin);res.setHeader('Vary','Origin');}
    if(url.pathname.startsWith('/api/')){
@@ -106,7 +108,7 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
    const file=await readFile(path),head={'Content-Type':({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.json':'application/json'})[extname(path)]||'application/octet-stream','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Permissions-Policy':'camera=(), microphone=(self)','Cache-Control':'no-cache'};
    // Solo HUMANA life 3D: ETag per non riscaricare ciò che non è cambiato, immagini e modelli tenuti in memoria dal telefono per 3 giorni
    // (prima ogni apertura riscaricava tutto: centinaia di MB), testi compressi. HUMANA life (2D) resta com'era.
-   if(edition==='3d'){const st=await stat(path),etag='"'+st.size.toString(16)+'-'+Math.floor(st.mtimeMs).toString(16)+'"',heavy=url.pathname.startsWith('/assets/')||url.pathname.startsWith('/vendor/');head.ETag=etag;head['Cache-Control']=heavy?'public, max-age=259200':'no-cache';
+   if(edition==='3d'){const st=await stat(path),etag='"'+st.size.toString(16)+'-'+Math.floor(st.mtimeMs).toString(16)+'"',heavy=url.pathname.startsWith('/assets/')||url.pathname.startsWith('/vendor/');head.ETag=etag;head['Cache-Control']=heavy&&!url.pathname.startsWith('/assets/world/napoli/map/')?'public, max-age=259200':'no-cache';
     if(req.headers['if-none-match']===etag){res.writeHead(304,{ETag:etag,'Cache-Control':head['Cache-Control']});res.end();return;}
     if(/gzip/.test(req.headers['accept-encoding']||'')&&['.html','.js','.css','.json','.svg','.gltf','.webmanifest'].includes(extname(path))&&file.length>1024){const key=path+etag,z=(zipped.get(key)||zipped.set(key,gzipSync(file)).get(key));if(zipped.size>300)zipped.delete(zipped.keys().next().value);head['Content-Encoding']='gzip';head.Vary='Accept-Encoding';head['Content-Length']=z.length;res.writeHead(200,head);res.end(req.method==='HEAD'?undefined:z);return;}}
    res.writeHead(200,head);res.end(req.method==='HEAD'?undefined:file);

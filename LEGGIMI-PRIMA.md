@@ -20,7 +20,7 @@ Le **password e le chiavi** NON sono in questo file: stanno in `SEGRETI-PRIVATI.
 1. Node.js 24 (nodejs.org). Nella cartella: `npm ci` (la prima volta).
 2. `npm start` oppure doppio clic su `AVVIA-NAPOLI-LIFE.bat` → gioco su **http://localhost:3079/** (archivio giocatori `data/humana-3d.sqlite`). Mac: `AVVIA-NAPOLI-LIFE-MAC.command`.
 3. Ingresso: pulsante **GIOCA SUBITO** (ospite, sceglie un personaggio) oppure account.
-4. Test: `npm test` (68 test; se un test fallisce solo quando si lancia tutto insieme ed esce da solo, è la lentezza del PC: rilanciarlo da solo).
+4. Test: `npm test` (69 test; se un test fallisce solo quando si lancia tutto insieme ed esce da solo, è la lentezza del PC: rilanciarlo da solo).
 5. Variabili in `.env` (modello in `.env.example`): `PORT_3D`, `DATABASE_PATH_3D`, `ICE_SERVERS_JSON` (server TURN per la voce), `TELEGRAM_BOT_TOKEN`, ecc. Nota: una variabile di sistema con lo stesso nome vince su `.env` (è successo con `TELEGRAM_BOT_TOKEN`: lo script legge `.env` apposta).
 
 ## Online (Render) — per far provare il gioco da fuori casa
@@ -44,6 +44,12 @@ Le **password e le chiavi** NON sono in questo file: stanno in `SEGRETI-PRIVATI.
 - Un solo progetto Android: `android-3d/` (non è in git: sta solo in questa cartella). `npm run apk -- https://humana-life-3d.onrender.com/` compila con Gradle e scrive `dist/HUMANA-3D.apk` + `dist/qr-scarica-3d.png`. Serve **Java 21** (portatile in `tools/jdk-21*`, il Java di sistema rompe Gradle) e l'Android SDK (`C:\Users\joker\AppData\Local\Android\Sdk`, in `android-3d/local.properties`).
 - L'APK è solo un guscio: carica il gioco dall'indirizzo, quindi gli aggiornamenti del gioco arrivano senza reinstallare. Va rifatto solo per cambiare nome/icona/indirizzo. Nome app: "Napoli life", id `it.humana.life3d`.
 - Pagina di download del gioco: `/scarica-3d`; il file: `/scarica/HUMANA-life-3D.apk` (sul server Render serve l'APK incluso nel repo). QR: `npm run qr`.
+
+## Aggiornamenti ai giocatori (importante: cache dei browser e delle APK)
+- `/assets/` e `/vendor/` sono tenuti in memoria dal browser per 3 giorni: **un file cambiato con lo stesso nome resta vecchio** (è successo con la mappa `mergellina.json`, per questo l'utente vedeva la mappa vecchia). Regole: la mappa si chiede con `?v=<versione>` e senza cache (`no-cache` in `server/index.js`); per file nuovi usare nomi nuovi.
+- `/version.json` dà il numero di versione (= `humana-life-NNN` di `client/sw.js`, mostrato nella schermata d'ingresso e nei Crediti). Il service worker si attiva subito (`skipWaiting`), cancella le vecchie cache e fa ricaricare le pagine aperte.
+- Tutti ripartono da Mergellina la prima volta dopo l'aggiornamento (`progress.start3`); il Lungomare di fantasia si raggiunge dal bottone 🗺️.
+- Le APK sono solo un guscio che apre un indirizzo: quelle puntate a Render e quelle puntate al PC di casa (`192.168.1.36:3079`) mostrano sempre la versione del server che aprono, quindi basta aggiornare il server. Una APK nuova serve solo per cambiare indirizzo, nome o icona.
 
 ## Dati geografici (Mergellina reale) — ripetibile, niente download in partita
 - `node scripts/osm-scarica.mjs` scarica da OpenStreetMap (Overpass API) il riquadro **lat 40.8195–40.8345, lon 14.2090–14.2535** (Mergellina → Castel dell'Ovo e Borgo Marinari) in `data/osm/napoli-esteso.osm` (8 MB, scaricato davvero il 2026-10-07; la cartella `data/` non è in git: rifare il download se manca).
@@ -77,7 +83,7 @@ Avvertenza: nel gioco il test del browser è lentissimo su questo PC: dopo il vi
 - `client/` — `3d.html` (pagina del gioco, servita come `/`), `app.js` (avvio, HUD, ciclo), `world/world3d.js` (**tutto il 3D**: righe lunghissime, si modifica con script Node di sostituzione esatta), `world/citylife.js`, `world/ambient.js` (suoni sintetizzati, eventi, meteo), `world/avatar3d.js`, `ui/*` (mappa `bigmap.js`, telefono, città, HUD, drive-hud), `sw.js` (service worker: alza `CACHE` a ogni modifica e aggiungi i nuovi moduli a `SHELL`).
 - `scripts/` — avvio (`play-3d.mjs`), OSM (`osm-scarica.mjs`, `osm-napoli.mjs`), Telegram, APK (`apk-3d.mjs`), QR (`qr-3d.mjs`), strumenti per asset/modelli.
 - `scripts/audit-mergellina.mjs` (`npm run audit:mergellina`: raggiungibilità, locali vicini, distribuzione) e `scripts/controlla-sito.mjs` (`npm run controlla-sito [indirizzo]`: controlla che tutti i file del gioco si carichino, anche su Render).
-- `tests/` — 68 test (`npm test`). `tools/` — Java portatile e strumenti modelli. `docs/` — analisi e appunti tecnici. `docs/memoria-claude/` — appunti salvati dal Claude precedente.
+- `tests/` — 69 test (`npm test`). `tools/` — Java portatile e strumenti modelli. `docs/` — analisi e appunti tecnici. `docs/memoria-claude/` — appunti salvati dal Claude precedente.
 - Gli asset 3D stanno in `client/assets/world/napoli/<categoria>/` (Kenney, Poly Haven, Quaternius CC0; personaggi Rocketbox con licenza propria: `characters/persone-vere/LICENSE-Rocketbox.txt`; mappa © OpenStreetMap ODbL).
 
 ## Trucchi tecnici che fanno risparmiare ore

@@ -47,3 +47,13 @@ test('Mergellina: si entra e si esce da un locale vero e da uno di fantasia',asy
   ws.send(JSON.stringify({type:'interact'}));await pause(350);assert.equal(p.room,'mergellina','uscita da '+door.name);}
  ws.close();
 });
+
+test('Aggiornamento: tutti ripartono da Mergellina la prima volta; versione e mappa non restano in memoria nel browser',async t=>{
+ const app=createApp({dbPath:':memory:',edition:'3d'});await new Promise(r=>app.server.listen(0,'127.0.0.1',r));t.after(()=>app.close());
+ const base=`http://127.0.0.1:${app.server.address().port}`;
+ const v=await (await fetch(base+'/version.json')).json();assert.ok(Number(v.build)>200,'versione '+v.build);
+ const mp=await fetch(base+'/assets/world/napoli/map/mergellina.json');assert.match(mp.headers.get('cache-control'),/no-cache/,'la mappa si controlla sempre');
+ const reg=await (await fetch(base+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'Aggiorna_A',password:'test-secret-agg'})})).json();
+ const ws=new WebSocket(base.replace('http','ws')+'/ws'),m=[];ws.on('message',x=>m.push(JSON.parse(x)));await new Promise(r=>ws.once('open',r));ws.send(JSON.stringify({type:'auth',token:reg.token}));for(let i=0;i<100&&!m.some(x=>x.type==='welcome');i++)await pause(20);await pause(200);
+ assert.equal(app.game.players.get(reg.user.id).room,'mergellina','parte da Mergellina');ws.close();
+});

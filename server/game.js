@@ -1,4 +1,4 @@
-import {restore,savePlayer,ensureState} from './storage.js';
+import {restore,savePlayer,ensureState,state} from './storage.js';
 import {MAPS,doors,distance,step,canStand} from '../shared/world.js';
 import {BUS_STOPS,ROUTE_LENGTH,routeDistance,routePoint} from '../shared/district.js';
 import {publicUser,resolve} from './auth.js';
@@ -18,7 +18,9 @@ export class Game{
     const previous=this.players.get(user.id);if(previous){const other=this.auth.get(previous)?.token!==m.token;if(previous.call)this.hangup(previous,'offline');savePlayer(this.db,previous);this.players.delete(user.id);previous.ws.close(4011,other?'Accesso da un altro dispositivo':'Sessione ripresa');}
     ensureState(this.db,user.id);this.living?.homeMap(user.id);const saved=JSON.parse(this.db.prepare('SELECT position FROM player_state WHERE user_id=?').get(user.id).position);if(saved.room?.startsWith('home:')&&this.living?.homeAllowed(saved.room.slice(5),user.id))this.living.homeMap(saved.room.slice(5));
     if(this.players.size>=32)return ws.close(4010,'Server pieno');
-    player={...publicUser(user),...restore(this.db,user.id),ws,input:{x:0,y:0},lastInput:Date.now(),lastChat:0,voice:false,seat:null,moving:false};if(this.living&&player.room==='lungomare')player.vehicle=this.living.lastVehicle(user.id);
+    player={...publicUser(user),...restore(this.db,user.id),ws,input:{x:0,y:0},lastInput:Date.now(),lastChat:0,voice:false,seat:null,moving:false};// Tutti (anche chi giocava già) ripartono da Mergellina la prima volta dopo l'aggiornamento: il Lungomare di fantasia si raggiunge dal bottone 🗺️.
+     if(MAPS.mergellina){try{const pr=state(this.db,user.id).progress;if(!pr.start3){pr.start3=1;this.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(pr),user.id);if(player.room==='lungomare'){player.room='mergellina';Object.assign(player,MAPS.mergellina.spawn);}}}catch(e){console.warn('start3',e.message);}}
+     if(this.living&&player.room==='lungomare')player.vehicle=this.living.lastVehicle(user.id);
     if(player.room.startsWith('home:')&&!this.living?.homeAllowed(player.room.slice(5),player.id))Object.assign(player,{room:'lungomare',...MAPS.lungomare.spawn});
     this.arena?.sanitize(player);this.auth.set(player,{token:m.token,checked:Date.now()});this.players.set(user.id,player);clearTimeout(timer);this.send(ws,{type:'welcome',id:user.id});if(this.mapDoc)this.send(ws,{type:'mapEdits',doc:this.mapDoc});return;
    }
