@@ -3,20 +3,22 @@
 // Un solo evento alla volta, distanziati di qualche minuto; tutto è leggero (pochi oggetti, suoni sintetizzati senza file).
 import * as THREE from '../vendor/three/three.module.min.js';
 import {SHORE} from '/shared/world.js';import {MARKET,VEHICLE} from '/shared/catalog.js';
-const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
+import {hash,prng} from './syncwalk.js';
+let RNG=Math.random;
+const rnd=(a,b)=>a+RNG()*(b-a),pick=a=>a[Math.floor(RNG()*a.length)];
 const hourNow=w=>((w.r2d.seconds()%2400)/2400*24);
 // ---- suoni sintetizzati (nessun file): partono dopo il primo tocco, volume basso, spenti da localStorage humana-ambient=off ----
 class Sound{
  constructor(){this.ctx=null;this.on=true;try{this.on=localStorage.getItem('humana-ambient')!=='off';}catch{}
   const start=()=>{if(this.ctx||!this.on)return;try{const C=window.AudioContext||window.webkitAudioContext;this.ctx=new C();this.master=this.ctx.createGain();this.master.gain.value=.5;this.master.connect(this.ctx.destination);this.sea();}catch{}};
   addEventListener('pointerdown',start,{once:false,passive:true});addEventListener('keydown',start,{passive:true});}
- noise(sec=2){const c=this.ctx,b=c.createBuffer(1,c.sampleRate*sec,c.sampleRate),d=b.getChannelData(0);let l=0;for(let i=0;i<d.length;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.5;}return b;}
+ noise(sec=2){const c=this.ctx,b=c.createBuffer(1,c.sampleRate*sec,c.sampleRate),d=b.getChannelData(0);let l=0;for(let i=0;i<d.length;i++){l=(l+.02*(RNG()*2-1))/1.02;d[i]=l*3.5;}return b;}
  // mare: rumore morbido con onde lente
  sea(){const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise(4);src.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=700;const g=c.createGain();g.gain.value=.05;const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=.11;lg.gain.value=.035;lfo.connect(lg);lg.connect(g.gain);src.connect(f);f.connect(g);g.connect(this.master);src.start();lfo.start();this.seaG=g;}
  ok(){return this.ctx&&this.ctx.state!=='closed'&&this.on;}
  resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});}
  tone(freq,dur,vol=.05,type='square',when=0,to=null){if(!this.ok())return;const c=this.ctx,t=c.currentTime+when,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(to)o.frequency.linearRampToValueAtTime(to,t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+dur+.05);return g;}
- horn(vol=.05){this.tone(420,.28,vol);this.tone(520,.28,vol*.8);if(Math.random()<.4){this.tone(420,.22,vol,'square',.38);this.tone(520,.22,vol*.8,'square',.38);}}
+ horn(vol=.05){this.tone(420,.28,vol);this.tone(520,.28,vol*.8);if(RNG()<.4){this.tone(420,.22,vol,'square',.38);this.tone(520,.22,vol*.8,'square',.38);}}
  gull(vol=.03){for(let i=0;i<3;i++)this.tone(1500+i*180,.16,vol,'sine',i*.22,1000+i*100);}
  voices(vol=.035){if(!this.ok())return;const c=this.ctx,src=c.createBufferSource();src.buffer=this.noise(1.5);const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=rnd(300,600);f.Q.value=2;const g=c.createGain();const t=c.currentTime;g.gain.setValueAtTime(0,t);for(let i=0;i<5;i++)g.gain.linearRampToValueAtTime(vol*rnd(.4,1),t+.2+i*.25);g.gain.linearRampToValueAtTime(0,t+1.6);src.connect(f);f.connect(g);g.connect(this.master);src.start(t);}
  // sirena con intensità legata alla distanza (0…1); ritorna un oggetto da aggiornare e fermare
@@ -58,7 +60,7 @@ export class Ambient{
   if(this.snd.seaG)this.snd.seaG.gain.value=.05;
   this.mix(dt,list,h);
   // eventi
-  if(!this.ev){this.next-=dt;if(this.next<=0)this.start(h);}else{try{this.runEv(dt,h,list);}catch(e){console.warn('evento',e);this.stop();}}
+  if(!this.ev){const sc=this.sched(w.r2d.seconds());if(sc&&sc.T>=sc.start&&sc.T<sc.start+sc.dur&&this.lastSlot!==sc.slot){this.lastSlot=sc.slot;this.start(sc.h,sc);}}else{try{this.runEv(dt,h,list);}catch(e){console.warn('evento',e);this.stop();}}
   this.life(h);}
  // suoni legati a ciò che succede: motore del giocatore, clacson degli altri, rombo del traffico
  mix(dt,list,h){const w=this.w,sn=this.snd,me=w._me,tr=w.r2d.traffic;if(!sn.ok())return;
@@ -69,7 +71,12 @@ export class Ambient{
  life(h){for(const L of [this.w.life,this.w.mlife])if(L)L.weather=this.weather;}
  hide(){this.fx.visible=false;if(this.ev){this.stop();this.next=Math.max(this.next,60);}try{this.snd.engineOff();this.snd.rumble(0);if(this.snd.seaG)this.snd.seaG.gain.value=.012;}catch{}}
  // ---- eventi ----
- start(h){const kinds=['ambulanza','pattuglia','incidente','traffico','musicista','temporale'];if(h>=8&&h<14)kinds.push('mercato','mercato');if(h>=21||h<1)kinds.push('fuochi','fuochi');if(h>=9&&h<20)kinds.push('musicista');const k=this.w.room==='mergellina'?pick(['temporale','temporale','fuochi','traffico'].filter(x=>x!=='traffico'&&(x!=='fuochi'||h>=21||h<1))):pick(kinds);this.ev={k,t:0,dur:{ambulanza:22,pattuglia:20,incidente:40,traffico:35,musicista:70,temporale:80,fuochi:28,mercato:120}[k]};this.begin(this.ev);this.next=rnd(75,210);}
+ // Gli eventi (pioggia, fuochi, ambulanze...) seguono un calendario deciso dall'orologio del server: tutti i giocatori li vedono insieme.
+ sched(T){const SLOT=150,slot=Math.floor(T/SLOT),rg=prng(hash(slot,909));if(rg()>.38)return null;const start=slot*SLOT+rg()*40,hh=((start%2400)/2400*24),room=this.w.room;
+  const kinds=['ambulanza','pattuglia','incidente','traffico','musicista','temporale','temporale'];if(hh>=8&&hh<14)kinds.push('mercato','mercato');if(hh>=21||hh<1)kinds.push('fuochi','fuochi');if(hh>=9&&hh<20)kinds.push('musicista');
+  const list=room==='mergellina'?['temporale','temporale','fuochi'].filter(x=>x!=='fuochi'||hh>=21||hh<1):kinds;const k=list[Math.floor(rg()*list.length)]||'temporale';
+  const dur={ambulanza:22,pattuglia:20,incidente:40,traffico:35,musicista:70,temporale:80,fuochi:28,mercato:120}[k];return {slot,start,dur,k,T,h:hh};}
+ start(h,sc){const k=sc.k,old=RNG;RNG=prng(hash(sc.slot,7));try{this.ev={k,t:0,dur:sc.dur};this.begin(this.ev);if(this.ev)this.ev.t=Math.max(0,sc.T-sc.start);}finally{RNG=old;}}
  stop(){const e=this.ev;if(!e)return;try{this.end(e);}catch{}this.ev=null;}
  runEv(dt,h,list){const e=this.ev;e.t+=dt;if(e.t>=e.dur){this.stop();return;}const f=this['f_'+e.k];if(f)f.call(this,e,dt);}
  begin(e){const w=this.w,tr=w.r2d.traffic;switch(e.k){
@@ -77,13 +84,13 @@ export class Ambient{
   case 'incidente':{const cars=(tr?.cars||[]).filter(c=>!c.off&&!c.work&&c.model!=='scooter');const px=w.target.x,pz=w.target.z;cars.sort((a,b)=>{const p=a.path.pointAt(a.s),q=b.path.pointAt(b.s);return Math.hypot(p.x-px,p.y-pz)-Math.hypot(q.x-px,q.y-pz);});const c=cars.find(x=>{const p=x.path.pointAt(x.s);return Math.hypot(p.x-px,p.y-pz)>22&&Math.hypot(p.x-px,p.y-pz)<80;})||cars[2];if(!c){this.ev=null;return;}
    e.car=c;e.prev={canPark:c.canPark,park:c.park,parkAt:c.parkAt};c.canPark=true;c.park={t:e.dur+5};const q=c.path.pointAt(c.s);e.o=w.car('sedan','#7a1f2b');e.o.position.set(q.x+Math.cos(q.direction)*5.4+Math.cos(q.direction+Math.PI/2)*.5,0,q.y+Math.sin(q.direction)*5.4+Math.sin(q.direction+Math.PI/2)*.5);e.o.rotation.y=w.hd(q.direction)+.7;w.scene.add(e.o);e.obs={x:e.o.position.x,y:e.o.position.z,vehicle:true};this.snd.horn(.06);break;}
   case 'traffico':{if(tr)tr.speedK=.35;this.snd.horn(.05);break;}
-  case 'musicista':{const L=w.life;if(!L||!L.ready){this.ev=null;return;}const R=L.rings[Math.floor(Math.random()*L.rings.length)],p=R.pts[Math.floor(Math.random()*R.n)];e.pos=p;const ag=L.agents.filter(a=>a.kind==='busker');ag.forEach((a,i)=>{a.manual=true;a.on=true;a.state='party';a.dance=false;a.x=p[0]+(i?Math.cos(i*2.1)*2.1:0);a.z=p[1]+(i?Math.sin(i*2.1)*2.1+.4:0);a.yaw=i?Math.atan2(p[0]-a.x,p[1]-a.z):Math.PI;a.t=i*3;a.act=i?'Idle':'Wave';a.busk=i===0;});e.ag=ag;e.notes=0;break;}
+  case 'musicista':{const L=w.life;if(!L||!L.ready){this.ev=null;return;}const R=L.rings[Math.floor(RNG()*L.rings.length)],p=R.pts[Math.floor(RNG()*R.n)];e.pos=p;const ag=L.agents.filter(a=>a.kind==='busker');ag.forEach((a,i)=>{a.manual=true;a.on=true;a.state='party';a.dance=false;a.x=p[0]+(i?Math.cos(i*2.1)*2.1:0);a.z=p[1]+(i?Math.sin(i*2.1)*2.1+.4:0);a.yaw=i?Math.atan2(p[0]-a.x,p[1]-a.z):Math.PI;a.t=i*3;a.act=i?'Idle':'Wave';a.busk=i===0;});e.ag=ag;e.notes=0;break;}
   case 'mercato':{const L=w.life;e.g=this.market();e.g.visible=true;const M=MARKET,ag=L&&L.ready?L.agents.filter(a=>a.kind==='busker'):[];ag.forEach((a,i)=>{a.manual=true;a.on=true;a.state='party';a.dance=false;a.busk=false;const col=i%2,sx=M.x+2.5+col*5;a.x=sx+(i<2?0:(i%2?1.3:-1.3));a.z=i<2?M.y+1.6:M.y+M.h+1.5;a.yaw=i<2?0:Math.PI;a.t=i*4;});e.ag=ag;window.__mapExtra=[{x:M.x+M.w/2,y:M.y+M.h+2.5,name:M.name,cat:'negozi',icon:'🧺'}];break;}
   case 'temporale':{this.weather=.3;this.rainOn(true);this.snd.rain(true);e.flash=rnd(6,14);break;}
   case 'fuochi':{e.bursts=[];e.nb=rnd(1,3);break;}}}
  end(e){const w=this.w,tr=w.r2d.traffic;switch(e.k){
   case 'ambulanza':case 'pattuglia':e.sir?.stop();if(e.o)w.scene.remove(e.o);break;
-  case 'incidente':if(e.car){e.car.canPark=e.prev.canPark;e.car.park=e.car.park&&e.prev.park?e.car.park:null;e.car.parkAt=e.prev.parkAt;if(e.car.canPark&&e.car.parkAt===undefined){const g=e.car.parkGap||[e.car.path.length*.25,e.car.path.length*.65];e.car.parkAt=(e.car.s+g[0]+Math.random()*(g[1]-g[0]))%e.car.path.length;}}if(e.o)w.scene.remove(e.o);break;
+  case 'incidente':if(e.car){e.car.canPark=e.prev.canPark;e.car.park=e.car.park&&e.prev.park?e.car.park:null;e.car.parkAt=e.prev.parkAt;if(e.car.canPark&&e.car.parkAt===undefined){const g=e.car.parkGap||[e.car.path.length*.25,e.car.path.length*.65];e.car.parkAt=(e.car.s+g[0]+RNG()*(g[1]-g[0]))%e.car.path.length;}}if(e.o)w.scene.remove(e.o);break;
   case 'traffico':if(tr)tr.speedK=1;break;
   case 'musicista':for(const a of e.ag||[]){a.manual=false;a.on=false;}break;
   case 'mercato':if(e.g)e.g.visible=false;for(const a of e.ag||[]){a.manual=false;a.on=false;}window.__mapExtra=[];break;
@@ -105,13 +112,13 @@ export class Ambient{
  market(){if(this.mk)return this.mk;const M=MARKET,g=new THREE.Group(),w=this.w,cols=['#d62828','#2f9e5b','#f2b705','#2f7fc1'];
   for(let i=0;i<4;i++){const x=M.x+2.5+(i%2)*5,z=i<2?M.y+1.2:M.y+M.h-1.2;w.bx(g,2.6,.9,1,x,.45,z,'#a9774a');for(let k=0;k<4;k++)w.bx(g,.65,.13,1.7,x-1.0+k*.65,2.2+(k%2?0:0),z,k%2?'#ffffff':cols[i]);for(const dx of [-1.25,1.25])w.bx(g,.07,2.2,.07,x+dx,1.1,z-.55,'#4a5862');for(let k=0;k<3;k++)w.bx(g,.5,.28,.5,x-.8+k*.8,1.04,z,['#e5484d','#ffb02e','#6bb04a'][k]);}
   g.position.y=w.lev(M.x,M.y);g.visible=false;w.scene.add(g);this.mk=g;return g;}
- f_fuochi(e,dt){const w=this.w;if(e.nb>0)e.nb-=dt;else if(e.bursts.length<9){e.nb=rnd(1.2,2.8);const dx=-1,dz=-1,k=rnd(55,85),cx=w.target.x+dx*k*.7+rnd(-20,20),cz=w.target.z+dz*k*.7+rnd(-20,20),cy=rnd(24,38),n=w.mobile?60:110,pos=new Float32Array(n*3),vel=[];for(let i=0;i<n;i++){const a=Math.random()*6.283,b=Math.acos(2*Math.random()-1),s=rnd(5,11);vel.push([Math.sin(b)*Math.cos(a)*s,Math.cos(b)*s,Math.sin(b)*Math.sin(a)*s]);}
+ f_fuochi(e,dt){const w=this.w;if(e.nb>0)e.nb-=dt;else if(e.bursts.length<9){e.nb=rnd(1.2,2.8);const dx=-1,dz=-1,k=rnd(55,85),cx=w.target.x+dx*k*.7+rnd(-20,20),cz=w.target.z+dz*k*.7+rnd(-20,20),cy=rnd(24,38),n=w.mobile?60:110,pos=new Float32Array(n*3),vel=[];for(let i=0;i<n;i++){const a=RNG()*6.283,b=Math.acos(2*RNG()-1),s=rnd(5,11);vel.push([Math.sin(b)*Math.cos(a)*s,Math.cos(b)*s,Math.sin(b)*Math.sin(a)*s]);}
    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));const col=pick(['#ffd23f','#ff5a5a','#5ad7ff','#9cff6e','#ff8bd6']);const p=new THREE.Points(geo,new THREE.PointsMaterial({color:col,size:1.1,transparent:true,opacity:1,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true}));p.position.set(cx,cy,cz);p.frustumCulled=false;this.fx.add(p);e.bursts.push({p,vel,t:0});this.snd.pop(.04);}
   for(const b of e.bursts){b.t+=dt;if(b.t>3.2){b.p.visible=false;continue;}const a=b.p.geometry.attributes.position;for(let i=0;i<b.vel.length;i++){const v=b.vel[i];a.array[i*3]=v[0]*b.t;a.array[i*3+1]=v[1]*b.t-2.6*b.t*b.t;a.array[i*3+2]=v[2]*b.t;}a.needsUpdate=true;b.p.material.opacity=Math.max(0,1-b.t/3.2);}}
  // ---- pioggia (un velo 2D sopra il gioco: leggero) ----
- rainOn(on){if(on&&!this.cv){const c=document.createElement('canvas');c.id='rain-fx';c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;background:linear-gradient(rgba(12,22,40,.28),rgba(12,22,40,.1))';c.width=Math.min(innerWidth,900);c.height=Math.min(innerHeight,900);document.body.append(c);this.cv=c;this.drops=Array.from({length:this.w.mobile?90:160},()=>({x:Math.random(),y:Math.random(),s:rnd(.9,1.6)}));}
+ rainOn(on){if(on&&!this.cv){const c=document.createElement('canvas');c.id='rain-fx';c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;background:linear-gradient(rgba(12,22,40,.28),rgba(12,22,40,.1))';c.width=Math.min(innerWidth,900);c.height=Math.min(innerHeight,900);document.body.append(c);this.cv=c;this.drops=Array.from({length:this.w.mobile?90:160},()=>({x:RNG(),y:RNG(),s:rnd(.9,1.6)}));}
   else if(!on&&this.cv){this.cv.remove();this.cv=null;if(this.flashEl){this.flashEl.remove();this.flashEl=null;}}}
- rain(dt,e){const c=this.cv;if(!c)return;const W=c.width,H=c.height,g=c.getContext('2d');g.clearRect(0,0,W,H);g.strokeStyle='rgba(200,215,235,.45)';g.lineWidth=1;g.beginPath();for(const d of this.drops){d.y+=dt*d.s*1.4;d.x-=dt*.12;if(d.y>1){d.y=-.05;d.x=Math.random()*1.2;}if(d.x<0)d.x+=1.1;const x=d.x*W,y=d.y*H;g.moveTo(x,y);g.lineTo(x-4,y+16);}g.stroke();const fade=Math.min(1,e.t/5,(e.dur-e.t)/6);c.style.opacity=String(Math.max(0,fade));}
+ rain(dt,e){const c=this.cv;if(!c)return;const W=c.width,H=c.height,g=c.getContext('2d');g.clearRect(0,0,W,H);g.strokeStyle='rgba(200,215,235,.45)';g.lineWidth=1;g.beginPath();for(const d of this.drops){d.y+=dt*d.s*1.4;d.x-=dt*.12;if(d.y>1){d.y=-.05;d.x=RNG()*1.2;}if(d.x<0)d.x+=1.1;const x=d.x*W,y=d.y*H;g.moveTo(x,y);g.lineTo(x-4,y+16);}g.stroke();const fade=Math.min(1,e.t/5,(e.dur-e.t)/6);c.style.opacity=String(Math.max(0,fade));}
  lightning(){if(!this.cv)return;if(!this.flashEl){const f=document.createElement('div');f.style.cssText='position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:4;transition:opacity .08s';document.body.append(f);this.flashEl=f;}const f=this.flashEl;f.style.opacity='.55';setTimeout(()=>{f.style.opacity='0';},90);setTimeout(()=>{f.style.opacity='.35';setTimeout(()=>{f.style.opacity='0';},70);},220);}
  obstacles(){return this.ev&&this.ev.k==='incidente'&&this.ev.obs?[this.ev.obs]:[];}
 }

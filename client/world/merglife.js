@@ -4,6 +4,7 @@
 // e a ogni incrocio vero (nodo condiviso) si può cambiare strada. Chi è lontano dal giocatore sparisce e riappare vicino: pochi oggetti sempre.
 import * as THREE from '../vendor/three/three.module.min.js';
 import {CityLife} from './citylife.js';
+import {Chain,hash,prng} from './syncwalk.js';
 import {NAPOLI,napoliStand,napoliPlaces} from '/shared/napoli.js';
 const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
 const between=(h,a,b)=>a<=b?h>=a&&h<b:h>=a||h<b;
@@ -26,13 +27,42 @@ class Net{constructor(D){this.roads=[];for(const r of D.roads){const p=r.p,cum=[
 export class MergLife extends CityLife{
  constructor(w){super(w);this.radius=this.rcap=w.mobile?52:68;this.max=this.cap=w.mobile?8:14;this.agents=[];this.cars=[];this.tc=[];this.pool=new Map();this.built=false;this.ready=false;}
  build(){const D=NAPOLI.data;this.net=new Net(D);const m=this.w.mobile?0:1;let n=0;
-  for(const [kind,cnt] of Object.entries(COUNT)){for(let k=0;k<cnt[m];k++)this.agents.push({kind,k,id:n++,u:(k+.5)/cnt[m],on:false,state:'walk',x:0,z:0,yaw:0,t:0,speed:kind==='jogger'?rnd(2.8,3.6):kind==='stroll'?rnd(.8,1.1):kind==='sweeper'?rnd(.55,.7):rnd(1.05,1.45),dir:1,side:Math.random()<.5?1:-1,acc:0,rig:null,retry:0,hide:false});}
-  const nc=this.w.mobile?6:12;for(let i=0;i<nc;i++)this.cars.push({kind:['auto','auto','furgone','scooter','cabrio','scooter'][i%6],on:false,v:0,u:(i+.5)/nc,road:null,s:0,dir:1,park:0,x:0,y:0,h:0,id:i});
-  this.cars.push({kind:'rifiuti',on:false,v:0,u:0,road:null,s:0,dir:1,park:0,x:0,y:0,h:0,id:99,work:true,hours:[6,13],gap:rnd(30,60)});
+  const net=this.net,mob=this.w.mobile,mul=mob?.55:1,cl=(v,a,b)=>Math.max(a,Math.min(b,Math.round(v)));
+  const walkR=net.roads.filter(r=>r.walk&&r.len>12),promR=net.roads.filter(r=>r.prom&&r.walk&&r.len>12),carR=net.roads.filter(r=>r.car&&r.w>=5&&r.len>25);
+  this.carSet=new Set(carR);const len=l=>l.reduce((s,r)=>s+r.len,0),wl=len(walkR),pl=len(promR),cl2=len(carR);
+  const CNT={walker:cl(wl/40,40,320)*mul,stroll:cl(pl/55,6,40)*mul,jogger:cl(pl/130,3,16)*mul,fisher:mob?6:10,sitter:mob?14:26,courier:cl(wl/450,4,26)*mul,sweeper:cl(wl/320,4,22)*mul,crew:COUNT.crew[m]};
+  for(const [kind,cnt0] of Object.entries(CNT)){const cnt=Math.max(1,Math.round(cnt0));for(let k=0;k<cnt;k++){const id=n++,rg=prng(hash(id,5)),list=(kind==='stroll'||kind==='jogger')&&promR.length?promR:walkR;
+   this.agents.push({kind,k,id,u:(k+.5)/cnt,on:false,state:'walk',x:0,z:0,yaw:0,t:0,speed:kind==='jogger'?2.8+rg()*.8:kind==='stroll'?.8+rg()*.3:kind==='sweeper'?.55+rg()*.15:1.05+rg()*.4,dir:1,side:rg()<.5?1:-1,acc:0,rig:null,retry:0,hide:false,list});}}
+  const nc=cl(cl2/170,16,90)*mul;for(let i=0;i<nc;i++)this.cars.push({kind:['auto','auto','furgone','scooter','cabrio','scooter'][i%6],on:false,v:0,u:(i+.5)/nc,road:null,s:0,dir:1,park:0,x:0,y:0,h:0,id:i,rate:1});
+  this.carR=carR;
+  this.cars.push({kind:'rifiuti',on:false,v:0,u:0,road:null,s:0,dir:1,park:0,x:0,y:0,h:0,id:99,work:true,hours:[6,13],rate:1});
   for(let i=0;i<(this.w.mobile?1:2);i++)this.tc.push({path:{pointAt:()=>({x:this.truckPos?.x||0,y:this.truckPos?.y||0,direction:this.truckPos?.h||0})},s:0,side:1.4,off:true,park:null});
   this.built=true;this.ready=true;}
  // i camion ESI visti dal personale (stessa interfaccia di Traffic)
  trucks(){return this.tc;}
+
+ // ---- movimento uguale per tutti (orologio del server + semi) ----
+ syncWalker(a,T,dt,px,pz){const c=a.chain||(a.chain=new Chain(this.net,a.list,()=>a.speed,o=>o.walk,a.id,11,{weight:r=>r.prom?6:1}));
+  if(a.te===undefined||T-a.te>4||a.te>T+1)a.te=T;
+  if(a.talk>0)a.talk-=dt;else a.te=Math.min(T,a.te+dt*(a.te<T-.05?1.5:1));
+  const dd=Math.hypot(a.x-px,a.z-pz);if(dd>this.radius*1.7&&a.x!==0){a.fa=(a.fa||0)-dt;if(a.fa>0)return;a.fa=.4+(a.id%5)*.1;a.te=T;}
+  c.advance(a.te);a.r=c.r;a.s=c.s;a.dir=c.dir;let ok=this.walkPos(a);if(!ok){a.side=-a.side;ok=this.walkPos(a);}
+  const d=Math.hypot(a.x-px,a.z-pz),near=ok&&d<=this.radius*(a.on?1.12:1);
+  if(a.talk>0)a.act='Wave';else a.act=a.kind==='jogger'?'Run':a.speed>1.3?'Walk':'Stroll';
+  if(near&&!a.on){a.on=true;a.state='walk';a.hide=false;}else if(!near&&a.on){a.on=false;this.release(a);}}
+ // pescatori e gente seduta: posto fisso, scelto dall'identità (uguale per tutti)
+ fixSpot(a){if(a.fix!==undefined)return;const rg=prng(hash(a.id,31));
+  if(a.kind==='sitter'){const T=this.w.napoliTables;if(!T||!T.length)return;const t=T[(a.k*7+Math.floor(rg()*T.length))%T.length],ang=rg()*6.283,sx=t[0]+Math.cos(ang)*.95,sz=t[1]+Math.sin(ang)*.95;
+   if(!napoliStand(sx,sz,.3)||this.agents.some(o=>o!==a&&o.fix&&o.state==='sit'&&Math.hypot(o.x-sx,o.z-sz)<.9)){a.fix=false;return;}Object.assign(a,{fix:true,state:'sit',x:sx,z:sz,yaw:Math.atan2(t[0]-sx,t[1]-sz),act:'Idle'});return;}
+  if(!this.fsp){this.fsp=[];for(const p of (NAPOLI.data.piers||[]).filter(p=>p.k==='pier'||p.k==='quay'||p.k==='breakwater'))for(let i=1;i<p.p.length;i++){const A=p.p[i-1],B=p.p[i],L=Math.hypot(B[0]-A[0],B[1]-A[1])||1;for(let t=.15;t<1;t+=.35)for(const sg of [1,-1]){const x=A[0]+(B[0]-A[0])*t,y=A[1]+(B[1]-A[1])*t,nx=-(B[1]-A[1])/L*sg,ny=(B[0]-A[0])/L*sg,sx=x+nx*.9,sz=y+ny*.9;if(napoliStand(sx,sz,.3)&&!napoliStand(x+nx*5,y+ny*5,.3)){this.fsp.push({x:sx,z:sz,yaw:Math.atan2(nx,ny)});break;}}}}
+  if(!this.fsp.length){a.fix=false;return;}const q=this.fsp[(a.k*13+Math.floor(rg()*this.fsp.length))%this.fsp.length];
+  if(this.agents.some(o=>o!==a&&o.fix&&o.state==='fish'&&Math.hypot(o.x-q.x,o.z-q.z)<5)){a.fix=false;return;}Object.assign(a,{fix:true,state:'fish',x:q.x,z:q.z,yaw:q.yaw,act:'Idle'});}
+ syncCar(c,T,dt,px,pz){const ch=c.chain||(c.chain=new Chain(this.net,this.carR,r=>(SPEED[r.k]||5)*(c.kind==='rifiuti'?.55:c.kind==='scooter'?1.15:1),(o,jj)=>this.carSet.has(o)&&!(o.ow&&jj===o.p.length-1),c.id,23,{work:c.kind==='rifiuti',turn:.3}));
+  if(c.te===undefined||T-c.te>4||c.te>T+1)c.te=T;
+  const dd=Math.hypot(c.x-px,c.y-pz);if(dd>this.radius+120&&c.x!==0){c.fa=(c.fa||0)-dt;if(c.fa>0)return;c.fa=.4+(c.id%5)*.1;c.te=T;c.rate=1;}
+  else{let tg=c.te<T-.05?1.5:1;const dx=px-c.x,dy=pz-c.y;if(dd<10){const ah=Math.cos(c.h)*dx+Math.sin(c.h)*dy,lat=Math.abs(-Math.sin(c.h)*dx+Math.cos(c.h)*dy);if(ah>0&&ah<8&&lat<3)tg=0;}c.rate+=(tg-c.rate)*Math.min(1,4*dt);c.te=Math.min(T,c.te+dt*Math.max(0,c.rate));}
+  ch.advance(c.te);c.road=ch.r;c.s=ch.s;c.dir=ch.dir;c.park=ch.park?1:0;this.place(c);
+  const d=Math.hypot(c.x-px,c.y-pz),on=d<=(this.radius+110)*(c.on?1.1:1);if(on&&!c.on)c.on=true;else if(!on&&c.on){c.on=false;this.freeMesh(c);}}
  // ---- posizionamento ----
  walkPos(a){const r=a.r,q=this.net.at(r,a.s),tx=q.dx*a.dir,ty=q.dy*a.dir,off=(r.car?r.w/2+1.0:r.k==='steps'?0:.6)*a.side;a.x=q.x-ty*off;a.z=q.y+tx*off;a.yaw=Math.atan2(tx,ty);return napoliStand(a.x,a.z,.3);}
  near2(a,px,pz,lo,hi){const d=Math.hypot(a.x-px,a.z-pz);return d>=lo&&d<=hi;}
@@ -79,15 +109,18 @@ export class MergLife extends CityLife{
   this.group.visible=true;const h=hourNow(w),px=w.target.x,pz=w.target.z;
   this.ema=(this.ema??dt)*.96+Math.min(dt,.2)*.04;this.qt=(this.qt||0)+dt;if(this.qt>2.5){this.qt=0;if(this.ema>.046&&this.max>4){this.max--;this.radius=Math.max(34,this.radius-3);}else if(this.ema<.03&&this.max<this.cap){this.max++;this.radius=Math.min(this.rcap,this.radius+3);}}
   // abitanti: si accendono vicino al giocatore secondo l'ora, si spengono se lontani o fuori orario
-  let tries=2;for(const a of this.agents){if(a.manual)continue;if(a.kind==='crew'){const T=this.cars.find(c=>c.kind==='rifiuti'&&c.on);if(!T&&a.on){a.on=false;this.release(a);}if(T&&!a.on&&a.u<(DENS.crew(h))){Object.assign(a,{on:true,state:'crew',hide:true,truck:this.tc[Math.floor(a.k/2)]||null});if(!a.truck)a.on=false;}continue;}
-   const want=a.u<(DENS[a.kind](h)*(this.weather??1));const far=Math.hypot(a.x-px,a.z-pz)>this.radius*1.15;
-   if(a.on&&a.state!=='in'&&(far||!want&&!a.rig)){a.on=false;this.release(a);}
-   else if(!a.on&&a.state!=='in'&&want&&tries>0){a.retry-=dt;if(a.retry<=0){a.retry=rnd(.6,1.6);tries--;this.spawn(a,px,pz);}}}
-  for(const a of this.agents){if(!a.on&&a.state!=='in')continue;if(a.talk>0){a.talk-=dt;a.act='Wave';}else this.step(a,dt);}
+  const T=w.r2d.seconds();
+  for(const a of this.agents){if(a.manual)continue;if(a.kind==='crew'){const T=this.cars.find(c=>c.kind==='rifiuti'&&c.on);if(!T&&a.on){a.on=false;this.release(a);}if(T&&!a.on&&a.u<(DENS.crew(h))){Object.assign(a,{on:true,state:'crew',hide:true,truck:this.tc[Math.floor(a.k/2)]||null});if(!a.truck)a.on=false;}continue;}
+   const want=a.u<(DENS[a.kind](h)*(this.weather??1));
+   if(!want){if(a.on){a.on=false;this.release(a);}continue;}
+   if(a.kind==='sitter'||a.kind==='fisher'){this.fixSpot(a);const d=Math.hypot(a.x-px,a.z-pz),on=a.fix&&d<this.radius*(a.on?1.12:1);if(on&&!a.on)a.on=true;else if(!on&&a.on){a.on=false;this.release(a);}continue;}
+   this.syncWalker(a,T,dt,px,pz);}
+  for(const a of this.agents){if(!a.on||a.kind!=='crew')continue;this.step(a,dt);}
   // veicoli
-  const dens=carDensity(h);let ct=1;for(const c of this.cars){const want=c.kind==='rifiuti'?between(h,6,13):c.u<dens;const far=Math.hypot(c.x-px,c.y-pz)>this.radius+110;
-   if(c.on&&(far||!want)){c.on=false;this.freeMesh(c);}else if(!c.on&&want&&ct>0&&(c.retry=(c.retry||0)-dt)<=0){c.retry=rnd(1,3);ct--;this.spawnCar(c,px,pz);}
-   if(c.on){this.stepCar(c,dt,h,px,pz);if(c.on){const m=this.mesh(c);m.position.set(c.x,w.lev(c.x,c.y),c.y);m.rotation.y=w.hd(c.h);if(m.userData.beacon)m.userData.beacon.material.color.setHex(Math.floor(w.clock*3)%2?0xffb300:0x4a3000);if(c.kind==='rifiuti'){this.truckPos={x:c.x,y:c.y,h:c.h};const T=this.tc[0];T.s=0;T.off=false;T.park=c.park>0?{}:null;T.side=c.road&&!c.road.ow?c.road.w/4+1.4:1.4;}}else this.freeMesh(c);}}
+  const dens=carDensity(h);for(const c of this.cars){const want=c.kind==='rifiuti'?between(h,6,13):c.u<dens;
+   if(!want){if(c.on){c.on=false;this.freeMesh(c);}continue;}
+   this.syncCar(c,T,dt,px,pz);
+   if(c.on){const m=this.mesh(c);m.position.set(c.x,w.lev(c.x,c.y),c.y);m.rotation.y=w.hd(c.h);if(m.userData.beacon)m.userData.beacon.material.color.setHex(Math.floor(w.clock*3)%2?0xffb300:0x4a3000);if(c.kind==='rifiuti'){this.truckPos={x:c.x,y:c.y,h:c.h};const T2=this.tc[0];T2.s=0;T2.off=false;T2.park=c.park>0?{}:null;T2.side=c.road&&!c.road.ow?c.road.w/4+1.4:1.4;}}}
   const tr=this.cars.find(c=>c.kind==='rifiuti');if(!tr?.on)for(const T of this.tc){T.off=true;T.park=null;}
   this.bins();this.assign(px,pz,dt);this.props();}
  // oggetti in mano: canna da pesca ai pescatori, pacco ai fattorini (si accendono secondo chi usa quel personaggio)
