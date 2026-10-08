@@ -36,7 +36,7 @@ export function xadv(w,col,opt={}){const g=new THREE.Group(),{tube,ext,wheel,dis
  const un=new THREE.Mesh(new THREE.BoxGeometry(.34,.14,.78),dark);un.position.set(0,.36,.06);g.add(un);                     // sottoscocca/motore
  ext([[.32,.4],[.62,.4],[.9,1.04],[.74,1.16],[.44,1.04],[.32,.4]],.5,.045,paint);                                           // scudo anteriore
  ext([[.66,.72],[1.06,.62],[1.08,.82],[.86,.98],[.66,.72]],.34,.04,paint);                                                  // becco con fari
- for(const sx of [-1,1]){w.bx(g,.14,.045,.05,sx*.12,.92,1.04,'#eaf6ff').rotation.z=sx*.18;disc(.03,.04,sx*.12,.82,1.06,led);}   // fari a led
+ ext([[.5,.38],[.92,.52],[.9,.72],[.56,.66],[.5,.38]],.4,.04,dark);ext([[-.7,.46],[.1,.42],[.12,.64],[-.7,.7],[-.7,.46]],.44,.03,paint);for(const sx of [-1,1]){w.bx(g,.14,.045,.05,sx*.12,.92,1.04,'#eaf6ff').rotation.z=sx*.18;disc(.03,.04,sx*.12,.82,1.06,led);}   // fari a led
  const ws=new THREE.Mesh(new THREE.BoxGeometry(.4,.4,.025),new THREE.MeshStandardMaterial({color:'#3a5368',transparent:true,opacity:.45,roughness:.1}));ws.position.set(0,1.38,.68);ws.rotation.x=-.62;g.add(ws);   // cupolino
  tube(V(-.34,1.26,.5),V(.34,1.26,.5),.016,dark);for(const sx of [-1,1]){tube(V(sx*.34,1.26,.5),V(sx*.4,1.26,.5),.026,w.sm('#17181c'));w.bx(g,.04,.16,.12,sx*.4,1.3,.58,'#1c1e23');tube(V(sx*.26,1.27,.5),V(sx*.32,1.46,.48),.008,dark);}
  for(const sx of [-1,1]){tube(V(sx*.1,.32,.78),V(sx*.1,1.0,.56),.032,gold);tube(V(sx*.1,.32,.78),V(sx*.1,.9,.6),.022,steel);}   // forcelle rovesciate
@@ -51,7 +51,7 @@ export function xadv(w,col,opt={}){const g=new THREE.Group(),{tube,ext,wheel,dis
 // ---------- maxi-enduro bicilindrica (stile Africa Twin: serbatoio bianco-rosso-blu) ----------
 export function africa(w,col,opt={}){const g=new THREE.Group(),{tube,ext,wheel,disc}=kit(w,g),white=w.sm('#f4f1ea'),red=w.sm('#c4161c'),blue=w.sm('#1c3f8f'),dark=w.sm('#1a1b1f'),steel=w.sm('#c4c8d0'),gold=w.sm('#b8923c'),seat=w.sm('#14151a'),led=w.neonMat('#eaf6ff'),silver=w.sm('#8a8f99');
  wheel(.78,.34,.065,gold,true);wheel(-.77,.33,.075,gold,true);
- const eng=new THREE.Mesh(new THREE.BoxGeometry(.3,.44,.56),dark);eng.position.set(0,.52,.0);g.add(eng);                      // motore bicilindrico
+ const eng=new THREE.Mesh(new THREE.BoxGeometry(.26,.3,.42),dark);eng.position.set(0,.5,.02);g.add(eng);const rad=new THREE.Mesh(new THREE.BoxGeometry(.24,.34,.05),silver);rad.position.set(0,.62,.34);g.add(rad);for(const sx of [-1,1]){tube(V(sx*.1,.98,.5),V(sx*.1,.5,-.34),.02,red);tube(V(sx*.1,.6,.3),V(sx*.1,.34,-.2),.018,red);tube(V(sx*.1,.9,-.1),V(sx*.1,.88,-.78),.018,red);}                      // motore bicilindrico
  for(const sz of [-.12,.14]){const c=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.32,10).rotateZ(Math.PI/2),silver);c.position.set(0,.72,sz);g.add(c);}
  const sk=new THREE.Mesh(new THREE.BoxGeometry(.28,.05,.56),silver);sk.position.set(0,.26,.04);g.add(sk);                       // paramotore
  const tankP=[[-.28,.92],[.12,1.04],[.46,.98],[.5,.88],[.14,.78],[-.28,.84],[-.28,.92]];
