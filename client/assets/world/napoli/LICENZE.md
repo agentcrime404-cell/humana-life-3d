@@ -43,3 +43,7 @@ Palazzi napoletani, Vesuvio, Castel dell'Ovo, pontili e barche sono generati dal
 
 ## Mappa di Mergellina
 `map/mergellina.json` è ricavata da OpenStreetMap: **© OpenStreetMap contributors**, licenza ODbL 1.0 (https://www.openstreetmap.org/copyright). Va citata nei crediti del gioco. I nomi dei negozi reali sono stati tolti: i locali hanno nomi inventati.
+
+
+## Modelli di mezzi aggiunti dall utente (cartelle moto-vere e auto-vere)
+- vehicles/moto-vere/africa.glb (solo se presente) — Honda Africa Twin (Low-Poly Game Ready) di KidBi-Gaming, https://sketchfab.com/3d-models/honda-africa-twin-low-poly-game-ready-3d-model-58419276f8d3406cab5524b20124271e — licenza CC BY 4.0: va citato l autore (già nella schermata Crediti). Il modello ha 54k triangoli: ridurlo a meno di 30k per il telefono.
