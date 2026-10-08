@@ -9,7 +9,7 @@ metadata:
 ---
 
 L'utente (richiesta del 2026-10-07) vuole ricevere su Telegram gli aggiornamenti di cosa si fa e cosa manca, in tempo reale, con opzione QR e APK.
-Bot: @Napolilife_bot. Il token è in `.env` (TELEGRAM_BOT_TOKEN, non nel repository, non copiarlo in chat o memoria). SICUREZZA: il bot risponde e scrive SOLO al proprietario (TELEGRAM_OWNER_ID in .env); gli altri vengono ignorati. (Prima l'id si salvava in `data/telegram-chat.json` quando l'utente preme Start sul bot.
+Bot: @Napolilife_bot. Il token è in `.env` (TELEGRAM_BOT_TOKEN, non nel repository, non copiarlo in chat o memoria). L'id chat si salva in `data/telegram-chat.json` quando l'utente preme Start sul bot.
 
 **How to apply:** a ogni traguardo (fine di un blocco di lavoro, deploy, bug trovato) inviare un messaggio breve in italiano semplice:
 `node --env-file-if-exists=.env scripts/telegram.mjs "testo"`; `--qr` invia il QR di scarico, `--apk` invia il file APK. Se esce "Apri Telegram… premi AVVIA" l'utente non ha ancora premuto Start.
