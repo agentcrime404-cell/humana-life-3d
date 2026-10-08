@@ -46,3 +46,9 @@ test('Prigione: uscire e rientrare non libera; la cella e le auto restano salvat
  c.ws.send(JSON.stringify({type:'travel',to:'mergellina'}));await pause(150);assert.equal(app.game.players.get(reg.user.id).room,'lungomare','in cella non si viaggia');
  c.ws.close();
 });
+
+test('Furto: chi scappa lontano (almeno PRISON.escape metri) semina la polizia, chi resta viene preso',()=>{
+ const g=game(),po=new Police(g),p=player({room:'mergellina',x:0,y:0});const r=Math.random;Math.random=()=>0;po.crime(p,20);Math.random=r;
+ p.x=PRISON.escape+5;p.wanted.until=Date.now()-1;po.tick(p);assert.equal(p.jail,undefined,'scappato: niente cella');assert.equal(p.wanted,null);assert.ok(g.log.some(m=>/seminati/.test(m.message)));
+ const q=player({id:'q',room:'mergellina',x:0,y:0});Math.random=()=>0;po.crime(q,20);Math.random=r;q.x=10;q.wanted.until=Date.now()-1;po.tick(q);assert.ok(q.jail,'rimasto vicino: preso');
+});
