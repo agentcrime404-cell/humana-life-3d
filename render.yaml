@@ -11,7 +11,7 @@ services:
     buildCommand: npm ci --omit=dev
     startCommand: node scripts/play-3d.mjs
     healthCheckPath: /
-    autoDeploy: false
+    autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: "24"
