@@ -192,3 +192,6 @@ export const MARKET={name:'Mercato rionale',x:70,y:98,w:12,h:7};
 // Residenze moderne (solo HUMANA life 3D): due gruppi di case bianche a tetto piatto con giardino e piscina, nella zona est.
 export const MODERN=[{id:'mod1',x:151,y:11,w:16,h:9,name:'Residenze moderne Nord'},{id:'mod2',x:155,y:26,w:16,h:9,name:'Residenze moderne Est'}];
 export const modernGeom=m=>({houses:[[m.x+1,m.y+.5,m.x+6.5,m.y+5],[m.x+8.8,m.y+1,m.x+15,m.y+5.5]],pool:[m.x+2,m.y+6.2,m.x+6.5,m.y+8.4]});
+// Mestieri "roleplay" (stile FiveM): turno di servizio con stipendio ogni RP.payEvery secondi; la polizia dei giocatori arresta i ricercati e fa multe.
+export const WORKS={polizia:{name:'Polizia',icon:'👮',salary:60,desc:'Ricevi gli allarmi dei furti, insegui i ricercati, arrestali e fai multe.'},medico:{name:'Paramedico 118',icon:'🚑',salary:55,desc:'Soccorri chi sta male in città (rianimazione in arrivo).'},meccanico:{name:'Meccanico',icon:'🔧',salary:45,desc:'Ripara e rifornisci i mezzi degli altri giocatori.'},taxi:{name:'Taxi',icon:'🚕',salary:40,desc:'Porta in giro gli altri giocatori con la tua auto.'}};
+export const RP={payEvery:300,reach:4,chase:90,arrestReward:150,fine:[20,500],fineCut:.2};

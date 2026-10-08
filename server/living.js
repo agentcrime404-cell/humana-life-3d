@@ -36,6 +36,7 @@ export class Living{
  parkCar(p,x,y,h,v,room){const was=v||p?.vehicle;if(!p||!was||this.edition!=='3d'||!isCar(was))return;if(this.edition!=='3d'||!was||!isCar(was))return;const g=state(this.db,p.id).progress;if(!(g.vehicles||[]).includes(was))return;g.parked={...(g.parked||{})};g.parked[was]={x:x??p.x,y:y??p.y,h:h??(Number.isFinite(p.heading)?p.heading:p.direction||0),room:(room||p.room)==='mergellina'?'mergellina':'lungomare'};this.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(g),p.id);p.myCars=this.carList(g);}
  unparkCar(p,v){const g=state(this.db,p.id).progress;if(!g.parked?.[v])return;delete g.parked[v];this.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(g),p.id);p.myCars=this.carList(g);}
  route(path,method,user,b){const p=this.game.players.get(user.id),three=this.edition==='3d';
+  if(three&&path.startsWith('/api/rp')&&this.game.rp)return this.game.rp.route(path,method,p,b||{});
   if(three&&p?.jail&&method==='POST'&&JAIL_BLOCK.some(q=>path.startsWith(q)))fail('Sei in prigione: aspetta che ti liberino',403);
   this.theft=three&&b&&b.steal===true&&method==='POST'&&p&&STEAL_PATHS.some(q=>path.startsWith(q))?{id:user.id,amount:0}:null;
   try{return this.routeInner(path,method,user,b);}finally{const t=this.theft;this.theft=null;if(t&&t.amount>0)this.game.police?.crime(p,t.amount);}}

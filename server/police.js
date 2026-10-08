@@ -11,7 +11,7 @@ export class Police{
  crime(p,amount){if(!p||p.jail)return;const now=Date.now(),st=this.nearest(p);
   if(p.wanted){this.tell(p,'🚨 Stai già rubando: gli agenti ti cercano!');return;}
   const caught=Math.random()<PRISON.catch,delay=PRISON.delay[0]+Math.random()*(PRISON.delay[1]-PRISON.delay[0]);
-  p.wanted={t0:now,until:now+delay*1000,caught,station:st.id,value:Math.round(amount)};this.save(p);this.tell(p,'🚨 Hai preso senza pagare! Se un agente ti vede finisci in prigione…');}
+  p.wanted={t0:now,until:now+delay*1000,caught,station:st.id,value:Math.round(amount)};this.save(p);this.tell(p,'🚨 Hai preso senza pagare! Se un agente ti vede finisci in prigione…');this.game.rp?.alert(p);}
  // Mette il giocatore in cella (dentro la caserma più vicina); l'auto di proprietà resta parcheggiata dove si trovava.
  arrest(p){const now=Date.now(),st=POLICE.find(c=>c.id===p.wanted?.station)||this.nearest(p);
   this.game.living?.parkCar(p);this.game.arena?.leave(p);p.wanted=null;p.vehicle=null;p.seat=null;p.passenger=null;p.music=null;p.ride=null;p.rideArt=null;p.rideA=null;p.call&&this.game.hangup?.(p,'arrested');try{const g=state(this.game.db,p.id).progress;g.activeVehicle=null;this.game.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(g),p.id);}catch{}p.fueling=null;p.consuming=null;p.from=null;p.room='lungomare';
