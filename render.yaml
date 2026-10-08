@@ -11,7 +11,8 @@ services:
     buildCommand: npm ci --omit=dev
     startCommand: node scripts/play-3d.mjs
     healthCheckPath: /
-    autoDeploy: true
+    # Pubblicazione SOLO a mano (dashboard → Manual Deploy), dopo aver provato il gioco: sul piano free ogni pubblicazione cancella account e monete.
+    autoDeploy: false
     envVars:
       - key: NODE_VERSION
         value: "24"
