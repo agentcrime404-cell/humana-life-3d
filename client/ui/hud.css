@@ -380,7 +380,7 @@ body.is3d #modal.atm-full .atm-title{font-size:14px}body.is3d #modal.atm-full .a
 .welcome-sub{margin:2px 0 6px;color:#cfe3ee;font-size:13px}
 
 /* sfondo della schermata d ingresso: il lungomare di Napoli al tramonto con gli scogli e la ringhiera */
-#auth.veil{background:linear-gradient(rgba(4,10,22,.28),rgba(4,10,22,.5)),url(/assets/sfondo-napoli-life.webp) 72% 100%/auto 138% no-repeat !important}
+#auth.veil{background:linear-gradient(rgba(4,10,22,.28),rgba(4,10,22,.5)),url(/assets/sfondo-ciro-africa.jpg) 50% 60%/cover no-repeat !important}
 #auth .card{background:rgba(9,24,40,.78)!important;backdrop-filter:blur(6px)}
 
 /* ---- Accesso e menu "Prima di giocare" (stile Napoli life) ---- */
