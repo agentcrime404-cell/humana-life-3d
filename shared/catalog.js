@@ -91,7 +91,7 @@ export const VEHICLES_3D=[
  {id:'m-50',shop:'moto',base:'scooter',model:'scooter',name:'Scooter 50',emoji:'🛵',buy:350,speed:2.2,color:'#2ec4c4'},
  {id:'m-epoca',shop:'moto',base:'scooter',model:'scooter',name:'Scooter d’epoca',emoji:'🛵',buy:700,speed:2.3,color:'#e9e1d2'},
  {id:'m-naked',shop:'moto',base:'scooter',model:'naked',name:'Moto naked',emoji:'🏍️',buy:1500,speed:3,color:'#2b2f36'},
- {id:'m-enduro',shop:'moto',base:'scooter',model:'enduro',name:'Maxi enduro',emoji:'🏍️',buy:2200,speed:3.2,color:'#f4f4ef'},
+ {id:'m-xadv',shop:'moto',base:'scooter',model:'xadv',name:'Maxi scooter sportivo',emoji:'🛵',buy:2400,speed:3.1,color:'#2b2f36'},{id:'m-enduro',shop:'moto',base:'scooter',model:'africa',name:'Maxi enduro bicilindrica',emoji:'🏍️',buy:2200,speed:3.2,color:'#f4f4ef'},
  {id:'m-cruiser',shop:'moto',base:'scooter',model:'cruiser',name:'Custom da viaggio',emoji:'🏍️',buy:2600,speed:2.9,color:'#7a1f2b'},
  {id:'m-sport',shop:'moto',base:'scooter',model:'sport',name:'Sportiva carenata',emoji:'🏍️',buy:3400,speed:3.7,color:'#c1121f'},
  {id:'b-bmx',shop:'bici',base:'bici',model:'bmx',name:'BMX',emoji:'🚲',buy:300,speed:1.8,color:'#e5484d'},
