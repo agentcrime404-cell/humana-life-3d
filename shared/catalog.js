@@ -81,7 +81,7 @@ export const DEALERS=[
  {id:'moto',name:'Moto e Scooter Vesuvio',icon:'🏍️',x:96,y:40,w:11,h:8,color:'#1d4e89'},
  {id:'bici',name:'Ciclofficina Partenope',icon:'🚲',x:36,y:104,w:11,h:8,color:'#1f6f50'}];
 export const VEHICLES_3D=[
- {id:'a-500',shop:'auto',base:'auto',model:'fiat500',name:'Cinquino tondo',emoji:'🚗',buy:700,speed:2.7,color:'#8b9098'},{id:'a-panda',shop:'auto',base:'auto',model:'panda',name:'Pandina quadrata',emoji:'🚙',buy:600,speed:2.6,color:'#eceeee'},{id:'a-city',shop:'auto',base:'auto',model:'city',name:'Citycar tre porte',emoji:'🚗',buy:900,speed:2.7,color:'#f4f4ef'},
+ {id:'a-500',shop:'auto',base:'auto',model:'fiat500',name:'Cinquino tondo',emoji:'🚗',buy:700,speed:2.7,color:'#8b9098'},{id:'a-panda',shop:'auto',base:'auto',model:'panda',name:'Pandina quadrata',emoji:'🚙',buy:600,speed:2.6,color:'#eceeee'},{id:'a-rossa',shop:'auto',base:'auto',model:'sportscar',name:'Sportiva rossa',emoji:'🏎️',buy:3800,speed:3.6,color:'#a31621'},{id:'a-city',shop:'auto',base:'auto',model:'city',name:'Citycar tre porte',emoji:'🚗',buy:900,speed:2.7,color:'#f4f4ef'},
  {id:'a-berlina',shop:'auto',base:'auto',model:'sedan',name:'Berlina sportiva',emoji:'🚘',buy:1800,speed:3,color:'#1f3a6b'},
  {id:'a-suv',shop:'auto',base:'auto',model:'suv',name:'Fuoristrada 4x4',emoji:'🚙',buy:2600,speed:2.9,color:'#2b2f36'},
  {id:'a-gt',shop:'auto',base:'auto',model:'gt',name:'Granturismo a motore anteriore',emoji:'🏎️',buy:4200,speed:3.5,color:'#0b0b0f'},

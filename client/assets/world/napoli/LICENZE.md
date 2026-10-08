@@ -47,3 +47,4 @@ Palazzi napoletani, Vesuvio, Castel dell'Ovo, pontili e barche sono generati dal
 
 ## Modelli di mezzi aggiunti dall utente (cartelle moto-vere e auto-vere)
 - vehicles/moto-vere/africa.glb (solo se presente) — Honda Africa Twin (Low-Poly Game Ready) di KidBi-Gaming, https://sketchfab.com/3d-models/honda-africa-twin-low-poly-game-ready-3d-model-58419276f8d3406cab5524b20124271e — licenza CC BY 4.0: va citato l autore (già nella schermata Crediti). Il modello ha 54k triangoli: ridurlo a meno di 30k per il telefono.
+- vehicles/auto-vere/sportscar.glb — "LowPoly_SportsCar_Red", fornito dall utente il 2026-10-08 (6268 triangoli). Autore e licenza DA CONFERMARE: se richiede attribuzione, aggiungerla qui e nei Crediti.

@@ -4,7 +4,7 @@
 // Opzionale: config.json nella stessa cartella, es. {"vespa":{"yaw":3.1416,"len":1.8}} per girare/ridimensionare un modello.
 import * as THREE from '../vendor/three/three.module.min.js';
 import {GLTFLoader} from '../vendor/three/GLTFLoader.js';
-const LIST=[['vespa','moto-vere',1.8],['xadv','moto-vere',2.2],['africa','moto-vere',2.3],['fiat500','auto-vere',3.57],['panda','auto-vere',3.67]];
+const LIST=[['vespa','moto-vere',1.8],['xadv','moto-vere',2.2],['africa','moto-vere',2.3],['fiat500','auto-vere',3.57],['panda','auto-vere',3.67],['sportscar','auto-vere',4.4]];
 const BASE='/assets/world/napoli/vehicles/';
 export async function loadRealVehicles(w){w.realV??={};const loader=new GLTFLoader(),cfg={};
  for(const d of ['moto-vere','auto-vere']){try{const r=await fetch(BASE+d+'/config.json',{cache:'no-cache'});if(r.ok)Object.assign(cfg,await r.json());}catch{}}
