@@ -147,3 +147,10 @@ Richiesta dell'utente: rendere Napoli life simile a un server FiveM. Piano a tap
 - `server/rp.js` (`Roleplay`, `game.rp`): `progress.work`/`progress.duty` → `p.work`/`p.duty` (NON `p.job`, che è la consegna del rider). API `/api/rp` (vista), `/api/rp/work`, `/api/rp/duty`, `/api/rp/arrest`, `/api/rp/fine`. Stipendio ogni `RP.payEvery` s in servizio (`WORKS`, `RP` in shared/catalog.js). Furto → `police.crime` → `rp.alert`: allarme agli agenti in servizio e ricerca allungata a `RP.chase` s. Arresto solo di ricercati a meno di `RP.reach` m (premio), multa 20-500 (20% all'agente).
 - Client: scheda in cima all'app 💼 Lavoro (`client/ui/rp.js`, richiamata da `ui/jobs.js`). Test: `tests/rp.test.js`.
 - Da fare: divise e icona del mestiere sopra la testa, ricercati sulla mappa per gli agenti, sirene sull'auto della polizia, lavori veri per medico/meccanico/taxi.
+
+## v258 (2026-10-08): gioco più fluido a Mergellina
+- Misura dal riquadro del browser (Intel UHD vera, non disegno di riserva): davanti a Chalet Ciro ~700 disegni e 1,5 milioni di triangoli, ~20 immagini/s, scatti fino a 0,2 s.
+- `splitInstances` + `zoneCull` (world3d.js): i gruppi ripetuti a migliaia DENTRO la città (ringhiere, sassi, scogli, parapetti) tengono solo le copie entro 420 m (260 telefono) dal giocatore; gli oggetti piccoli (insegne, cartelli, chioschi, ville: raggio < 30 m) si spengono oltre 450 m (300 telefono). Aggiornato ogni 40 m. Il panorama fuori città non si tocca. NB: dividere in zone separate (prima prova) RADDOPPIAVA i disegni: non rifarlo.
+- Fila di scooter davanti a Chalet Ciro: X-ADV e Africa Twin disegnate leggere (`moto(col,kind,light)`), non il modello vero da 54k triangoli.
+- PC deboli: sotto 24 immagini/s la risoluzione cala fino al 70% e risale sopra 45 (prima succedeva solo sul telefono).
+- Risultato a parità di inquadratura: disegni 787 → 617, tempo di disegno 28 → 24 ms. Il grosso che resta sono i palazzi (BufferGeometry uniti, ~650k triangoli).
