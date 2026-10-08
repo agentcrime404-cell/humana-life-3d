@@ -135,4 +135,4 @@ Avvertenza: nel gioco il test del browser è lentissimo su questo PC: dopo il vi
 - Punto di ripristino prima delle ottimizzazioni: tag git `salvataggio-v250-prima-ottimizzazioni` (per tornare indietro: `git checkout salvataggio-v250-prima-ottimizzazioni -- client`).
 - `buildNapoli` (world3d.js) da 8,3 s a 4,0 s sul PC: `land()` del panorama guarda solo i tratti di costa alla stessa y (fasce da 16 m, `LB`), e il ciclo parapetti/scogli salta i byte vuoti della griglia e le celle con 4 vicini calpestabili. Risultati verificati identici (0 differenze su 4 milioni di punti; 6882 parapetti uguali).
 - Attenzione: il server acceso dalla vecchia cartella `gioco humana` dava la versione 241 su localhost; ora si avvia da `Desktop\Napoli life`.
-- Prossimi pezzi lenti: "strade" (~0,9 s), "locali, alberi, lido" (~1 s), "luoghi" (~0,8 s).
+- v252: porte dei locali (`edgeNear` con caselle da 16 m, `EB`) e barche ai pontili (al massimo 60 forme diverse, le altre sono copie: `mkB`) -> buildNapoli 3,1 s. Restano: maschera strade (~0,45 s, getImageData 6 milioni di pixel), insegne dei locali (~0,4 s), cartelli delle vie (~0,23 s).
