@@ -11,7 +11,7 @@ import {fileURLToPath} from 'node:url';
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),'..'),PORT=Number(process.env.PORT_CONVERTI||3391);
 const MOUNT={'/three/':'client/vendor/three','/jsm/':'tools/modelli/three-r170','/src/':'tools/modelli/sorgenti','/assets/':'client/assets/world/napoli','/tool/':'tools/modelli'};
 // Dove la pagina può scrivere: solo le cartelle dei modelli nuovi.
-const WRITABLE=['client/assets/world/napoli/characters/persone-vere/','client/assets/world/napoli/vegetation/alberi-veri/','client/assets/world/napoli/vehicles/auto-vere/','tools/modelli/prove/'];
+const WRITABLE=['client/assets/world/napoli/characters/persone-vere/','client/assets/world/napoli/vegetation/alberi-veri/','client/assets/world/napoli/vehicles/auto-vere/','client/assets/world/napoli/vehicles/moto-vere/','tools/modelli/prove/'];
 const TYPES={'.js':'text/javascript','.mjs':'text/javascript','.json':'application/json','.gltf':'model/gltf+json','.glb':'model/gltf-binary','.bin':'application/octet-stream','.fbx':'application/octet-stream','.tga':'application/octet-stream','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.hdr':'application/octet-stream','.html':'text/html; charset=utf-8','.md':'text/plain; charset=utf-8','.txt':'text/plain; charset=utf-8'};
 const PAGE=`<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Convertitore modelli HUMANA</title>
 <style>body{margin:0;background:#20242b;color:#e8e8e8;font:14px system-ui}#log{position:fixed;left:8px;top:8px;white-space:pre-wrap;max-width:46vw;z-index:2}canvas{display:block}</style>

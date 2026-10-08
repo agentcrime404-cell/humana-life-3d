@@ -1,0 +1,8 @@
+Metti qui i modelli 3D veri (formato .glb) con questi nomi:
+  vespa.glb   (scooter a scocca tonda)      xadv.glb   (maxi-scooter angolare)      africa.glb (maxi-enduro bicolore)
+In ../auto-vere/ vanno fiat500.glb e panda.glb.
+Il gioco li usa da solo (scala, orientamento e ruote a terra automatici). Se un modello guarda dalla parte sbagliata o è fuori misura,
+scrivi un file config.json qui accanto, per esempio:  {"vespa":{"yaw":3.1416,"len":1.8}}
+Per convertire FBX/OBJ in GLB: avvia  node scripts/converti-modelli.mjs  e segui la pagina.
+Peso consigliato: sotto i 30.000 triangoli e texture 1024 px, per il telefono.
+Controlla sempre la licenza del modello (CC0 o CC-BY vanno bene; CC-BY richiede di citare l'autore in client/assets/world/napoli/LICENZE.md).
