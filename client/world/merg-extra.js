@@ -1,7 +1,7 @@
 // Dettagli veri di Mergellina presi da OpenStreetMap: distributori, caserme e ambulatori veri (con cartello), semafori e strisce pedonali ai nodi con semaforo,
 // barche ormeggiate ai pontili e barche che navigano al largo (posizione = orologio del server, uguale per tutti).
 import * as THREE from '../vendor/three/three.module.min.js';
-import {NAPOLI,napoliCell,napoliServices,signalPhase} from '/shared/napoli.js';
+import {NAPOLI,napoliCell,napoliServices,signalPhase,napoliPlaces} from '/shared/napoli.js';
 const H=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h);};
 const lam=(c,o={})=>new THREE.MeshLambertMaterial({color:c,...o}),bas=c=>new THREE.MeshBasicMaterial({color:c});
 function sign(text,w,h,bg,fg='#fff'){const c=document.createElement('canvas');c.width=512;c.height=Math.round(512*h/w);const g=c.getContext('2d');g.fillStyle=bg;g.fillRect(0,0,c.width,c.height);g.strokeStyle=fg;g.lineWidth=5;g.strokeRect(5,5,c.width-10,c.height-10);g.fillStyle=fg;g.font='bold '+Math.round(c.height*.42)+'px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';
@@ -37,11 +37,29 @@ export class MergExtra{
   try{this.buildCiro();}catch(e){console.warn('Ciro',e);}
   this.built=true;}
  // Chalet Ciro (Via Caracciolo, Mergellina): padiglione basso crema con vetrate, tende a strisce blu e bianche, siepi sul tetto, insegna, tavolini; scooter in fila sul marciapiede e platani lungo la strada.
+ // Interno di Chalet Ciro visto dalla vetrina: pavimento a scacchi, banco con vetrina dei dolci, scaffali di bottiglie, tavolini e lampade calde.
+ ciroInside(g,Wd,Dp,H,dl){const B=(c)=>new THREE.MeshBasicMaterial({color:c}),warm=B('#f6e3c0'),wood=lam('#7a4f2c');
+  {const c=document.createElement('canvas');c.width=c.height=64;const q=c.getContext('2d');for(let j=0;j<8;j++)for(let i=0;i<8;i++){q.fillStyle=(i+j)%2?'#1c2a4a':'#f3efe6';q.fillRect(i*8,j*8,8,8);}const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(Wd/2,Dp/2);t.magFilter=THREE.NearestFilter;
+   const fl=new THREE.Mesh(new THREE.PlaneGeometry(Wd-.4,Dp-.4),new THREE.MeshLambertMaterial({map:t}));fl.rotation.x=-Math.PI/2;fl.position.y=.02;g.add(fl);}
+  box(g,Wd-.5,H-.1,.05,0,H/2,-Dp/2+.27,warm);for(const s of [-1,1])box(g,.05,H-.1,Dp-.5,s*(Wd/2-.27),H/2,0,warm);box(g,Wd-.5,.05,Dp-.5,0,H-.05,0,B('#fff6e2'));
+  const cz=-Dp/2+2.2,cw=Math.min(9,Wd*.5);box(g,cw,1.05,.8,0,.52,cz,wood);box(g,cw+.1,.06,.9,0,1.08,cz,lam('#efe6d6'));
+  box(g,cw*.55,.5,.7,-cw*.2,1.36,cz+.05,new THREE.MeshLambertMaterial({color:'#d9eef7',transparent:true,opacity:.35,depthWrite:false}));
+  const P=['#f2c14e','#e86aa5','#7b3f1d','#f4f1ea','#c1272d','#8fd16a'];for(let i=0;i<12;i++)box(g,.26,.12,.22,-cw*.2-cw*.24+(i%6)*cw*.1,1.18+Math.floor(i/6)*.2,cz+(i%2?-.12:.14),B(P[(i*5)%6]));
+  for(let r=0;r<3;r++){box(g,cw+1,.05,.35,0,1.6+r*.55,-Dp/2+.48,wood);for(let i=0;i<14;i++)box(g,.1,.32,.1,-cw/2+.2+i*(cw+.6)/14,1.79+r*.55,-Dp/2+.48,B(['#2f6b3c','#7a1f2b','#e8b026','#3a6ea5'][(i+r)%4]));}
+  box(g,1.1,.7,.6,cw/2-.7,1.45,cz,lam('#9aa0a6'));
+  for(const [x,z] of [[-Wd/2+2.2,Dp/2-2.2],[-Wd/2+4.8,Dp/2-2.4],[Wd/2-2.4,Dp/2-2.2],[Wd/2-5,Dp/2-2.6],[-Wd/2+2.4,-.2],[Wd/2-2.6,0]]){if(Math.abs(x-dl)<1.6&&z>0)continue;const t=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.04,12),lam('#faf7f0'));t.position.set(x,.76,z);g.add(t);box(g,.06,.74,.06,x,.38,z,lam('#444'));for(const s of [-1,1])box(g,.4,.45,.4,x+s*.72,.25,z,lam('#2a3a5c'));}
+  for(let i=0;i<4;i++){const x=-Wd/2+Wd*(i+.5)/4,l=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8),B('#ffd98a'));l.position.set(x,H-.55,0);g.add(l);box(g,.02,.4,.02,x,H-.25,0,lam('#333'));}}
  buildCiro(){const w=this.w,D=NAPOLI.data,b=D.buildings.find(q=>q.name==='Chalet Ciro');if(!b)return;const xs=b.p.map(q=>q[0]),ys=b.p.map(q=>q[1]),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2,Wd=Math.max(...ys)-Math.min(...ys)+.6,Dp=Math.max(...xs)-Math.min(...xs)+.4,gy=w.groundY||.12,g=new THREE.Group();
-  g.position.set(cx,gy,cy);g.rotation.y=Math.PI/2;const L=(c)=>lam(c),cream=L('#f0e8d6'),white=L('#faf7f0'),navy=L('#1c2a4a'),green=L('#2e6a34'),glass=new THREE.MeshLambertMaterial({color:'#27394d',transparent:true,opacity:.7});
-  const H=3.7;box(g,Wd,H,Dp,0,H/2,0,cream);box(g,Wd+.5,.3,Dp+.5,0,H+.15,0,white);
+  g.position.set(cx,gy,cy);g.rotation.y=Math.PI/2;const L=(c)=>lam(c),cream=L('#f0e8d6'),white=L('#faf7f0'),navy=L('#1c2a4a'),green=L('#2e6a34'),glass=new THREE.MeshLambertMaterial({color:'#bcd6e6',transparent:true,opacity:.22,depthWrite:false});
+  const H=3.7,door=napoliPlaces().doors.find(q=>q.name==='Chalet Ciro'),dl=door?cy-door.y:0;
+  // Padiglione vuoto dentro: muri, tetto, pavimento; la facciata è una vetrina con la porta (dl) da cui si vede l'interno.
+  box(g,Wd,H,.25,0,H/2,-Dp/2+.12,cream);for(const s of [-1,1])box(g,.25,H,Dp,s*(Wd/2-.12),H/2,0,cream);box(g,Wd+.5,.3,Dp+.5,0,H+.15,0,white);
+  box(g,Wd,.55,.25,0,.27,Dp/2-.12,cream);box(g,Wd,H-2.95,.25,0,(H+2.95)/2,Dp/2-.12,cream);for(const s of [-1,1])box(g,.6,2.4,.25,s*(Wd/2-.3),1.75,Dp/2-.12,cream);
+  this.ciroInside(g,Wd,Dp,H,dl);
   // vetrate e montanti
-  box(g,Wd-1.2,2.4,.12,0,1.75,Dp/2+.02,glass);for(let x=-Wd/2+1.2;x<=Wd/2-1.2;x+=2.4)box(g,.1,2.5,.16,x,1.75,Dp/2+.05,white);box(g,Wd-.8,.12,.2,0,2.98,Dp/2+.06,white);
+  {const L0=-Wd/2+.6,R0=Wd/2-.6,d0=dl-.8,d1=dl+.8;if(d0>L0)box(g,d0-L0,2.4,.08,(L0+d0)/2,1.75,Dp/2-.12,glass);if(R0>d1)box(g,R0-d1,2.4,.08,(d1+R0)/2,1.75,Dp/2-.12,glass);
+   for(let x=-Wd/2+1.2;x<=Wd/2-1.2;x+=2.4)if(Math.abs(x-dl)>1)box(g,.1,2.5,.16,x,1.75,Dp/2-.05,white);for(const s of [-1,1])box(g,.14,2.6,.2,dl+s*.85,1.3,Dp/2-.05,L('#6b4a2b'));box(g,1.84,.16,.2,dl,2.62,Dp/2-.05,L('#6b4a2b'));
+   const dm=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.3),new THREE.MeshBasicMaterial({color:'#ffe9a8'}));dm.position.set(dl,.03,Dp/2+.6);dm.rotation.x=-Math.PI/2;g.add(dm);}box(g,Wd-.8,.12,.2,0,2.98,Dp/2+.06,white);
   // siepi sul tetto
   for(const z of [-1,1])box(g,Wd+.5,.75,.55,0,H+.3+.37,z*(Dp/2+.0),green);for(const x of [-1,1])box(g,.55,.75,Dp+.5,x*(Wd/2+.0),H+.3+.37,0,green);
   for(let i=0;i<7;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(.55,8,6),green);s.position.set(-Wd/2+1.5+i*2.6,H+1.1,Dp/2+.05);g.add(s);}
@@ -55,7 +73,7 @@ export class MergExtra{
   const chair=L('#2a3a5c'),top=white;for(let i=0;i<Math.floor(Wd/3);i++){const x=-Wd/2+1.8+i*3;const t=new THREE.Mesh(new THREE.CylinderGeometry(.46,.46,.05,10),top);t.position.set(x,.76,Dp/2+1.4);g.add(t);box(g,.07,.74,.07,x,.38,Dp/2+1.4,L('#555'));for(const sd of [-1,1])box(g,.42,.5,.42,x+sd*.75,.27,Dp/2+1.4,chair);}
   w.static.add(g);
   // scooter in fila lungo il marciapiede davanti allo chalet, platani lungo la strada
-  const cols=['#1b1b1f','#c7ccd4','#b3261e','#1d4e89'],mk=[(c)=>w.scooter(c,{top:true}),(c)=>w.moto(c,'xadv'),(c)=>w.scooter(c,{top:true}),(c)=>w.moto(c,'africa')],byc=cols.map(()=>[]);let k=0;for(let y=cy-Wd/2+1;y<cy+Wd/2-.5;y+=1.15){const x=cx+Dp/2+4.4;if(napoliCell(x,y)){byc[k%4].push([x,y,Math.PI+ (k%3-1)*.06]);w.col.c.push([x,y,.45]);}k++;}
+  const cols=['#1b1b1f','#c7ccd4','#b3261e','#1d4e89'],mk=[(c)=>w.scooter(c,{top:true}),(c)=>w.moto(c,'xadv'),(c)=>w.scooter(c,{top:true}),(c)=>w.moto(c,'africa')],byc=cols.map(()=>[]);let k=0;const dy0=napoliPlaces().doors.find(q=>q.name==='Chalet Ciro')?.y;for(let y=cy-Wd/2+1;y<cy+Wd/2-.5;y+=1.15){const x=cx+Dp/2+4.4;if(dy0!=null&&Math.abs(y-dy0)<1.8){k++;continue;}if(napoliCell(x,y)){const e=[x,y,Math.PI+ (k%3-1)*.06],c=[x,y,.45];byc[k%4].push(e);w.col.c.push(c);(w.stealSpots||(w.stealSpots=[])).push({e,x,y,kind:'scooter',col:[c]});globalThis.humanaSteal=w;}k++;}
   byc.forEach((l,i)=>{if(l.length)w.instanced(mk[i](cols[i]),l);});
   const T=[[],[],[]];let kk=0;for(const x of [cx+Dp/2+5.4,cx+Dp/2+23.5])for(let y=cy-70;y<=cy+70;y+=12.5){if(Math.abs(y-cy)<Wd/2+1&&x<cx+10)continue;if(napoliCell(x,y)&&napoliCell(x+.8,y)&&napoliCell(x-.8,y)&&!w.onRoad?.(x,y)){T[kk%3].push([x,y,0]);w.col.c.push([x,y,.4]);kk++;}}
   for(let v=0;v<3;v++)w.instanced(w.tree(1,v),T[v]);}

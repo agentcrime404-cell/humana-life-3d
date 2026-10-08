@@ -404,3 +404,4 @@ body.is3d #modal.atm-full .atm-title{font-size:14px}body.is3d #modal.atm-full .a
 #pregame button.go{background:linear-gradient(180deg,#3b8cff,#1f6feb);border-color:#7db2ff;font-weight:800;letter-spacing:.05em}
 #pregame button i{font-style:normal;width:26px;text-align:center}
 @media(max-width:700px) and (orientation:portrait){#pregame{align-items:flex-end;justify-content:center;padding:0 14px 24px;background:linear-gradient(0deg,rgba(6,14,28,.78),rgba(6,14,28,0) 60%)}#pregame .pg-menu{width:100%;margin-bottom:0}#pregame .pg-title{text-align:center}#pregame .pg-title .logo{align-items:center}}
+#steal-veh{position:fixed;left:50%;bottom:calc(150px + var(--safe-bottom,0px));transform:translateX(-50%);z-index:7;padding:12px 20px;border-radius:24px;border:2px solid #fff;background:#b3261e;color:#fff;font-size:16px;font-weight:800;box-shadow:0 4px 16px rgba(0,0,0,.4)}#steal-veh[hidden]{display:none}

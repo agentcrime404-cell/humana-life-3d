@@ -93,4 +93,6 @@ export function napoliPlaces(){if(NAPOLI.places)return NAPOLI.places;const out={
   out.doors.push({id,name:nm,x:d.x,y:d.y,exitX:d.x,exitY:d.y,to:d.to,kind:d.t,real:!!d.real,osm:d.real?d.p.osm:undefined,fantasy:!d.real});
   if(d.t==='bank'){const a=near(d.x+1.4,d.y);if(a)out.props.push({id:'matmb'+n,kind:'atm',x:a.x,y:a.y,r:.35});}});
  {const vs=napoliVillas();vs.forEach((v,i)=>{if(v.door&&!out.doors.some(d=>Math.hypot(d.x-v.door.x,d.y-v.door.y)<MIN_GAP))out.doors.push({id:'mv'+i+'v',name:v.name,x:v.door.x,y:v.door.y,exitX:v.door.x,exitY:v.door.y,to:'ospiti-villa',kind:'villa',real:false,fantasy:true});});}
+ // Chalet Ciro: la porta sta sulla vetrata del padiglione disegnato (client/world/merg-extra.js buildCiro), non dentro.
+ {const b=NAPOLI.data.buildings.find(q=>q.name==='Chalet Ciro'),d=out.doors.find(q=>q.name==='Chalet Ciro');if(b&&d){const x=Math.max(...b.p.map(q=>q[0]))+.9;if(napoliCell(x,d.y)){d.x=d.exitX=x;d.exitY=d.y;}}}
  return NAPOLI.places=out;}
