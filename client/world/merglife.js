@@ -117,7 +117,7 @@ export class MergLife extends CityLife{
    this.syncWalker(a,T,dt,px,pz);}
   for(const a of this.agents){if(!a.on||a.kind!=='crew')continue;this.step(a,dt);}
   // veicoli
-  const dens=carDensity(h);for(const c of this.cars){const want=c.kind==='rifiuti'?between(h,6,13):c.u<dens;
+  const dens=carDensity(h);for(const c of this.cars){const want=(c.kind==='rifiuti'?between(h,6,13):c.u<dens)&&!(c.gone>Date.now());
    if(!want){if(c.on){c.on=false;this.freeMesh(c);}continue;}
    this.syncCar(c,T,dt,px,pz);
    if(c.on){const m=this.mesh(c);m.position.set(c.x,w.lev(c.x,c.y),c.y);m.rotation.y=w.hd(c.h);if(m.userData.beacon)m.userData.beacon.material.color.setHex(Math.floor(w.clock*3)%2?0xffb300:0x4a3000);if(c.kind==='rifiuti'){this.truckPos={x:c.x,y:c.y,h:c.h};const T2=this.tc[0];T2.s=0;T2.off=false;T2.park=c.park>0?{}:null;T2.side=c.road&&!c.road.ow?c.road.w/4+1.4:1.4;}}}
