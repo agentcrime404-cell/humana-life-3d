@@ -134,3 +134,12 @@ Avvertenza: nel gioco il test del browser è lentissimo su questo PC: dopo il vi
 ## 2026-10-09: RITORNO ALLA VERSIONE 250 (importante)
 L'utente ha chiesto di tornare a com'era prima: le versioni 251-262 (caricamento veloce, furti di mezzi, Chalet Ciro con interno, mestieri e polizia dei giocatori stile FiveM, sfondo nuovo, palazzi in quadranti) hanno portato bug (palazzi spariti, schermate, avvio). Il codice è identico al tag `salvataggio-v250-prima-ottimizzazioni` (solo `CACHE` = humana-life-263 per far aggiornare i browser). Il lavoro tolto è nella storia di git (commit da f40843e a 6d33276) e si può recuperare un pezzo alla volta.
 Lezioni: una modifica per volta, provarla NEL GIOCO VERO (finestra in primo piano, foto di Mergellina, avvio col .bat) prima di passare alla successiva; non lasciare server accesi in nascosto (occupano la porta 3079 e il .bat dell'utente non parte); chiedere conferma all'utente prima di cambiare l'aspetto (sfondo, schermate).
+
+## 2026-10-09: controllo completo del sito (v264)
+- Sito online verificato: 65/66 file raggiungibili (`/assets/` è una cartella, innocuo), mappa compressa (1,6 MB → 300 KB), 306 porte tutte raggiungibili, 70 test ok.
+- Corretto: la schermata d'accesso controllava il server con `/api/config` (richiede l'accesso → 401) e poteva scrivere «Il gioco non risponde» a server acceso; ora usa `/health`. Il controllo parte solo fuori da localhost/192.168 (per provarlo sul PC: http://127.0.0.2:3079/).
+- Corretto: il bottone 🤫 della modalità furto si vedeva sulla schermata d'accesso; ora si vede solo con l'HUD di gioco (`drive-hud.js`, `update(me)`).
+- `render.yaml`: `autoDeploy: false`. Per verificare se una pubblicazione è avvenuta senza cambiare versione: l'ETag dei file (`curl -sI .../boot.js`) contiene l'ora del file sul server e cambia a ogni pubblicazione.
+- Strumento `npm run controlla-sito`: scrivere l'indirizzo SENZA barra finale (con la barra crea indirizzi `//ui/...` e segna tutto 404).
+- Da proporre all'utente: all'avvio il telefono scarica ~16 MB di immagini del vecchio 2D (`client/assets/*.png`, usate dal «calcolatore» `world/renderer.js`): da togliere con cautela; Africa Twin 5 MB / 54k triangoli.
+- Nota prove nel riquadro del browser: se la finestra di Claude non è in primo piano la pagina è `hidden` e il gioco è in pausa (0 immagini): le misure di velocità non valgono; `preview_start` con l'url riapre il riquadro.
