@@ -7,7 +7,7 @@ export function setServer(url){server=url.trim().replace(/\/+$/,'');globalThis.l
 // L'app 3D invece è solo un guscio che apre il gioco da internet: la pagina arriva già dal server giusto, quindi si comporta come un normale browser.
 export const nativeApp=!!globalThis.Capacitor?.isNativePlatform?.()&&/^(localhost|127.0.0.1)$/.test(globalThis.location?.hostname||'');
 const base=()=>nativeApp?server:'';
-export async function api(path,method='GET',body){if(globalThis.__steal&&method==='POST'&&body&&typeof body==='object')body={...body,steal:true};if(nativeApp&&!server)throw new Error('Inserisci l’indirizzo del server HUMANA');const response=await fetch(base()+'/api'+path,{method,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:body===undefined?undefined:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw new Error(data.error||'Errore di rete');return data;}
+export async function api(path,method='GET',body){if(globalThis.__steal&&method==='POST'&&body&&typeof body==='object')body={...body,steal:true};if(nativeApp&&!server)throw new Error('Inserisci l’indirizzo del server HUMANA');const response=await fetch(base()+'/api'+path,{method,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:body===undefined?undefined:JSON.stringify(body)});let data;try{data=await response.json();}catch{data={};}if(!response.ok)throw Object.assign(new Error(data.error||'Errore di rete ('+response.status+')'),{status:response.status});return data;}
 export class Connection extends EventTarget{
  connect(){clearTimeout(this.retry);this.attempts=this.attempts||0;return new Promise((resolve,reject)=>{
   if(this.ws&&this.ws.readyState<2)this.ws.close();
