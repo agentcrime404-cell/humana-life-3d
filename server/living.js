@@ -37,6 +37,7 @@ export class Living{
  unparkCar(p,v){const g=state(this.db,p.id).progress;if(!g.parked?.[v])return;delete g.parked[v];this.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(g),p.id);p.myCars=this.carList(g);}
  route(path,method,user,b){const p=this.game.players.get(user.id),three=this.edition==='3d';
   if(three&&path.startsWith('/api/rp')&&this.game.rp)return this.game.rp.route(path,method,p,b||{});
+  if(three&&path.startsWith('/api/heist')&&this.game.heist)return this.game.heist.route(path,method,p,b||{});
   if(three&&p?.jail&&method==='POST'&&JAIL_BLOCK.some(q=>path.startsWith(q)))fail('Sei in prigione: aspetta che ti liberino',403);
   this.theft=three&&b&&b.steal===true&&method==='POST'&&p&&STEAL_PATHS.some(q=>path.startsWith(q))?{id:user.id,amount:0}:null;
   try{return this.routeInner(path,method,user,b);}finally{const t=this.theft;this.theft=null;if(t&&t.amount>0)this.game.police?.crime(p,t.amount);}}

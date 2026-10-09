@@ -1,5 +1,6 @@
 import {cleanAvatar,cleanPhoto} from '../shared/avatar.js';
 import {Roleplay} from './rp.js';
+import {Heists} from './heist.js';
 import {LOOKS} from '../shared/looks.js';import {setNapoli} from '../shared/napoli.js';import {registerMergellina,registerMallFloor,EXTRA_BLOCKS} from '../shared/world.js';import {solidBlocks} from '../shared/catalog.js';import {Arena} from './arena.js';import {Fuel} from './fuel.js';import {Police} from './police.js';import {Service} from './service.js';
 // Zona Mergellina di HUMANA life 3D (mappa vera OpenStreetMap), se il file della mappa esiste.
 const BUILD=(()=>{try{return (readFileSync(new URL('../client/sw.js',import.meta.url),'utf8').match(/humana-life-(\d+)/)||[])[1]||'0';}catch{return '0';}})();
@@ -15,7 +16,7 @@ export function createApp({dbPath=process.env.DATABASE_PATH||'./data/humana.sqli
  if(edition==='3d'){loadMergellina();registerMallFloor();} // la zona Mergellina esiste solo in HUMANA life 3D
  const db=database(dbPath),game=new Game(db),limits=new Map();
  const zipped=new Map();function rate(key,max){const now=Date.now();let r=limits.get(key);if(!r||now-r.time>60000)limits.set(key,r={time:now,n:0});if(limits.size>10000)limits.delete(limits.keys().next().value);return ++r.n<=max;}
- const living=new Living(db,game);living.edition=edition;const editor=new MapEditor(db,game);const jobs=new Jobs(db,game);game.jobs=jobs;const phone=new Phone(db,game);game.phone=phone;game.living=living;if(edition==='3d'){if(!EXTRA_BLOCKS.length)EXTRA_BLOCKS.push(...solidBlocks());game.arena=new Arena(game);game.fuel=new Fuel(game);game.service=new Service(game);game.police=new Police(game);game.rp=new Roleplay(game);}const pay=payments(db);
+ const living=new Living(db,game);living.edition=edition;const editor=new MapEditor(db,game);const jobs=new Jobs(db,game);game.jobs=jobs;const phone=new Phone(db,game);game.phone=phone;game.living=living;if(edition==='3d'){if(!EXTRA_BLOCKS.length)EXTRA_BLOCKS.push(...solidBlocks());game.arena=new Arena(game);game.fuel=new Fuel(game);game.service=new Service(game);game.police=new Police(game);game.rp=new Roleplay(game);game.heist=new Heists(game);}const pay=payments(db);
  const handler=async(req,res)=>{
   const json=(code,data)=>{res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
   try{

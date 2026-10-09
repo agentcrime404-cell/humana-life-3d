@@ -195,3 +195,7 @@ export const modernGeom=m=>({houses:[[m.x+1,m.y+.5,m.x+6.5,m.y+5],[m.x+8.8,m.y+1
 // Mestieri "roleplay" (stile FiveM): turno di servizio con stipendio ogni RP.payEvery secondi; la polizia dei giocatori arresta i ricercati e fa multe.
 export const WORKS={polizia:{name:'Polizia',icon:'👮',salary:60,desc:'Ricevi gli allarmi dei furti, insegui i ricercati, arrestali e fai multe.'},medico:{name:'Paramedico 118',icon:'🚑',salary:55,desc:'Soccorri chi sta male in città (rianimazione in arrivo).'},meccanico:{name:'Meccanico',icon:'🔧',salary:45,desc:'Ripara e rifornisci i mezzi degli altri giocatori.'},taxi:{name:'Taxi',icon:'🚕',salary:40,desc:'Porta in giro gli altri giocatori con la tua auto.'}};
 export const RP={payEvery:300,reach:4,chase:90,arrestReward:150,fine:[20,500],fineCut:.2};
+// Rapine (stile FiveM): dentro un locale, con la modalità furto accesa, «Rapina la cassa» e si resta dentro sec secondi. Bottino in monete (loot = da…a);
+// cool = secondi di pausa prima che lo stesso tipo di locale si possa rapinare di nuovo. Le ville private non si rapinano.
+export const HEIST_TIERS={small:{sec:30,loot:[120,260],cool:480,label:'la cassa'},big:{sec:45,loot:[300,600],cool:900,label:'la cassa'},bank:{sec:90,loot:[900,1600],cool:1800,label:'il caveau'}};
+export const HEISTS={bar:'small',pizzeria:'small',shop:'small',burger:'small',osteria:'small',vesuvio:'small',trattoria:'small',panorama:'small',fashion:'small',barber:'small',club:'big',casino:'big',mall:'big',bank:'bank'};
