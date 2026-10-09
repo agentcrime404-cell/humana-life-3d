@@ -199,3 +199,14 @@ export const RP={payEvery:300,reach:4,chase:90,arrestReward:150,fine:[20,500],fi
 // cool = secondi di pausa prima che lo stesso tipo di locale si possa rapinare di nuovo. Le ville private non si rapinano.
 export const HEIST_TIERS={small:{sec:30,loot:[120,260],cool:480,label:'la cassa'},big:{sec:45,loot:[300,600],cool:900,label:'la cassa'},bank:{sec:90,loot:[900,1600],cool:1800,label:'il caveau'}};
 export const HEISTS={bar:'small',pizzeria:'small',shop:'small',burger:'small',osteria:'small',vesuvio:'small',trattoria:'small',panorama:'small',fashion:'small',barber:'small',club:'big',casino:'big',mall:'big',bank:'bank'};
+// Zaino (stile FiveM): oggetti da usare, dare a un giocatore vicino o buttare. Si comprano nella Bottega Marina / Centro Commerciale (type 'item')
+// e pesano (kg): lo zaino ne porta al massimo BAG.max. use: 'drink'/'food' = si consuma con l'animazione del locale (alc come nei bar), 'fuel' = benzina al mezzo, 'gift' = da regalare.
+export const BAG={max:20,slots:20,reach:3,fuel:40};
+export const BAG_ITEMS=[
+ {id:'zaino-birra',name:'Birra',icon:'🍺',type:'item',price:4,kg:.5,use:'drink',alc:30,desc:'Si beve ovunque. Attenzione: fa girare la testa.'},
+ {id:'zaino-acqua',name:'Bottiglia d’acqua',icon:'💧',type:'item',price:1,kg:.5,use:'drink',alc:-40,desc:'Rinfresca e fa passare la sbornia.'},
+ {id:'zaino-caffe',name:'Caffè da asporto',icon:'☕',type:'item',price:2,kg:.2,use:'drink',alc:-25,desc:'Un espresso per svegliarsi.'},
+ {id:'zaino-panino',name:'Panino',icon:'🥪',type:'item',price:3,kg:.3,use:'food',alc:0,desc:'Un panino napoletano da mangiare per strada.'},
+ {id:'zaino-tanica',name:'Tanica di benzina',icon:'⛽',type:'item',price:25,kg:5,use:'fuel',desc:'+'+40+'% di benzina al tuo mezzo, ovunque ti trovi.'},
+ {id:'zaino-rosa',name:'Rosa rossa',icon:'🌹',type:'item',price:5,kg:.1,use:'gift',desc:'Da regalare a qualcuno di speciale.'}];
+CATALOG.push(...BAG_ITEMS);

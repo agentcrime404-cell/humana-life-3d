@@ -1,7 +1,7 @@
 import './ui/install.js';
 import {installHUD} from './ui/hud.js';
 import {installLivingUI} from './ui/living.js';
-import {installCity} from './ui/city.js';import {installArena} from './ui/arena.js';import {openPhotoAvatar} from './ui/photo-avatar.js';import {installHudLayout} from './ui/hud-layout.js';import {installDriveHud,wobbleInput} from './ui/drive-hud.js';import {installJobs} from './ui/jobs.js';
+import {installCity} from './ui/city.js';import {installArena} from './ui/arena.js';import {openPhotoAvatar} from './ui/photo-avatar.js';import {installHudLayout} from './ui/hud-layout.js';import {installDriveHud,wobbleInput} from './ui/drive-hud.js';import {installJobs} from './ui/jobs.js';import {installBag} from './ui/bag.js';
 import {resetPaths,PointerMove,setExtraBlock,resetPaths as resetPaths3d} from './player/pointer.js';import {LOOKS} from '/shared/looks.js';
 import {Renderer} from './world/renderer.js';import {Controls} from './player/controls.js';import {api,setToken,token,Connection,server,setServer,nativeApp} from './networking/api.js';import {Voice} from './audio/voice.js';import {Calls} from './audio/calls.js';import {applyMapEdits,MAPS,doors,distance,step} from '/shared/world.js';
 const $=id=>document.getElementById(id),renderer=new Renderer($('world')),net=new Connection();let user=null,me=null,largeMap=null,players=[],display=new Map(),toastTimer,frames=0,lastFps=performance.now();
@@ -116,7 +116,7 @@ const hudLayout=window.HUMANA_3D?installHudLayout({notify}):null;
 if(window.HUMANA_3D){try{history.pushState({hb:1},'');}catch{}addEventListener('popstate',()=>{try{window.humanaBack?.();history.pushState({hb:1},'');}catch{}});}
 const city=installCity({net,api,modal,button,el,notify,closeModal,getMe:()=>me,getW3:()=>w3,renderer,getUser:()=>user,onUser:u=>{user=u;document.dispatchEvent(new CustomEvent('humana:avatar'));}});
 if(/^(localhost|127.0.0.1)$/.test(location.hostname))window.__city=city;
-const jobs=installJobs({api,net,notify,modal,button,getMe:()=>me,renderer});
+const jobs=installJobs({api,net,notify,modal,button,getMe:()=>me,renderer});const bagUI=installBag({api,net,notify,modal,button,getMe:()=>me,getPlayers:()=>players,livingUI,getUser:()=>user,onUser:u=>user=u});window.humanaBag=bagUI.open;
 installHUD({jobs,city,net,api,renderer,livingUI,modal,button,el,notify,profile,social,openMap,toggleVoice,getUser:()=>user,getMe:()=>me,calls,setControls:on=>{controls.reset();controls.enabled=on&&!!me&&!$('modal').open;}});
 
 // Installazione PWA disponibile su HTTPS o localhost; nessuna sessione simulata offline.

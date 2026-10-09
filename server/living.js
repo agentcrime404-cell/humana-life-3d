@@ -16,6 +16,7 @@ export class Living{
   const item=ITEMS.get(body.item);if(!item||typeof body.requestId!=='string'||!/^[a-zA-Z0-9_-]{8,80}$/.test(body.requestId))fail('Acquisto non valido');
   const old=this.db.prepare('SELECT result FROM purchases WHERE user_id=? AND request_id=?').get(id,body.requestId);if(old)return JSON.parse(old.result);
   const p=this.game.players.get(id);if(!p)fail('Entra nel mondo prima di acquistare');if(item.room&&p.room!==item.room)fail('Ordina nel locale corretto');if(item.type==='wear'&&p.room!=='fashion'&&!((p.room==='mall'||p.room==='mall2')&&this.edition==='3d'))fail('I vestiti si comprano al Moda Market');if(item.type!=='food'&&item.type!=='wear'&&!SHOP_ROOMS.includes(p.room)&&!(body.online===true&&this.edition==='3d'))fail('Gli acquisti si fanno nella Bottega Marina o nel Centro Commerciale');
+  if(item.type==='item'&&this.game.bag&&!this.game.bag.fits(id,item))fail('Zaino pieno: libera spazio prima di comprare');
   ensureState(this.db,id);this.db.exec('BEGIN IMMEDIATE');try{
    if((item.type==='cosmetic'||item.type==='wear')&&this.db.prepare('SELECT 1 FROM inventory WHERE user_id=? AND item=?').get(id,item.id))fail('Possiedi già questo cosmetico');
    if(item.currency==='gems'){
@@ -38,6 +39,7 @@ export class Living{
  route(path,method,user,b){const p=this.game.players.get(user.id),three=this.edition==='3d';
   if(three&&path.startsWith('/api/rp')&&this.game.rp)return this.game.rp.route(path,method,p,b||{});
   if(three&&path.startsWith('/api/heist')&&this.game.heist)return this.game.heist.route(path,method,p,b||{});
+  if(three&&path.startsWith('/api/bag')&&this.game.bag)return this.game.bag.route(path,method,p,b||{});
   if(three&&p?.jail&&method==='POST'&&JAIL_BLOCK.some(q=>path.startsWith(q)))fail('Sei in prigione: aspetta che ti liberino',403);
   this.theft=three&&b&&b.steal===true&&method==='POST'&&p&&STEAL_PATHS.some(q=>path.startsWith(q))?{id:user.id,amount:0}:null;
   try{return this.routeInner(path,method,user,b);}finally{const t=this.theft;this.theft=null;if(t&&t.amount>0)this.game.police?.crime(p,t.amount);}}

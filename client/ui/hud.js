@@ -20,7 +20,7 @@ export function installHUD(ctx){
   const b=$(id);for(const child of [...b.childNodes])if(child.nodeType===3)b.removeChild(child);b.prepend(icon(name));
  }
  for(const b of document.querySelectorAll('.social button'))b.addEventListener('click',()=>{for(const item of document.querySelectorAll('.social button'))item.classList.toggle('selected',item===b);});
- $('inventory').onclick=()=>livingUI.inventory().catch(e=>notify(e.message));
+ $('inventory').onclick=()=>(window.humanaBag?window.humanaBag():livingUI.inventory()).catch(e=>notify(e.message));/* 🎒 = zaino in stile FiveM (ui/bag.js) */
  $('chat-mic').onclick=toggleVoice;
  $('map-open').onclick=openMap;
  $('map-plus').onclick=()=>renderer.miniZoom=Math.min(3,(renderer.miniZoom||1)+.5);
