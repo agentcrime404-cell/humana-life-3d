@@ -34,3 +34,17 @@ test('Polizia dei giocatori: allarme del furto, arresto solo da vicino e solo de
  assert.throws(()=>rp.route('/api/rp/fine','POST',c,{id:'x',amount:9999}),/Multa da/);
  rp.route('/api/rp/fine','POST',c,{id:'x',amount:100,reason:'sosta vietata'});assert.equal(bal('x'),900);assert.equal(bal('c'),1000+RP.arrestReward+Math.round(100*RP.fineCut));
 });
+
+test('Feriti e paramedici: chi beve troppo sviene, il 118 avvisa i paramedici, la rianimazione o l’ospedale',()=>{
+ const {game,mk,bal,log}=setup(),rp=game.rp,m=mk('c'),x=mk('x',{x:2});
+ rp.route('/api/rp/work','POST',m,{work:'medico'});rp.route('/api/rp/duty','POST',m,{on:true});
+ x.alcohol=95;x.vehicle='scooter';rp.tick(x);assert.ok(x.down,'svenuto');assert.equal(x.vehicle,null,'giù dal mezzo');
+ assert.ok(log.some(q=>q.to==='c'&&/Centrale 118/.test(q.message)),'allarme al paramedico');
+ x.input={x:1,y:0};rp.tick(x);assert.deepEqual(x.input,{x:0,y:0},'a terra non si cammina');
+ assert.ok(rp.view(m).injured.some(q=>q.id==='x'),'il ferito è nell’elenco');
+ assert.throws(()=>rp.route('/api/rp/call118','POST',x,{}),/già chiamato/,'non si chiama di continuo');
+ assert.throws(()=>rp.route('/api/rp/revive','POST',mk('l',{x:1}),{id:'x'}),/paramedici/,'solo i paramedici');
+ rp.route('/api/rp/revive','POST',m,{id:'x'});assert.equal(x.down,null,'rianimato');assert.equal(bal('c'),1000+RP.reviveReward);
+ x.alcohol=95;rp.tick(x);assert.ok(x.down);x.down.until=Date.now()-1;rp.tick(x);
+ assert.equal(x.down,null);assert.equal(x.room,'lungomare','in ospedale');assert.equal(bal('x'),1000-RP.hospitalFee,'paga le cure');
+});

@@ -31,11 +31,11 @@ export class Game{
    if(m.type==='shoot'||m.type==='reload')this.arena?.message(player,m);
    if(m.type==='interact')this.interact(player);
    if(m.type==='horn'&&player.vehicle&&Date.now()-(player.hornAt||0)>450)player.hornAt=Date.now();
-   if(m.type==='travel'&&!player.jail&&!player.wanted&&!player.arena&&MAPS.mergellina&&['lungomare','mergellina'].includes(m.to)&&(player.room==='lungomare'||player.room==='mergellina')&&!player.seat){const v=player.vehicle;this.living?.move(player,m.to);player.vehicle=v;}
+   if(m.type==='travel'&&!player.jail&&!player.wanted&&!player.down&&!player.arena&&MAPS.mergellina&&['lungomare','mergellina'].includes(m.to)&&(player.room==='lungomare'||player.room==='mergellina')&&!player.seat){const v=player.vehicle;this.living?.move(player,m.to);player.vehicle=v;}
    // Autoradio: chi guida sceglie un video YouTube, lo sentono anche i passeggeri.
    if(m.type==='carMusic'&&player.vehicle){const id=typeof m.id==='string'&&/^[A-Za-z0-9_-]{11}$/.test(m.id)?m.id:null;player.music=id;player.musicAt=Date.now();player.musicTitle=id?String(m.title||'').slice(0,80):'';}
    if(m.type==='call')this.call(player,m);
-   if(m.type==='bus'&&!player.jail&&!player.wanted){const from=BUS_STOPS.find(s=>distance(s,player)<2.4),to=BUS_STOPS.find(s=>s.id===m.to);
+   if(m.type==='bus'&&!player.jail&&!player.wanted&&!player.down){const from=BUS_STOPS.find(s=>distance(s,player)<2.4),to=BUS_STOPS.find(s=>s.id===m.to);
     if(player.room!=='lungomare'||!from||!to||to===from||player.seat){this.send(ws,{type:'error',message:'Raggiungi una fermata e scegli un’altra destinazione'});return;}
     // Durante il viaggio il giocatore resta fermo alla fermata, poi scende a destinazione.
     // Il giocatore sale e viaggia davvero lungo le strade: la sua posizione segue l'autobus fino alla fermata.

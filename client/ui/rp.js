@@ -10,6 +10,12 @@ export function rpCard({api,notify,button,net}){
    card.append(button(v.duty?'⏹ Fine turno':'▶ Entra in servizio',()=>run('/rp/duty',{on:!v.duty})));card.append(button('Licenziati',()=>run('/rp/work',{work:null})));}
   else{card.append(mk('p','muted','Come in un server roleplay: scegli un mestiere, entra in servizio e prendi lo stipendio.'));
    for(const [id,w] of Object.entries(W)){const row=mk('div','rp-work');row.append(mk('b',null,w.icon+' '+w.name+' · '+w.salary+' 🪙'),mk('small',null,w.desc),button('Fai domanda',()=>run('/rp/work',{work:id})));card.append(row);}}
+  if(v.work==='medico'&&v.duty){
+   card.append(mk('h4',null,'🚑 Feriti'));if(!v.injured.length)card.append(mk('p','muted','Nessun ferito in questo momento.'));
+   for(const q of v.injured)card.append(mk('p',null,'🩹 '+q.name+(q.dist!=null?' · '+q.dist+' m':' · in un’altra zona')+' · '+q.left+' s'));
+   card.append(mk('h4',null,'👥 Vicino a te'));const hurt=v.nearby.filter(q=>q.down);if(!hurt.length)card.append(mk('p','muted','Avvicinati a un ferito (meno di 4 m) per rianimarlo.'));
+   for(const q of hurt){const row=mk('div','rp-work');row.append(mk('b',null,'🩹 '+q.name),button('🚑 Rianima',()=>run('/rp/revive',{id:q.id})));card.append(row);}
+   card.append(button('↻ Aggiorna',async()=>paint(await api('/rp'))));}
   if(v.work==='polizia'&&v.duty){
    card.append(mk('h4',null,'🚨 Ricercati'));if(!v.wanted.length)card.append(mk('p','muted','Nessun ricercato in questo momento.'));
    for(const q of v.wanted)card.append(mk('p',null,'🔴 '+q.name+(q.dist!=null?' · '+q.dist+' m':' · in un’altra zona')));
