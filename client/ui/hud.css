@@ -412,3 +412,47 @@ body.is3d #modal.atm-full .atm-title{font-size:14px}body.is3d #modal.atm-full .a
 .bag-kg{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-weight:700;color:#ffe9a8}.bag-kg .dh-bar{flex:1;width:auto;height:10px}
 .bag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px;margin:0 0 10px}.bag-slot{position:relative;aspect-ratio:1;min-height:0;padding:0;border-radius:12px;border:1px solid #ffffff22;background:rgba(255,255,255,.07);color:#fff;display:flex;align-items:center;justify-content:center}.bag-slot .bag-ic{font-size:28px;line-height:1}.bag-slot b{position:absolute;right:5px;bottom:3px;font-size:11px;color:#ffe9a8}.bag-slot.empty{opacity:.35}.bag-slot.sel{border:2px solid #f2c14e;background:rgba(242,193,78,.18)}
 .bag-detail{padding:10px;border-radius:12px;background:rgba(255,255,255,.06)}.bag-detail h4{margin:0 0 4px}.bag-detail small{display:block;opacity:.8;margin-bottom:8px}.bag-acts,.bag-give{display:flex;flex-wrap:wrap;gap:6px}.bag-give{margin-top:8px}.bag-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0;padding:8px;border-radius:10px;background:rgba(255,255,255,.06)}.bag-row strong{flex:1 1 50%}.bag-row small{opacity:.75}
+/* Telefoni (2026-10-09): le scritte che compaiono e spariscono (ricercato, rapina, consegna, avvisi, alcol, guida, bottone rapina)
+   stanno negli spazi liberi fra profilo, minimappa, menu, joystick e comandi: mai sopra di loro, in verticale e in orizzontale. */
+@media (max-width:700px) and (orientation:portrait){
+ #wanted-hud{width:max-content;top:calc(196px + var(--safe-top));max-width:calc(100vw - 132px);white-space:normal;text-align:center;font-size:13px}
+ #job-hud,#heist-hud{width:max-content;top:calc(250px + var(--safe-top));max-width:calc(100vw - 132px)}
+ body:has(#job-hud:not([hidden])) #heist-hud{top:calc(310px + var(--safe-top))}
+ body:has(#job-hud:not([hidden])):has(#heist-hud:not([hidden])) #toast{top:calc(384px + var(--safe-top))}
+ #heist-hud{font-size:13px;padding:6px 12px}
+ #heist-hud .dh-bar{width:min(220px,calc(100vw - 170px))}
+ #toast{top:calc(324px + var(--safe-top));max-width:calc(100vw - 132px);width:max-content;font-size:12px;padding:8px 12px}
+ #heist-btn{left:calc(14px + var(--safe-left));transform:none;bottom:calc(216px + var(--safe-bottom));max-width:calc(100vw - 180px);font-size:13px;padding:8px 12px;white-space:normal;line-height:1.2}
+ body:has(#heist-btn:not([hidden])) #toast{top:calc(250px + var(--safe-top))}
+ #drive-hud{max-width:calc(100vw - 16px);font-size:12px;gap:6px;padding:5px 8px}
+ #alc-hud{left:calc(64px + var(--safe-left));right:auto;top:calc(98px + var(--safe-top));bottom:auto;transform:none;font-size:12px;padding:4px 8px}
+ #alc-hud .dh-bar{width:56px}
+}
+@media (max-height:500px) and (orientation:landscape){
+ #wanted-hud{width:max-content;top:calc(96px + var(--safe-top));max-width:min(280px,calc(100vw - 360px));white-space:normal;text-align:center;font-size:12px;padding:4px 12px}
+ #job-hud,#heist-hud{width:max-content;top:calc(134px + var(--safe-top));max-width:min(300px,calc(100vw - 340px))}
+ body:has(#job-hud:not([hidden])) #heist-hud{top:calc(186px + var(--safe-top))}
+ #heist-hud{font-size:12px;padding:5px 10px;gap:4px}
+ #heist-hud .dh-bar{width:min(200px,calc(100vw - 380px))}
+ #toast{top:calc(212px + var(--safe-top));max-width:min(330px,calc(100vw - 340px));width:max-content;font-size:12px;padding:6px 12px}
+ #heist-btn{left:calc(50% + 15px);bottom:calc(14px + var(--safe-bottom));font-size:14px;padding:8px 16px;max-width:calc(100vw - 340px)}
+ #drive-hud{left:calc(50% + 15px);max-width:calc(100vw - 330px);font-size:12px;padding:4px 8px;gap:6px}
+ #alc-hud{left:calc(50% + 15px);bottom:calc(76px + var(--safe-bottom));font-size:12px;padding:4px 8px}
+ #alc-hud .dh-bar{width:56px}
+}
+@media (max-width:340px) and (orientation:portrait){
+ .map{width:112px}
+ .map canvas{width:104px;height:70px}
+ #alc-hud{font-size:11px;padding:3px 6px;gap:4px}
+ #alc-hud .dh-bar{width:38px}
+}
+/* Telefoni bassi (sotto 600 px di altezza) in verticale: le stesse scritte, più piccole e più vicine, nello spazio sopra joystick e comandi. */
+@media (max-width:700px) and (orientation:portrait) and (max-height:600px){
+ #wanted-hud{top:calc(192px + var(--safe-top));font-size:11px;padding:4px 8px}
+ #job-hud,#heist-hud{top:calc(232px + var(--safe-top))}
+ #heist-hud{font-size:11px;padding:4px 8px;gap:3px}
+ #heist-hud .dh-bar{height:8px}
+ body.is3d #toast{top:calc(192px + var(--safe-top));z-index:8;font-size:11px;padding:6px 10px;width:max-content;max-width:calc(100vw - 132px)}
+ body:has(#heist-hud:not([hidden])) #wanted-hud{display:none}
+ body:has(#heist-btn:not([hidden])) #toast{top:calc(192px + var(--safe-top))}
+}

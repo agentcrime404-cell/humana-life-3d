@@ -1,5 +1,5 @@
 // Solo file pubblici: token, account, chat e risposte API non entrano nella cache.
-const CACHE='humana-life-269';
+const CACHE='humana-life-270';
 const SHELL=['/boot.js','/loader.js','/','/app.js','/ui/style.css','/ui/living.js','/ui/hud.js','/ui/hud.css','/ui/city.js','/ui/arena.js','/world/citylife.js','/world/ambient.js','/world/merglife.js','/world/syncwalk.js','/ui/install.js','/world/merg-extra.js','/world/motos.js','/world/realvehicles.js','/ui/drive-hud.js','/ui/hud-layout.js','/ui/photo-avatar.js','/ui/jobs.js','/ui/rp.js','/ui/bag.js','/ui/editor.js','/ui/phone.js','/audio/calls.js','/world/renderer.js','/world/crowd.js','/player/controls.js','/player/pointer.js','/networking/api.js','/audio/voice.js','/audio/ambient.js','/shared/world.js','/shared/district.js','/shared/catalog.js','/shared/looks.js','/shared/art.js','/manifest.webmanifest',...['icon-192','icon-512'].map(n=>'/assets/'+n+'.png')];
 // Le 8 immagini del vecchio 2D (16 MB) non stanno più qui: il gioco 3D le scarica solo quando servono (world/renderer.js loadImages).
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
