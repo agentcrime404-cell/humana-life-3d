@@ -11,7 +11,7 @@ export class Police{
  crime(p,amount){if(!p||p.jail)return;const now=Date.now(),st=this.nearest(p);
   if(p.wanted){this.tell(p,'🚨 Stai già rubando: gli agenti ti cercano!');return;}
   const caught=Math.random()<PRISON.catch,delay=PRISON.delay[0]+Math.random()*(PRISON.delay[1]-PRISON.delay[0]);
-  p.wanted={t0:now,until:now+delay*1000,caught,station:st.id,value:Math.round(amount)};this.save(p);this.tell(p,'🚨 Hai preso senza pagare! Se un agente ti vede finisci in prigione…');}
+  p.wanted={t0:now,until:now+delay*1000,caught,station:st.id,value:Math.round(amount),x:p.x,y:p.y,room:p.room};this.save(p);this.tell(p,'🚨 Hai preso senza pagare! Scappa: allontanati di '+PRISON.escape+' metri per seminare la polizia…');this.game.rp?.alert(p);}
  // Mette il giocatore in cella (dentro la caserma più vicina); l'auto di proprietà resta parcheggiata dove si trovava.
  arrest(p){const now=Date.now(),st=POLICE.find(c=>c.id===p.wanted?.station)||this.nearest(p);
   this.game.living?.parkCar(p);this.game.arena?.leave(p);p.wanted=null;p.vehicle=null;p.seat=null;p.passenger=null;p.music=null;p.ride=null;p.rideArt=null;p.rideA=null;p.call&&this.game.hangup?.(p,'arrested');try{const g=state(this.game.db,p.id).progress;g.activeVehicle=null;this.game.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(g),p.id);}catch{}p.fueling=null;p.consuming=null;p.from=null;p.room='lungomare';
@@ -24,6 +24,6 @@ export class Police{
   else if(g.wanted){p.wanted={...g.wanted};if(p.wanted.until<=now&&p.wanted.caught)this.arrest(p);else if(p.wanted.until<=now){p.wanted=null;this.save(p);}}}
  tick(p){const now=Date.now();if(p.myCars===undefined){this.loadCars(p);this.resume(p);}
   if(p.jail){p.input={x:0,y:0};p.vel=0;p.vehicle=null;p.ride=null;p.seat=null;if(p.room!=='lungomare'){const c=prisonCell(POLICE.find(q=>q.id===p.jail.station)||POLICE[0]);p.room='lungomare';p.from=null;p.x=c.x;p.y=c.y;}if(now>=p.jail.until)this.release(p);return;}
-  if(p.wanted&&now>=p.wanted.until){if(p.wanted.caught)this.arrest(p);else{p.wanted=null;this.save(p);this.tell(p,'😮‍💨 Nessuno ti ha visto: l’hai fatta franca…');}}}
+  if(p.wanted&&now>=p.wanted.until){const w=p.wanted,fled=w.x!=null&&(w.room!==p.room||Math.hypot(p.x-w.x,p.y-w.y)>=PRISON.escape);if(w.caught&&!fled&&!w.cops)this.arrest(p);else if(fled&&w.caught&&!w.cops){p.wanted=null;this.save(p);this.tell(p,'🏍️ Li hai seminati! Sei scappato in tempo.');}else{p.wanted=null;this.save(p);this.tell(p,'😮‍💨 Nessuno ti ha visto: l’hai fatta franca…');}}}
 }
 export const isCar=id=>CAR_BASES.includes(VEHICLE[id]?.base||id);

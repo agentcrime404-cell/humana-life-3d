@@ -404,3 +404,4 @@ body.is3d #modal.atm-full .atm-title{font-size:14px}body.is3d #modal.atm-full .a
 #pregame button.go{background:linear-gradient(180deg,#3b8cff,#1f6feb);border-color:#7db2ff;font-weight:800;letter-spacing:.05em}
 #pregame button i{font-style:normal;width:26px;text-align:center}
 @media(max-width:700px) and (orientation:portrait){#pregame{align-items:flex-end;justify-content:center;padding:0 14px 24px;background:linear-gradient(0deg,rgba(6,14,28,.78),rgba(6,14,28,0) 60%)}#pregame .pg-menu{width:100%;margin-bottom:0}#pregame .pg-title{text-align:center}#pregame .pg-title .logo{align-items:center}}
+.rp-card .rp-work{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0;padding:8px;border-radius:10px;background:rgba(255,255,255,.06)}.rp-card .rp-work b{flex:1 1 60%}.rp-card .rp-work small{flex:1 1 100%;opacity:.75}.rp-card h4{margin:10px 0 4px}
