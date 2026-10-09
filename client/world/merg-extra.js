@@ -55,7 +55,7 @@ export class MergExtra{
   const chair=L('#2a3a5c'),top=white;for(let i=0;i<Math.floor(Wd/3);i++){const x=-Wd/2+1.8+i*3;const t=new THREE.Mesh(new THREE.CylinderGeometry(.46,.46,.05,10),top);t.position.set(x,.76,Dp/2+1.4);g.add(t);box(g,.07,.74,.07,x,.38,Dp/2+1.4,L('#555'));for(const sd of [-1,1])box(g,.42,.5,.42,x+sd*.75,.27,Dp/2+1.4,chair);}
   w.static.add(g);
   // scooter in fila lungo il marciapiede davanti allo chalet, platani lungo la strada
-  const cols=['#1b1b1f','#c7ccd4','#b3261e','#1d4e89'],mk=[(c)=>w.scooter(c,{top:true}),(c)=>w.moto(c,'xadv'),(c)=>w.scooter(c,{top:true}),(c)=>w.moto(c,'africa')],byc=cols.map(()=>[]);let k=0;for(let y=cy-Wd/2+1;y<cy+Wd/2-.5;y+=1.15){const x=cx+Dp/2+4.4;if(napoliCell(x,y)){byc[k%4].push([x,y,Math.PI+ (k%3-1)*.06]);w.col.c.push([x,y,.45]);}k++;}
+  const cols=['#1b1b1f','#c7ccd4','#b3261e','#1d4e89'],mk=[(c)=>w.scooter(c,{top:true}),(c)=>w.moto(c,'xadv'),(c)=>w.scooter(c,{top:true}),(c)=>w.moto(c,'africa')],byc=cols.map(()=>[]);let k=0;for(let y=cy-Wd/2+1;y<cy+Wd/2-.5;y+=1.15){const x=cx+Dp/2+4.4;if(napoliCell(x,y)&&(k===4||k===9)){byc[3].push([x,y,Math.PI+ (k%3-1)*.06]);w.col.c.push([x,y,.45]);}k++;}/* solo mezzi veri: due Africa Twin (modello vero), niente motorini disegnati */
   byc.forEach((l,i)=>{if(l.length)w.instanced(mk[i](cols[i]),l);});
   const T=[[],[],[]];let kk=0;for(const x of [cx+Dp/2+5.4,cx+Dp/2+23.5])for(let y=cy-70;y<=cy+70;y+=12.5){if(Math.abs(y-cy)<Wd/2+1&&x<cx+10)continue;if(napoliCell(x,y)&&napoliCell(x+.8,y)&&napoliCell(x-.8,y)&&!w.onRoad?.(x,y)){T[kk%3].push([x,y,0]);w.col.c.push([x,y,.4]);kk++;}}
   for(let v=0;v<3;v++)w.instanced(w.tree(1,v),T[v]);}
