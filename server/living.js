@@ -25,7 +25,7 @@ export class Living{
    }else if(!this.take(id,item.price))fail('Monete insufficienti');
    if(item.type!=='food')this.db.prepare('INSERT INTO inventory VALUES(?,?,1) ON CONFLICT(user_id,item) DO UPDATE SET quantity=quantity+1').run(id,item.id);
    else{const row=state(this.db,id);row.progress.orders=(row.progress.orders||0)+1;this.db.prepare('UPDATE player_state SET progress=? WHERE user_id=?').run(JSON.stringify(row.progress),id);}
-   const result={ok:true,item:item.id,balance:this.db.prepare('SELECT balance FROM player_state WHERE user_id=?').get(id).balance};this.db.prepare('INSERT INTO purchases VALUES(?,?,?)').run(id,body.requestId,JSON.stringify(result));this.db.exec('COMMIT');return result;
+   const result={ok:true,item:item.id,balance:this.db.prepare('SELECT balance FROM player_state WHERE user_id=?').get(id).balance};this.db.prepare('INSERT INTO purchases VALUES(?,?,?)').run(id,body.requestId,JSON.stringify(result));this.db.exec('COMMIT');if(!(this.theft&&this.theft.id===id)&&item.currency!=='gems')this.game.biz?.sale(p,item.price);return result;
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
  // Mobilità: pagamento atomico in monete, mezzi posseduti e noleggi a scadenza.
@@ -39,6 +39,7 @@ export class Living{
  route(path,method,user,b){const p=this.game.players.get(user.id),three=this.edition==='3d';
   if(three&&path.startsWith('/api/rp')&&this.game.rp)return this.game.rp.route(path,method,p,b||{});
   if(three&&path.startsWith('/api/heist')&&this.game.heist)return this.game.heist.route(path,method,p,b||{});
+  if(three&&path.startsWith('/api/biz')&&this.game.biz)return this.game.biz.route(path,method,p,b||{});
   if(three&&path.startsWith('/api/bag')&&this.game.bag)return this.game.bag.route(path,method,p,b||{});
   if(three&&p?.jail&&method==='POST'&&JAIL_BLOCK.some(q=>path.startsWith(q)))fail('Sei in prigione: aspetta che ti liberino',403);
   this.theft=three&&b&&b.steal===true&&method==='POST'&&p&&STEAL_PATHS.some(q=>path.startsWith(q))?{id:user.id,amount:0}:null;
@@ -70,7 +71,7 @@ export class Living{
    const changed=db.prepare("UPDATE player_state SET progress=json_set(progress,'$.gems',coalesce(json_extract(progress,'$.gems'),0)-?),balance=balance+? WHERE user_id=? AND coalesce(json_extract(progress,'$.gems'),0)>=?").run(gems,gems*ATM_RATE,id,gems).changes;if(!changed)fail('Gemme insufficienti');return this.snapshot(id);}
   // Benzina: il benzinaio fa il pieno (si paga solo quel che manca). Servizio ai banconi: ordinare da bere o da mangiare.
   if(path==='/api/fuel/refill'&&method==='POST'){const fu=this.game.fuel;if(!fu)fail('Non disponibile');const q=fu.quote(p);this.pay(id,q.cost);fu.start(p,q);return {...this.snapshot(id),seconds:FUEL.seconds,cost:q.cost};}
-  if(path==='/api/service/order'&&method==='POST'){const sv=this.game.service;if(!sv)fail('Non disponibile');const it=sv.quote(p,String(b.item||''));this.pay(id,it.price);sv.serve(p,it);return {...this.snapshot(id),item:it.id,seconds:3.6};}
+  if(path==='/api/service/order'&&method==='POST'){const sv=this.game.service;if(!sv)fail('Non disponibile');const it=sv.quote(p,String(b.item||''));this.pay(id,it.price);if(!(this.theft&&this.theft.id===id))this.game.biz?.sale(p,it.price);sv.serve(p,it);return {...this.snapshot(id),item:it.id,seconds:3.6};}
   if(p&&(p.fueling||p.consuming)&&path.startsWith('/api/vehicle/'))fail('Aspetta un attimo');
   // Arena paintball (solo 3D): si noleggia l'arma al chiosco-armeria e il server ti porta dentro; `/api/arena/leave` ti riporta fuori.
   if(path==='/api/arena/join'&&method==='POST'){const ar=this.game.arena;if(!ar)fail('Arena non disponibile');const W=ARENA.weapons[b.weapon];if(!W)fail('Arma non valida');ar.checkJoin(p);this.pay(id,W.rent);ar.join(p,b.weapon);return {...this.snapshot(id),arena:ar.info()};}

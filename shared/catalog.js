@@ -210,3 +210,6 @@ export const BAG_ITEMS=[
  {id:'zaino-tanica',name:'Tanica di benzina',icon:'⛽',type:'item',price:25,kg:5,use:'fuel',desc:'+'+40+'% di benzina al tuo mezzo, ovunque ti trovi.'},
  {id:'zaino-rosa',name:'Rosa rossa',icon:'🌹',type:'item',price:5,kg:.1,use:'gift',desc:'Da regalare a qualcuno di speciale.'}];
 CATALOG.push(...BAG_ITEMS);
+// Locali da comprare e gestire (stile FiveM): prezzo per tipo di locale, cut = parte della spesa dei clienti che va nella cassa del proprietario,
+// passive = monete ogni every secondi per ogni locale (proprietario in gioco), sell = quota restituita se si rivende.
+export const BIZ={price:{bar:2500,pizzeria:3000,trattoria:3500,osteria:3500,vesuvio:4000,panorama:4500,burger:2500,shop:3000,fashion:4000,barber:2000,club:6000,casino:8000},cut:.2,passive:40,every:600,sell:.5};
