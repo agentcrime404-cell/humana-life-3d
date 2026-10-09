@@ -48,3 +48,24 @@ test('Feriti e paramedici: chi beve troppo sviene, il 118 avvisa i paramedici, l
  x.alcohol=95;rp.tick(x);assert.ok(x.down);x.down.until=Date.now()-1;rp.tick(x);
  assert.equal(x.down,null);assert.equal(x.room,'lungomare','in ospedale');assert.equal(bal('x'),1000-RP.hospitalFee,'paga le cure');
 });
+
+test('Meccanico: guasto, chiamata, riparazione pagata, rifornimento, carro attrezzi',()=>{
+ const {game,mk,bal,log}=setup(),rp=game.rp,m=mk('c'),x=mk('x',{x:2});
+ rp.route('/api/rp/work','POST',m,{work:'meccanico'});rp.route('/api/rp/duty','POST',m,{on:true});
+ x.vehicle='auto';x.fuel=50;x.fuelFor='auto';const r=Math.random;Math.random=()=>0;
+ rp.tick(x);x.x+=RP.breakEvery;rp.tick(x);x.x=2;rp.tick(x);for(let i=0;i<RP.breakEvery/10+2;i++){x.x+=10;rp.tick(x);}Math.random=r;
+ assert.ok(x.broken,'guasto');assert.ok(log.some(q=>q.to==='c'&&/in panne/.test(q.message)),'chiamata al meccanico');
+ x.input={x:1,y:0};rp.tick(x);assert.deepEqual(x.input,{x:0,y:0},'il mezzo guasto non parte');
+ x.x=m.x+1;rp.route('/api/rp/repair','POST',m,{id:'x'});assert.equal(x.broken,null);assert.equal(bal('x'),1000-RP.repairFee);assert.equal(bal('c'),1000+RP.repairFee+RP.repairReward);
+ rp.route('/api/rp/refuel','POST',m,{id:'x'});assert.equal(x.fuel,50+RP.mechFuel,'benzina +50');
+ x.broken={t0:0,until:Date.now()-1,called:0};rp.tick(x);assert.equal(x.broken,null,'carro attrezzi');
+});
+
+test('Taxi: chiamata, tassametro durante la corsa, pagamento quando si scende',()=>{
+ const {game,mk,bal,log}=setup(),rp=game.rp,t=mk('c',{vehicle:'auto'}),x=mk('x',{x:1});
+ rp.route('/api/rp/work','POST',t,{work:'taxi'});rp.route('/api/rp/duty','POST',t,{on:true});
+ rp.route('/api/rp/calltaxi','POST',x,{});assert.ok(log.some(q=>q.to==='c'&&/vuole un passaggio/.test(q.message)));
+ x.seat='car';x.passenger='c';rp.tick(x);for(let i=0;i<100;i++){x.x+=10;rp.tick(x);}
+ x.seat=null;x.passenger=null;rp.tick(x);const cost=Math.round(RP.taxiBase+1*RP.taxiPerKm);
+ assert.equal(bal('x'),1000-cost,'il cliente paga la corsa di 1 km');assert.equal(bal('c'),1000+cost,'il tassista incassa');
+});

@@ -10,6 +10,12 @@ export function rpCard({api,notify,button,net}){
    card.append(button(v.duty?'⏹ Fine turno':'▶ Entra in servizio',()=>run('/rp/duty',{on:!v.duty})));card.append(button('Licenziati',()=>run('/rp/work',{work:null})));}
   else{card.append(mk('p','muted','Come in un server roleplay: scegli un mestiere, entra in servizio e prendi lo stipendio.'));
    for(const [id,w] of Object.entries(W)){const row=mk('div','rp-work');row.append(mk('b',null,w.icon+' '+w.name+' · '+w.salary+' 🪙'),mk('small',null,w.desc),button('Fai domanda',()=>run('/rp/work',{work:id})));card.append(row);}}
+  {const row=mk('div','rp-work');row.append(button('🚕 Chiama un taxi',()=>run('/rp/calltaxi',{})));if(v.mine?.broken)row.append(button('📞 Chiama il meccanico',()=>run('/rp/callmech',{})));card.append(row);}
+  if(v.work==='meccanico'&&v.duty){card.append(mk('h4',null,'🔧 Mezzi in panne'));if(!v.broken.length)card.append(mk('p','muted','Nessun guasto in questo momento.'));for(const q of v.broken)card.append(mk('p',null,'🚗 '+q.name+(q.dist!=null?' · '+q.dist+' m':' · in un’altra zona')));
+   card.append(mk('h4',null,'👥 Vicino a te'));const vic=v.nearby.filter(q=>q.broken||q.motor);if(!vic.length)card.append(mk('p','muted','Avvicinati (meno di 4 m) a chi ha un mezzo per ripararlo o rifornirlo.'));
+   for(const q of vic){const row=mk('div','rp-work');row.append(mk('b',null,(q.broken?'🔧 ':'🚗 ')+q.name));if(q.broken)row.append(button('🔧 Ripara',()=>run('/rp/repair',{id:q.id})));if(q.motor)row.append(button('⛽ Rifornisci',()=>run('/rp/refuel',{id:q.id})));card.append(row);}
+   card.append(button('↻ Aggiorna',async()=>paint(await api('/rp'))));}
+  if(v.work==='taxi'&&v.duty)card.append(mk('p','muted','🚕 Guida un’auto: quando un cliente sale accanto a te parte il tassametro, e paga la corsa quando scende. Le chiamate arrivano come avvisi.'));
   if(v.work==='medico'&&v.duty){
    card.append(mk('h4',null,'🚑 Feriti'));if(!v.injured.length)card.append(mk('p','muted','Nessun ferito in questo momento.'));
    for(const q of v.injured)card.append(mk('p',null,'🩹 '+q.name+(q.dist!=null?' · '+q.dist+' m':' · in un’altra zona')+' · '+q.left+' s'));

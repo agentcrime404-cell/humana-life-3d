@@ -2,6 +2,7 @@ import {restore,savePlayer,ensureState,state} from './storage.js';
 import {MAPS,doors,distance,step,canStand} from '../shared/world.js';
 import {BUS_STOPS,ROUTE_LENGTH,routeDistance,routePoint} from '../shared/district.js';
 import {publicUser,resolve} from './auth.js';
+import {VEHICLE} from '../shared/catalog.js';
 export class Game{
  constructor(db){this.db=db;this.players=new Map();this.clock=setInterval(()=>this.tick(),50);this.frames=0;this.auth=new WeakMap();this.jukebox=new Map();}
  blocked(a,b){return !!this.db.prepare('SELECT 1 FROM blocks WHERE (owner=? AND target=?) OR (owner=? AND target=?)').get(a,b,b,a);}
@@ -77,8 +78,8 @@ export class Game{
   if(Date.now()-(p.interactedAt||0)<180)return;p.interactedAt=Date.now();
   if(p.ride)return;if(p.seat==='car'){const d=this.players.get(p.passenger);p.seat=null;p.passenger=null;p.x+=.9;if(!canStand(p.room,p.x,p.y))p.x-=.9;if(d)this.send(d.ws,{type:'notification',message:'🚪 '+p.username+' è sceso'});return;}if(p.seat){p.seat=null;return;}
   // Passeggero: sali sul veicolo di un altro giocatore vicino (se c'è posto).
-  if(!p.vehicle){const SEATS={auto:3,furgone:2,cabrio:1,scooter:1};const d=[...this.players.values()].find(d=>d!==p&&d.room===p.room&&d.vehicle&&SEATS[d.vehicle]&&distance(d,p)<2.6&&!this.blocked(d.id,p.id));
-   if(d){const used=[...this.players.values()].filter(q=>q.passenger===d.id).length;if(used>=SEATS[d.vehicle]){this.send(p.ws,{type:'notification',message:'Il veicolo è pieno'});return;}Object.assign(p,{seat:'car',passenger:d.id,input:{x:0,y:0}});this.send(p.ws,{type:'notification',message:'🚗 Sei passeggero di '+d.username+' · premi di nuovo per scendere'});this.send(d.ws,{type:'notification',message:'🚗 '+p.username+' è salito con te'});return;}}
+  if(!p.vehicle){const SEATS={auto:3,furgone:2,cabrio:1,scooter:1};const d=[...this.players.values()].find(d=>d!==p&&d.room===p.room&&d.vehicle&&SEATS[VEHICLE[d.vehicle]?.base||d.vehicle]&&distance(d,p)<2.6&&!this.blocked(d.id,p.id));
+   if(d){const used=[...this.players.values()].filter(q=>q.passenger===d.id).length;if(used>=SEATS[VEHICLE[d.vehicle]?.base||d.vehicle]){this.send(p.ws,{type:'notification',message:'Il veicolo è pieno'});return;}Object.assign(p,{seat:'car',passenger:d.id,input:{x:0,y:0}});this.send(p.ws,{type:'notification',message:'🚗 Sei passeggero di '+d.username+' · premi di nuovo per scendere'});this.send(d.ws,{type:'notification',message:'🚗 '+p.username+' è salito con te'});return;}}
   const door=doors(p.room).find(d=>distance(d,p)<1.65);
   if(door){
    if(door.to.startsWith('villa')&&!this.living?.villaAccess(p.id,door.to)){this.send(p.ws,{type:'villa',id:door.to,...this.living?.villaInfo(door.to,p.id)});return;}
