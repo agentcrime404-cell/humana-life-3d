@@ -39,6 +39,7 @@ export class Living{
  route(path,method,user,b){const p=this.game.players.get(user.id),three=this.edition==='3d';
   if(three&&path.startsWith('/api/rp')&&this.game.rp)return this.game.rp.route(path,method,p,b||{});
   if(three&&path.startsWith('/api/heist')&&this.game.heist)return this.game.heist.route(path,method,p,b||{});
+  if(three&&path.startsWith('/api/gang')&&this.game.gangs)return this.game.gangs.route(path,method,p,b||{});
   if(three&&path.startsWith('/api/biz')&&this.game.biz)return this.game.biz.route(path,method,p,b||{});
   if(three&&path.startsWith('/api/bag')&&this.game.bag)return this.game.bag.route(path,method,p,b||{});
   if(three&&p?.jail&&method==='POST'&&JAIL_BLOCK.some(q=>path.startsWith(q)))fail('Sei in prigione: aspetta che ti liberino',403);

@@ -213,3 +213,5 @@ CATALOG.push(...BAG_ITEMS);
 // Locali da comprare e gestire (stile FiveM): prezzo per tipo di locale, cut = parte della spesa dei clienti che va nella cassa del proprietario,
 // passive = monete ogni every secondi per ogni locale (proprietario in gioco), sell = quota restituita se si rivende.
 export const BIZ={price:{bar:2500,pizzeria:3000,trattoria:3500,osteria:3500,vesuvio:4000,panorama:4500,burger:2500,shop:3000,fashion:4000,barber:2000,club:6000,casino:8000},cut:.2,passive:40,every:600,sell:.5};
+// Gang (stile FiveM): price = costo per fondarla, max membri, cut = parte del bottino delle rapine dei membri che va nella cassa della gang, reach = metri per invitare.
+export const GANG={price:1000,max:8,cut:.1,reach:6,colors:['#e11d48','#2563eb','#16a34a','#f59e0b','#7c3aed','#0f172a','#ec4899','#06b6d4']};

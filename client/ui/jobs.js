@@ -1,5 +1,5 @@
 // Lavoro e missioni: app "Lavoro" nel telefono, indicatore della consegna con freccia e tempo, avvisi di paga e livello.
-import {rpCard} from './rp.js';import {bizCard} from './biz.js';
+import {rpCard} from './rp.js';import {bizCard} from './biz.js';import {gangCard} from './gang.js';
 export function installJobs({api,net,notify,modal,button,getMe,renderer}){
  // Elemento: tag, classe, testo.
  const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e;};
@@ -13,7 +13,7 @@ export function installJobs({api,net,notify,modal,button,getMe,renderer}){
  net.addEventListener('jobDone',e=>{const m=e.detail;notify('✅ Consegna a '+m.place+' completata: +'+m.coins+' 🪙'+(m.fast?' (bonus veloce!)':''));document.dispatchEvent(new CustomEvent('humana:wallet'));});
  net.addEventListener('levelUp',e=>{notify('⭐ Livello '+e.detail.level+'! Premio: +'+e.detail.coins+' 🪙');document.dispatchEvent(new CustomEvent('humana:wallet'));});
  async function open(){const box=modal('💼 Lavoro e missioni');box.append(mk('p','muted','Caricamento…'));let v;try{v=await api('/jobs');}catch(e){box.replaceChildren(mk('p',null,e.message));return;}paint(box,v);}
- function paint(box,v){box.replaceChildren();box.append(rpCard({api,notify,button,net}));box.append(bizCard({api,notify,button}));
+ function paint(box,v){box.replaceChildren();box.append(rpCard({api,notify,button,net}));box.append(bizCard({api,notify,button}));box.append(gangCard({api,notify,button}));
   const job=mk('section','job-card');job.append(mk('h3',null,'🛵 Rider · consegne'));
   if(v.job){job.append(mk('p',null,'In corso: porta il pacco a '+v.job.name+'. Segui la freccia in alto.'));job.append(button('Annulla consegna',async()=>paint(box,await api('/jobs/cancel','POST',{}))));}
   else{job.append(mk('p','muted','Ritira un pacco e consegnalo in città. Più arrivi in fretta, più guadagni: usa monopattino, scooter o auto!'));job.append(button('📦 Prendi una consegna',async()=>{try{const r=await api('/jobs/start','POST',{});notify('📦 Consegna a '+r.job.name+' · '+r.job.reward+' 🪙');paint(box,r);}catch(e){notify(e.message);}}));}

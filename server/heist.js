@@ -26,7 +26,7 @@ export class Heists{
  tick(p){const h=p.heist;if(!h)return;if(p.jail){p.heist=null;return;}
   if(p.room!==h.room){p.heist=null;this.tell(p,'❌ Rapina fallita: sei uscito prima di prendere i soldi');return;}
   const now=Date.now();if(now<h.until)return;p.heist=null;
-  this.game.db.prepare('UPDATE player_state SET balance=balance+? WHERE user_id=?').run(h.loot,p.id);this.game.send(p.ws,{type:'wallet'});
+  this.game.db.prepare('UPDATE player_state SET balance=balance+? WHERE user_id=?').run(h.loot,p.id);this.game.gangs?.loot(p,h.loot);this.game.send(p.ws,{type:'wallet'});
   if(p.wanted?.cops){p.wanted.until=Math.max(p.wanted.until,now+RP.chase*1000);this.game.police.save(p);for(const c of this.cops(p))this.tell(c,'🚨 Centrale: '+p.username+' è scappato con il bottino da '+h.name+'!');}
   else{const st=this.game.police.nearest(p),d=PRISON.delay[0]+Math.random()*(PRISON.delay[1]-PRISON.delay[0]);p.wanted={t0:now,until:now+d*1000,caught:Math.random()<PRISON.catch,station:st.id,value:h.loot,x:p.x,y:p.y,room:p.room};this.game.police.save(p);}
   this.tell(p,'💰 Colpo riuscito: +'+h.loot+' 🪙! Ora scappa: esci dal locale prima che arrivi la polizia!');}
