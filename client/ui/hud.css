@@ -430,11 +430,11 @@ body.is3d #modal.atm-full .atm-title{font-size:14px}body.is3d #modal.atm-full .a
 }
 @media (max-height:500px) and (orientation:landscape){
  #wanted-hud{width:max-content;top:calc(96px + var(--safe-top));max-width:min(280px,calc(100vw - 360px));white-space:normal;text-align:center;font-size:12px;padding:4px 12px}
- #job-hud,#heist-hud{width:max-content;top:calc(134px + var(--safe-top));max-width:min(300px,calc(100vw - 340px))}
+ #job-hud,#heist-hud{width:max-content;top:calc(134px + var(--safe-top));left:calc(50% - 40px);max-width:min(260px,calc(100vw - 380px))}
  body:has(#job-hud:not([hidden])) #heist-hud{top:calc(186px + var(--safe-top))}
  #heist-hud{font-size:12px;padding:5px 10px;gap:4px}
  #heist-hud .dh-bar{width:min(200px,calc(100vw - 380px))}
- #toast{top:calc(212px + var(--safe-top));max-width:min(330px,calc(100vw - 340px));width:max-content;font-size:12px;padding:6px 12px}
+ #toast{top:calc(212px + var(--safe-top));left:calc(50% + 28px);max-width:min(290px,calc(100vw - 350px));width:max-content;font-size:12px;padding:6px 12px}
  #heist-btn{left:calc(50% + 15px);bottom:calc(14px + var(--safe-bottom));font-size:14px;padding:8px 16px;max-width:calc(100vw - 340px)}
  #drive-hud{left:calc(50% + 15px);max-width:calc(100vw - 330px);font-size:12px;padding:4px 8px;gap:6px}
  #alc-hud{left:calc(50% + 15px);bottom:calc(76px + var(--safe-bottom));font-size:12px;padding:4px 8px}
@@ -455,4 +455,8 @@ body.is3d #modal.atm-full .atm-title{font-size:14px}body.is3d #modal.atm-full .a
  body.is3d #toast{top:calc(192px + var(--safe-top));z-index:8;font-size:11px;padding:6px 10px;width:max-content;max-width:calc(100vw - 132px)}
  body:has(#heist-hud:not([hidden])) #wanted-hud{display:none}
  body:has(#heist-btn:not([hidden])) #toast{top:calc(192px + var(--safe-top))}
+}
+/* Telefoni orizzontali molto bassi (es. 568×320): la barra della rapina si stringe per non toccare il joystick. */
+@media (max-height:340px) and (orientation:landscape){
+ #job-hud,#heist-hud{max-width:min(200px,calc(100vw - 380px))}
 }
